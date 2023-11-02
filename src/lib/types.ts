@@ -7,13 +7,13 @@ export interface Remote {
   url: string
 }
 
-export class GitError extends Error {
+export class ShellError extends Error {
   constructor(
     public code: number,
     public command: string,
     public output: string,
   ) {
-    super(`Git command '${command}' failed with exitcode ${code}:\n\n${output}`)
+    super(`Shell command '${command}' failed with exitcode ${code}:\n\n${output}`)
   }
 }
 

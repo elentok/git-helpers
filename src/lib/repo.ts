@@ -1,3 +1,39 @@
+import { isDirectory } from "./helpers.ts"
+import { shell } from "./shell.ts"
+import { Repo } from "./types.ts"
+
+/**
+ * Returns the repository in the given directory (searches up until it finds
+ * the root directory).
+ */
+export function findRepo(dir: string): Repo | undefined {
+  const { success, stdout: root } = shell("git", {
+    args: ["rev-parse", "--show-toplevel"],
+    cwd: dir,
+    throwError: false,
+  })
+  console.log("[elentok] [repo.ts] findRepo", isDirectory(root))
+  if (success && isDirectory(root)) {
+    return { root }
+  }
+}
+
+/**
+ * Returns the repository in the given directory (searches up until it finds
+ * the root directory).
+ *
+ * If no repo found shows and error message and exits the process
+ */
+export function findRepoOrExit(dir: string): Repo {
+  const repo = findRepo(dir)
+  if (repo == null) {
+    console.error(`Error: No git repo found at '${dir}'`)
+    Deno.exit(1)
+  }
+
+  return repo
+}
+
 // import * as shell from "shelljs"
 // import { IPair, LocalBranch, parseBranchLine, RemoteBranch } from "./branch"
 // import { Remote } from "./remote"

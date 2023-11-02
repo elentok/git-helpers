@@ -1,8 +1,9 @@
 import { git } from "./git.ts"
 import { Branch, Repo } from "./types.ts"
 
-export function branches(repo: Repo): Branch[] {
-  return git(repo, ["branch", "--all"])
+export function gitBranches(repo: Repo): Branch[] {
+  const { stdout } = git(repo, ["branch", "--all"])
+  return stdout
     .split("\n")
     .filter((line) => !/\/HEAD /.test(line)) // ignore HEAD
     .map(_parseBranchLine)

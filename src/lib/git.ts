@@ -8,3 +8,11 @@ export function git(repo: Repo, args: string[], options?: ShellOptions): ShellRe
 export function gitRemotes(repo: Repo): string[] {
   return git(repo, ["remote"]).stdout.split("\n")
 }
+
+export function gitHash(repo: Repo, ref: string): string {
+  return git(repo, ["log", "-1", "--pretty=%H", ref]).stdout
+}
+
+export function gitCurrentBranch(repo: Repo): string {
+  return git(repo, ["rev-parse", "--abbrev-ref", "HEAD"]).stdout
+}

@@ -1,6 +1,6 @@
 import { Repo } from "./lib/types.ts"
 import { remotes } from "./lib/remote.ts"
-import { branches } from "./lib/branch.ts"
+import { gitBranches } from "./lib/branch.ts"
 
 const repo: Repo = { root: Deno.env.get("HOME")! + "/.dotfiles" }
 
@@ -10,7 +10,7 @@ for (const remote of remotes(repo)) {
 }
 
 console.info("Branches:")
-for (const branch of branches(repo)) {
+for (const branch of gitBranches(repo)) {
   if (branch.type === "local") {
     console.info(`- LOCAL: ${branch.name} (${branch.gitName})`)
   } else {

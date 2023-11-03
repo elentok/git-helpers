@@ -1,5 +1,5 @@
 import { gitBranches } from "../lib/branch.ts"
-import { gitHash } from "../lib/git.ts"
+import { getHash } from "../lib/git.ts"
 import { findRepoOrExit } from "../lib/repo.ts"
 import { Branch, LocalBranch, RemoteBranch, Repo } from "../lib/types.ts"
 
@@ -27,12 +27,12 @@ function getStatus(repo: Repo): RepoStatus {
 
   const detailedRemoteBranches = remoteBranches.map((branch) => ({
     ...branch,
-    hash: gitHash(repo, branch.gitName),
+    hash: getHash(repo, branch.gitName),
   }))
 
   const detailedLocalBranches = localBranches.map((branch) => ({
     ...branch,
-    hash: gitHash(repo, branch.gitName),
+    hash: getHash(repo, branch.gitName),
     remoteBranches: detailedRemoteBranches.filter((b) => b.name === branch.name),
   }))
 

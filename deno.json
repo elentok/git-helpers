@@ -2,5 +2,9 @@
   "tasks": {
     "dev": "deno run --watch --allow-run --allow-env src/main.ts",
     "cli": "deno run --allow-run --allow-read src/cli.ts"
-  }
+  },
+  "imports": {
+    "std/": "https://deno.land/std@0.204.0/"
+  },
+  "$schema": "https://deno.land/x/deno/cli/schemas/config-file.v1.json"
 }

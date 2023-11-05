@@ -1,5 +1,5 @@
 import { _parseBranchLine } from "./branch.ts"
-import { assertEquals } from "https://deno.land/std@0.204.0/assert/mod.ts"
+import { assertEquals } from "std/assert/mod.ts"
 import { Branch } from "./types.ts"
 
 Deno.test(_parseBranchLine.name, () => {

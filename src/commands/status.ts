@@ -16,13 +16,21 @@ export function status({ quick }: { quick?: boolean } = {}) {
       const symbol = localBranch.isSynced ? "v" : "x"
       const suffix = localBranch.remoteBranches.length > 1 ? ":" : ""
 
-      console.info(`${symbol} ${localBranch.name}${suffix}`)
-      if (localBranch.remoteBranches.length > 1) {
-        for (const remoteBranch of localBranch.remoteBranches) {
-          const symbol = remoteBranch.status === "same" ? "v" : "x"
-          console.info(`${symbol} ${localBranch.name}`)
-        }
+      console.info(`${symbol} ${localBranch.gitName}${suffix}`)
+      // if (localBranch.remoteBranches.length > 1) {
+      for (const remoteBranch of localBranch.remoteBranches) {
+        const symbol = remoteBranch.status.name === "same" ? "v" : "x"
+        const { name, ahead, behind } = remoteBranch.status
+        const status = [
+          name === "ahead" || name === "behind" ? null : name,
+          ahead > 0 ? `${ahead} ahead` : null,
+          behind > 0 ? `${behind} behind` : null,
+        ]
+          .filter((d) => d != null)
+          .join(", ")
+        console.info(`  ${symbol} ${remoteBranch.gitName} (${status})`)
       }
+      // }
     }
   }
 }

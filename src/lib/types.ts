@@ -43,6 +43,14 @@ export interface LocalBranchStatus extends LocalBranch {
 }
 
 export interface RemoteBranchStatus extends RemoteBranch {
-  status: "behind" | "ahead" | "same" | "unclear"
+  status: SyncStatus
   hash: string
 }
+
+export interface SyncStatus {
+  behind: number
+  ahead: number
+  name: "behind" | "ahead" | "diverged" | "same" | "unclear"
+}
+
+// export type SyncStatus = "behind" | "ahead" | "diverged" | "same" | "unclear"

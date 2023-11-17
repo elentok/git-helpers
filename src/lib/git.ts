@@ -21,3 +21,14 @@ export function getHash(repo: Repo, ref: string): string {
 export function getCurrentBranch(repo: Repo): string {
   return git(repo, ["rev-parse", "--abbrev-ref", "HEAD"]).stdout
 }
+
+export function getRevCount(repo: Repo, fromRef: string, toRef: string): number {
+  const output = git(repo, ["rev-list", "--count", `${fromRef}..${toRef}`]).stdout
+  const count = Number(output)
+
+  if (isNaN(count)) {
+    throw new Error(`Invalid rev-list count '${output}'`)
+  }
+
+  return count
+}

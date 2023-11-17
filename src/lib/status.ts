@@ -1,5 +1,5 @@
 import { gitBranches } from "./branch.ts"
-import { getHash } from "./git.ts"
+import { getHash, getRevCount, git } from "./git.ts"
 import {
   LocalBranch,
   LocalBranchStatus,
@@ -7,6 +7,7 @@ import {
   RemoteBranchStatus,
   Repo,
   RepoStatus,
+  SyncStatus,
 } from "./types.ts"
 
 export function getStatus(repo: Repo): RepoStatus {
@@ -34,10 +35,40 @@ function getBranchStatus(
 
   const remoteBranchStatuses: RemoteBranchStatus[] = remoteBranches.map((rb) => {
     const remoteHash = getHash(repo, rb.gitName)
-    return { ...rb, hash: remoteHash, status: localHash === remoteHash ? "same" : "unclear" }
+    const status = getSyncStatus(repo, localBranch, localHash, rb, remoteHash)
+
+    return { ...rb, hash: remoteHash, status }
   })
 
-  const isSynced = !remoteBranchStatuses.find((rb) => rb.status !== "same")
+  const isSynced = !remoteBranchStatuses.find((rb) => rb.status.name !== "same")
 
   return { ...localBranch, isSynced, hash: localHash, remoteBranches: remoteBranchStatuses }
+}
+
+function getSyncStatus(
+  repo: Repo,
+  localBranch: LocalBranch,
+  localHash: string,
+  remoteBranch: RemoteBranch,
+  remoteHash: string,
+): SyncStatus {
+  if (localHash === remoteHash) {
+    return { name: "same", ahead: 0, behind: 0 }
+  }
+
+  const behind = getRevCount(repo, localBranch.gitName, remoteBranch.gitName)
+  const ahead = getRevCount(repo, remoteBranch.gitName, localBranch.gitName)
+
+  let name: SyncStatus["name"] = "unclear"
+  if (ahead > 0) {
+    if (behind > 0) {
+      name = "diverged"
+    } else {
+      name = "ahead"
+    }
+  } else {
+    name = "behind"
+  }
+
+  return { name, behind, ahead }
 }

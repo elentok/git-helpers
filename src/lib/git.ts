@@ -1,5 +1,5 @@
 import { ShellOptions, ShellResult, shell } from "./shell.ts"
-import { LocalBranch, LocalBranchStatus, Repo } from "./types.ts"
+import { Repo } from "./types.ts"
 
 export function git(repo: Repo, args: string[], options?: ShellOptions): ShellResult {
   return shell("git", { args, cwd: repo.root, ...options })

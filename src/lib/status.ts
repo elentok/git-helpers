@@ -1,5 +1,5 @@
 import { gitBranches } from "./branch.ts"
-import { getHash, getRevCount, git } from "./git.ts"
+import { getHash, getRevCount } from "./git.ts"
 import {
   LocalBranch,
   LocalBranchStatus,

@@ -47,13 +47,8 @@ export async function fzf({ items, selectOne, exitZero, ...rest }: FzfOptions): 
   return outputLines
 }
 
-function buildArgs({ allowMultiple, selectOne, exitZero, prompt }: FzfFlags): string[] {
-  return [
-    allowMultiple ? "--multi" : null,
-    // selectOne ? "--select-1" : null,
-    // exitZero ? "--exit-0" : null,
-    prompt ? ["--prompt", prompt] : null,
-  ]
+function buildArgs({ allowMultiple, prompt }: FzfFlags): string[] {
+  return [allowMultiple ? "--multi" : null, prompt ? ["--prompt", prompt] : null]
     .filter(isPresent)
     .flat()
 }

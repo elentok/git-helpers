@@ -1,5 +1,8 @@
 // import { shell } from "./shell.ts"
 
+export const CHECKMARK = "✔"
+export const ERROR = "✘"
+
 export function isPresent<T>(value: T | null | undefined): value is T {
   return value != null
 }

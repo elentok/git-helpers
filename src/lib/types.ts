@@ -51,6 +51,5 @@ export interface SyncStatus {
   behind: number
   ahead: number
   name: "behind" | "ahead" | "diverged" | "same" | "unclear"
+  pretty: string
 }
-
-// export type SyncStatus = "behind" | "ahead" | "diverged" | "same" | "unclear"

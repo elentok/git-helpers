@@ -70,5 +70,13 @@ function getSyncStatus(
     name = "behind"
   }
 
-  return { name, behind, ahead }
+  const pretty = [
+    name === "ahead" || name === "behind" ? null : name,
+    ahead > 0 ? `${ahead} ahead` : null,
+    behind > 0 ? `${behind} behind` : null,
+  ]
+    .filter((d) => d != null)
+    .join(", ")
+
+  return { name, behind, ahead, pretty }
 }

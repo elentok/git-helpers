@@ -1,4 +1,5 @@
 import { updateRemote } from "../lib/git.ts"
+import { CHECKMARK, ERROR } from "../lib/helpers.ts"
 import { findRepoOrExit } from "../lib/repo.ts"
 import { getStatus } from "../lib/status.ts"
 
@@ -13,24 +14,18 @@ export function status({ quick }: { quick?: boolean } = {}) {
     if (localBranch.remoteBranches.length === 0) {
       console.info(`- ${localBranch.name} (local only)`)
     } else {
-      const symbol = localBranch.isSynced ? "v" : "x"
-      const suffix = localBranch.remoteBranches.length > 1 ? ":" : ""
+      const symbol = localBranch.isSynced ? CHECKMARK : ERROR
 
-      console.info(`${symbol} ${localBranch.gitName}${suffix}`)
-      // if (localBranch.remoteBranches.length > 1) {
-      for (const remoteBranch of localBranch.remoteBranches) {
-        const symbol = remoteBranch.status.name === "same" ? "v" : "x"
-        const { name, ahead, behind } = remoteBranch.status
-        const status = [
-          name === "ahead" || name === "behind" ? null : name,
-          ahead > 0 ? `${ahead} ahead` : null,
-          behind > 0 ? `${behind} behind` : null,
-        ]
-          .filter((d) => d != null)
-          .join(", ")
-        console.info(`  ${symbol} ${remoteBranch.gitName} (${status})`)
+      if (localBranch.remoteBranches.length === 1) {
+        const rb = localBranch.remoteBranches[0]
+        console.info(`${symbol} ${localBranch.gitName} (${rb.status.pretty})`)
+      } else {
+        console.info(`${symbol} ${localBranch.gitName}:`)
+        for (const rb of localBranch.remoteBranches) {
+          const symbol = rb.status.name === "same" ? CHECKMARK : ERROR
+          console.info(`  ${symbol} ${rb.gitName} (${rb.status.pretty})`)
+        }
       }
-      // }
     }
   }
 }

@@ -4,6 +4,10 @@ import { status } from "./commands/status.ts"
 
 const program = new Command()
 program.command("destroy").description("Destroys a local and remote branch").action(destroy)
-program.command("status [branch]").description("Shows the branch sync status").action(status)
+program
+  .command("status")
+  .option("-q, --quick", "skip updating the remotes")
+  .description("Shows the branch sync status")
+  .action(status)
 
 program.parse()

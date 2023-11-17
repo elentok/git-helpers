@@ -12,7 +12,6 @@ export function findRepo(dir: string): Repo | undefined {
     cwd: dir,
     throwError: false,
   })
-  console.log("[elentok] [repo.ts] findRepo", isDirectory(root))
   if (success && isDirectory(root)) {
     return { root }
   }

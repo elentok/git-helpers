@@ -31,3 +31,18 @@ export interface RemoteBranch {
 }
 
 export type Branch = LocalBranch | RemoteBranch
+
+export interface RepoStatus {
+  localBranches: LocalBranchStatus[]
+}
+
+export interface LocalBranchStatus extends LocalBranch {
+  remoteBranches: RemoteBranchStatus[]
+  isSynced: boolean
+  hash: string
+}
+
+export interface RemoteBranchStatus extends RemoteBranch {
+  status: "behind" | "ahead" | "same" | "unclear"
+  hash: string
+}

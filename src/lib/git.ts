@@ -1,5 +1,5 @@
 import { ShellOptions, ShellResult, shell } from "./shell.ts"
-import { Repo } from "./types.ts"
+import { LocalBranch, LocalBranchStatus, Repo } from "./types.ts"
 
 export function git(repo: Repo, args: string[], options?: ShellOptions): ShellResult {
   return shell("git", { args, cwd: repo.root, ...options })
@@ -7,6 +7,11 @@ export function git(repo: Repo, args: string[], options?: ShellOptions): ShellRe
 
 export function getRemotes(repo: Repo): string[] {
   return git(repo, ["remote"]).stdout.split("\n")
+}
+
+export function updateRemote(repo: Repo): void {
+  console.info("Updating remotes...")
+  git(repo, ["remote", "update"])
 }
 
 export function getHash(repo: Repo, ref: string): string {

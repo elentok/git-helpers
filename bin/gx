@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+root="$(dirname "$0")/.."
+
+deno run --allow-read --allow-run --allow-env "${root}/src/cli.ts" "$@"

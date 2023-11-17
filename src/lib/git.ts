@@ -32,3 +32,17 @@ export function getRevCount(repo: Repo, fromRef: string, toRef: string): number 
 
   return count
 }
+
+export function hasUncommitedChanges(repo: Repo): boolean {
+  return (
+    git(repo, ["status", "--porcelain=v1"])
+      .stdout.split("\n")
+      .filter((l) => !l.startsWith("?? ")).length > 0
+  )
+}
+
+export function hasUntrackedFiles(repo: Repo): boolean {
+  const lines = git(repo, ["status", "--porcelain=v1"]).stdout.split("\n")
+
+  return lines.find((l) => l.startsWith("?? ")) != null
+}

@@ -34,6 +34,8 @@ export type Branch = LocalBranch | RemoteBranch
 
 export interface RepoStatus {
   localBranches: LocalBranchStatus[]
+  hasUncommitedChanges: boolean
+  hasUntrackedFiles: boolean
 }
 
 export interface LocalBranchStatus extends LocalBranch {

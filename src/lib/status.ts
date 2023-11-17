@@ -1,5 +1,5 @@
 import { gitBranches } from "./branch.ts"
-import { getHash, getRevCount } from "./git.ts"
+import { getHash, getRevCount, hasUncommitedChanges, hasUntrackedFiles } from "./git.ts"
 import {
   LocalBranch,
   LocalBranchStatus,
@@ -23,6 +23,8 @@ export function getStatus(repo: Repo): RepoStatus {
 
   return {
     localBranches: localBranchStatuses,
+    hasUncommitedChanges: hasUncommitedChanges(repo),
+    hasUntrackedFiles: hasUntrackedFiles(repo),
   }
 }
 
@@ -53,7 +55,7 @@ function getSyncStatus(
   remoteHash: string,
 ): SyncStatus {
   if (localHash === remoteHash) {
-    return { name: "same", ahead: 0, behind: 0 }
+    return { name: "same", ahead: 0, behind: 0, pretty: "synced" }
   }
 
   const behind = getRevCount(repo, localBranch.gitName, remoteBranch.gitName)

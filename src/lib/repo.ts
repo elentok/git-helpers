@@ -1,6 +1,7 @@
+import { git, revParseBoolean, revParseString } from "./git.ts"
 import { isDirectory } from "./helpers.ts"
 import { shell } from "./shell.ts"
-import { Repo } from "./types.ts"
+import { DirInfo, Repo } from "./types.ts"
 
 /**
  * Returns the repository in the given directory (searches up until it finds
@@ -31,6 +32,19 @@ export function findRepoOrExit(dir: string): Repo {
   }
 
   return repo
+}
+
+export function identifyDirectory(dir: string): DirInfo {
+  const isBare = revParseBoolean(dir, "is-bare-repository")
+  const isInsideWorktree = revParseBoolean(dir, "is-inside-work-tree")
+  const repoRoot = revParseString(dir, "show-toplevel")
+  return {
+    isBare,
+    isInsideWorktree,
+    isRepo: isBare || isInsideWorktree || repoRoot != null,
+    isRepoRoot: !isInsideWorktree && repoRoot === dir,
+    isWorktreeRoot: isInsideWorktree && repoRoot === dir,
+  }
 }
 
 // import * as shell from "shelljs"

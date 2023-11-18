@@ -1,8 +1,9 @@
 import { ShellOptions, ShellResult, shell } from "./shell.ts"
 import { Repo } from "./types.ts"
 
-export function git(repo: Repo, args: string[], options?: ShellOptions): ShellResult {
-  return shell("git", { args, cwd: repo.root, ...options })
+export function git(repo: Repo | string, args: string[], options?: ShellOptions): ShellResult {
+  const cwd = typeof repo === "string" ? repo : repo.root
+  return shell("git", { args, cwd, ...options })
 }
 
 export function getRemotes(repo: Repo): string[] {
@@ -47,4 +48,18 @@ export function hasUntrackedFiles(repo: Repo): boolean {
 
   const lines = output.split("\n")
   return lines.find((l) => l.startsWith("?? ")) != null
+}
+
+export function revParseString(repo: Repo | string, what: "show-toplevel"): string | undefined {
+  const result = git(repo, ["rev-parse", `--${what}`], { throwError: false })
+  if (!result.success) return
+  return result.stdout
+}
+
+export function revParseBoolean(
+  repo: Repo | string,
+  what: "is-bare-repository" | "is-inside-work-tree",
+): boolean {
+  const result = git(repo, ["rev-parse", `--${what}`], { throwError: false })
+  return result.success && result.stdout === "true"
 }

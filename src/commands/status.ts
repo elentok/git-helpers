@@ -1,11 +1,27 @@
 import { updateRemote } from "../lib/git.ts"
 import { CHECKMARK, ERROR } from "../lib/helpers.ts"
-import { findRepoOrExit } from "../lib/repo.ts"
+import { findRepoOrExit, identifyDirectory } from "../lib/repo.ts"
 import { getStatus } from "../lib/status.ts"
 import chalk from "npm:chalk"
 import { SyncStatus } from "../lib/types.ts"
 
 export function status({ quick }: { quick?: boolean } = {}) {
+  const dirInfo = identifyDirectory(Deno.cwd())
+  if (!dirInfo.isRepo) {
+    console.error(chalk.red("Error: Not inside a git repository"))
+    Deno.exit(1)
+  }
+
+  const dirPrettyInfo = [
+    dirInfo.isRepoRoot ? "repo root" : null,
+    dirInfo.isWorktreeRoot ? "worktree root" : null,
+    dirInfo.isBare ? "bare" : null,
+    dirInfo.isInsideWorktree ? "inside-worktree" : null,
+  ]
+    .filter((x) => x != null)
+    .join(", ")
+  console.info(`Repo: ${dirPrettyInfo}`)
+
   const repo = findRepoOrExit(Deno.cwd())
   if (!quick) {
     updateRemote(repo)

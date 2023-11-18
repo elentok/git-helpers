@@ -55,3 +55,10 @@ export interface SyncStatus {
   name: "behind" | "ahead" | "diverged" | "same" | "unclear"
   pretty: string
 }
+
+export interface DirInfo {
+  isRepo: boolean
+  isRepoRoot: boolean
+  isBare: boolean
+  isInsideWorktree: boolean
+}

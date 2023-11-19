@@ -59,6 +59,15 @@ export interface SyncStatus {
 export interface DirInfo {
   isRepo: boolean
   isRepoRoot: boolean
-  isBare: boolean
+  // isBare: boolean
   isInsideWorktree: boolean
+  isWorktreeRoot: boolean
+  mode: RepoMode
+}
+
+export type RepoMode = "bare" | "worktree" | "standard"
+
+export interface Worktree {
+  fullPath: string
+  // TODO: relativePath, localBranch
 }

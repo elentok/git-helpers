@@ -13,7 +13,9 @@ export class ShellError extends Error {
     public command: string,
     public output: string,
   ) {
-    super(`Shell command '${command}' failed with exitcode ${code}:\n\n${output}`)
+    super(
+      `Shell command '${command}' failed with exitcode ${code}:\n\n${output}`,
+    )
   }
 }
 
@@ -56,9 +58,18 @@ export interface SyncStatus {
   pretty: string
 }
 
+export type RepoType = "standard" | "bare"
+
 export interface DirInfo {
-  isRepo: boolean
+  repoType: RepoType
+  repoRoot: string
+  worktreeRoot?: string
+
   isRepoRoot: boolean
-  isBare: boolean
-  isInsideWorktree: boolean
+  isWorktreeRoot: boolean
+}
+
+export interface Worktree {
+  fullPath: string
+  // TODO: relativePath, localBranch
 }

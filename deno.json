@@ -3,6 +3,9 @@
     "dev": "deno run --watch --allow-run --allow-env src/main.ts",
     "cli": "deno run --allow-run --allow-read src/cli.ts"
   },
+  "fmt": {
+    "semiColons": false
+  },
   "imports": {
     "std/": "https://deno.land/std@0.204.0/"
   },

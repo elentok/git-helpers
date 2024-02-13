@@ -1,4 +1,3 @@
-import { updateRemote } from "../lib/git.ts"
 import { CHECKMARK, ERROR } from "../lib/helpers.ts"
 import { findRepoOrExit } from "../lib/repo.ts"
 import { getStatus } from "../lib/status.ts"
@@ -25,7 +24,7 @@ export function status({ quick }: { quick?: boolean } = {}) {
 
   const repo = findRepoOrExit(Deno.cwd())
   if (!quick) {
-    updateRemote(repo)
+    repo.remoteUpdate()
   }
   const status = getStatus(repo)
 

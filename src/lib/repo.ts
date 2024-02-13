@@ -1,9 +1,27 @@
 import { git } from "./git.ts"
-import { isDirectory } from "./helpers.ts"
-import { shell } from "./shell.ts"
+import { parseBranchLine } from "./helpers.ts"
+import { identifyDir } from "./identify-dir.ts"
+import { ShellResult } from "./shell.ts"
+import { ShellOptions } from "./shell.ts"
+import { Branch } from "./types.ts"
+
+export interface CreateRepoOptions {
+  bare?: boolean
+}
 
 export class Repo {
-  constructor(public readonly root: string) {
+  private constructor(
+    public readonly root: string,
+    public readonly isBare: boolean,
+  ) {}
+
+  static fromPath(path: string): Repo | undefined {
+    const dirInfo = identifyDir(path)
+    if (dirInfo == null) return
+
+    const { repoRoot, repoType } = dirInfo
+
+    return new Repo(repoRoot, repoType === "bare")
   }
 
   static init(
@@ -17,22 +35,69 @@ export class Repo {
 
     git(dir, args)
 
-    return new Repo(dir)
+    return new Repo(dir, bare)
   }
-}
 
-/**
- * Returns the repository in the given directory (searches up until it finds
- * the root directory).
- */
-export function findRepo(dir: string): Repo | undefined {
-  const { success, stdout: root } = shell("git", {
-    args: ["rev-parse", "--show-toplevel"],
-    cwd: dir,
-    throwError: false,
-  })
-  if (success && isDirectory(root)) {
-    return { root }
+  git(args: string[], options?: ShellOptions): ShellResult {
+    return git(this.root, args, options)
+  }
+
+  remotes(): string[] {
+    return this.git(["remote"]).stdout.split("\n")
+  }
+
+  remoteUpdate(): void {
+    console.info("Updating remotes...")
+    this.git(["remote", "update"])
+  }
+
+  hash(ref: string): string {
+    return this.git(["log", "-1", "--pretty=%H", ref]).stdout
+  }
+
+  currentBranch(): string {
+    return this.git(["rev-parse", "--abbrev-ref", "HEAD"]).stdout
+  }
+
+  revCount(
+    fromRef: string,
+    toRef: string,
+  ): number {
+    const output =
+      this.git(["rev-list", "--count", `${fromRef}..${toRef}`]).stdout
+    const count = Number(output)
+
+    if (isNaN(count)) {
+      throw new Error(`Invalid rev-list count '${output}'`)
+    }
+
+    return count
+  }
+
+  hasUncommitedChanges(): boolean {
+    const output = this.git(["status", "--porcelain=v1"]).stdout
+    if (output.length === 0) return false
+
+    const lines = output.split("\n").filter((l) =>
+      l.length > 0 && !l.startsWith("?? ")
+    )
+    return lines.length > 0
+  }
+
+  hasUntrackedFiles(): boolean {
+    const output = this.git(["status", "--porcelain=v1"]).stdout
+    if (output.length === 0) return false
+
+    const lines = output.split("\n")
+    return lines.find((l) => l.startsWith("?? ")) != null
+  }
+
+  branches(): Branch[] {
+    const { stdout } = this.git(["branch", "--all"])
+    return stdout
+      .split("\n")
+      .filter((line) => !/\/HEAD /.test(line)) // ignore HEAD
+      .map(parseBranchLine)
   }
 }
 
@@ -43,29 +108,13 @@ export function findRepo(dir: string): Repo | undefined {
  * If no repo found shows and error message and exits the process
  */
 export function findRepoOrExit(dir: string): Repo {
-  const repo = findRepo(dir)
+  const repo = Repo.fromPath(dir)
   if (repo == null) {
     console.error(`Error: No git repo found at '${dir}'`)
     Deno.exit(1)
   }
 
   return repo
-}
-
-export interface CreateRepoOptions {
-  bare?: boolean
-}
-
-export function createRepo(
-  dir: string,
-  { bare = false }: CreateRepoOptions = {},
-): void {
-  const args = ["init"]
-  if (bare) {
-    args.push("--bare")
-  }
-
-  git(dir, args)
 }
 
 // import * as shell from "shelljs"

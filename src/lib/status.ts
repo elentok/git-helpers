@@ -1,30 +1,35 @@
 import { gitBranches } from "./branch.ts"
-import { getHash, getRevCount, hasUncommitedChanges, hasUntrackedFiles } from "./git.ts"
+import { Repo } from "./repo.ts"
 import {
   LocalBranch,
   LocalBranchStatus,
   RemoteBranch,
   RemoteBranchStatus,
-  Repo,
   RepoStatus,
   SyncStatus,
 } from "./types.ts"
 
 export function getStatus(repo: Repo): RepoStatus {
-  const branches = gitBranches(repo)
+  const branches = repo.branches()
 
-  const localBranches = branches.filter((b) => b.type === "local") as LocalBranch[]
-  const remoteBranches = branches.filter((b) => b.type === "remote") as RemoteBranch[]
+  const localBranches = branches.filter((b) =>
+    b.type === "local"
+  ) as LocalBranch[]
+  const remoteBranches = branches.filter((b) =>
+    b.type === "remote"
+  ) as RemoteBranch[]
 
   const localBranchStatuses = localBranches.map((localBranch) => {
-    const relatedRemoteBranches = remoteBranches.filter((b) => b.name === localBranch.name)
+    const relatedRemoteBranches = remoteBranches.filter((b) =>
+      b.name === localBranch.name
+    )
     return getBranchStatus(repo, localBranch, relatedRemoteBranches)
   })
 
   return {
     localBranches: localBranchStatuses,
-    hasUncommitedChanges: hasUncommitedChanges(repo),
-    hasUntrackedFiles: hasUntrackedFiles(repo),
+    hasUncommitedChanges: repo.hasUncommitedChanges(),
+    hasUntrackedFiles: repo.hasUntrackedFiles(),
   }
 }
 
@@ -33,18 +38,25 @@ function getBranchStatus(
   localBranch: LocalBranch,
   remoteBranches: RemoteBranch[],
 ): LocalBranchStatus {
-  const localHash = getHash(repo, localBranch.gitName)
+  const localHash = repo.hash(localBranch.gitName)
 
-  const remoteBranchStatuses: RemoteBranchStatus[] = remoteBranches.map((rb) => {
-    const remoteHash = getHash(repo, rb.gitName)
-    const status = getSyncStatus(repo, localBranch, localHash, rb, remoteHash)
+  const remoteBranchStatuses: RemoteBranchStatus[] = remoteBranches.map(
+    (rb) => {
+      const remoteHash = repo.hash(rb.gitName)
+      const status = getSyncStatus(repo, localBranch, localHash, rb, remoteHash)
 
-    return { ...rb, hash: remoteHash, status }
-  })
+      return { ...rb, hash: remoteHash, status }
+    },
+  )
 
   const isSynced = !remoteBranchStatuses.find((rb) => rb.status.name !== "same")
 
-  return { ...localBranch, isSynced, hash: localHash, remoteBranches: remoteBranchStatuses }
+  return {
+    ...localBranch,
+    isSynced,
+    hash: localHash,
+    remoteBranches: remoteBranchStatuses,
+  }
 }
 
 function getSyncStatus(
@@ -58,8 +70,8 @@ function getSyncStatus(
     return { name: "same", ahead: 0, behind: 0, pretty: "synced" }
   }
 
-  const behind = getRevCount(repo, localBranch.gitName, remoteBranch.gitName)
-  const ahead = getRevCount(repo, remoteBranch.gitName, localBranch.gitName)
+  const behind = repo.revCount(localBranch.gitName, remoteBranch.gitName)
+  const ahead = repo.revCount(remoteBranch.gitName, localBranch.gitName)
 
   let name: SyncStatus["name"] = "unclear"
   if (ahead > 0) {

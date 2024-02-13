@@ -1,10 +1,8 @@
-import { _parseBranchLine } from "./branch.ts"
+import { parseBranchLine } from "./helpers.ts"
 import { assertEquals } from "std/assert/mod.ts"
 import { Branch } from "./types.ts"
 
-Deno.test(_parseBranchLine.name, () => {
-  _parseBranchLine("")
-
+Deno.test(parseBranchLine.name, () => {
   const examples: Record<string, Branch | null> = {
     "  *main": { type: "local", name: "main", gitName: "main" },
     "  bob": { type: "local", name: "bob", gitName: "bob" },
@@ -18,6 +16,6 @@ Deno.test(_parseBranchLine.name, () => {
   }
 
   for (const [line, branch] of Object.entries(examples)) {
-    assertEquals(_parseBranchLine(line), branch)
+    assertEquals(parseBranchLine(line), branch)
   }
 })

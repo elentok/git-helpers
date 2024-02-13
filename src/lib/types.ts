@@ -1,7 +1,3 @@
-export interface Repo {
-  root: string
-}
-
 export interface Remote {
   name: string
   url: string

@@ -9,10 +9,12 @@ describe("identifyDir", () => {
     it("identifies root", () => {
       const dir = createDummyRepo()
       assertEquals(identifyDir(dir), {
-        isBare: false,
+        repo: {
+          isBare: false,
+          root: dir,
+        },
         isRepoRoot: true,
         isWorktreeRoot: true,
-        repoRoot: dir,
       })
     })
 
@@ -22,10 +24,12 @@ describe("identifyDir", () => {
       Deno.mkdirSync(subdir)
 
       assertEquals(identifyDir(subdir), {
-        isBare: false,
+        repo: {
+          isBare: false,
+          root: dir,
+        },
         isRepoRoot: false,
         isWorktreeRoot: false,
-        repoRoot: dir,
       })
     })
   })
@@ -34,10 +38,12 @@ describe("identifyDir", () => {
     it("identifies root", () => {
       const dir = createDummyRepo({ bare: true })
       assertEquals(identifyDir(dir), {
-        isBare: true,
+        repo: {
+          isBare: true,
+          root: dir,
+        },
         isRepoRoot: true,
         isWorktreeRoot: false,
-        repoRoot: dir,
       })
     })
 
@@ -47,10 +53,12 @@ describe("identifyDir", () => {
       Deno.mkdirSync(subdir)
 
       assertEquals(identifyDir(subdir), {
-        isBare: true,
+        repo: {
+          root: dir,
+          isBare: true,
+        },
         isRepoRoot: false,
         isWorktreeRoot: false,
-        repoRoot: dir,
       })
     })
 
@@ -60,10 +68,12 @@ describe("identifyDir", () => {
       Deno.mkdirSync(subdir)
 
       assertEquals(identifyDir(subdir), {
-        isBare: true,
+        repo: {
+          isBare: true,
+          root: dir,
+        },
         isRepoRoot: false,
         isWorktreeRoot: false,
-        repoRoot: dir,
       })
     })
   })

@@ -6,8 +6,7 @@ export interface RepoWithDetails {
 export type Repo = string | RepoWithDetails
 
 export interface DirInfo {
-  isBare: boolean
-  repoRoot: string
+  repo: RepoWithDetails
   worktreeRoot?: string
 
   isRepoRoot: boolean

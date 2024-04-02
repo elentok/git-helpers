@@ -1,7 +1,3 @@
-// import { shell } from "./shell.ts"
-
-import { Branch } from "./types.ts"
-
 export const CHECKMARK = "✔"
 export const ERROR = "✘"
 
@@ -15,26 +11,6 @@ export function isDirectory(dir: string): boolean {
   } catch (e) {
     console.log("[elentok] [helpers.ts] isDirectory exception", e)
     return false
-  }
-}
-
-export function parseBranchLine(line: string): Branch {
-  line = line.replace(/^\s*[\*\+]/g, "").trim()
-
-  if (line.match(/^remotes\//)) {
-    const [_, remoteName, name] = line.split("/", 3)
-    return {
-      type: "remote",
-      name,
-      remoteName,
-      gitName: `${remoteName}/${name}`,
-    }
-  } else {
-    return {
-      type: "local",
-      name: line,
-      gitName: line,
-    }
   }
 }
 

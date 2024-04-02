@@ -1,4 +1,4 @@
-import { parseBranchLine } from "../helpers.ts"
+import { parseBranchLine } from "./parseBranchLine.ts"
 import { run } from "./run.ts"
 import { Branch, Repo } from "./types.ts"
 

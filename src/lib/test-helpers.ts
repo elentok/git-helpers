@@ -1,10 +1,9 @@
-import { git } from "./git.ts"
-import { createRepo, CreateRepoOptions } from "./repo.ts"
+import * as git from "./git/index.ts"
 import * as path from "https://deno.land/std@0.214.0/path/mod.ts"
 
-export function createDummyRepo(opts?: CreateRepoOptions): string {
+export function createDummyRepo(opts?: git.InitRepoOptions): string {
   const dir = Deno.makeTempDirSync()
-  createRepo(dir, opts)
+  git.init(dir, opts)
   return dir
 }
 
@@ -15,6 +14,6 @@ export function createDummyCommit(
   Object.entries(files).forEach(([filename, content]) => {
     const fullname = path.join(repoRoot, filename)
     Deno.writeTextFileSync(fullname, content)
-    git(repoRoot, ["add", filename])
+    git.run(repoRoot, ["add", filename])
   })
 }

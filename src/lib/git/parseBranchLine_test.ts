@@ -1,4 +1,4 @@
-import { parseBranchLine } from "./helpers.ts"
+import { parseBranchLine } from "./parseBranchLine.ts"
 import { assertEquals } from "std/assert/mod.ts"
 import { Branch } from "./types.ts"
 

@@ -5,11 +5,16 @@ import { getRepoStatus } from "../lib/status.ts"
 export async function destroy() {
   const repo = findRepoOrExit(Deno.cwd())
 
+  const worktrees = repo.worktrees.list()
   const status = getRepoStatus(repo)
 
-  const items = status.localBranches.map((b) =>
-    `${b.name} (${b.isSynced ? "synced" : "not synced"})`
-  )
+  const items = status.localBranches.map((b) => {
+    const synced = b.isSynced ? "synced" : "not synced"
+    const status = b.remoteBranches.map((rb) =>
+      `[${rb.remoteName}: ${rb.status.pretty}]`
+    ).join(", ")
+    return `${b.name} (${synced}) ${status}`
+  })
 
   const selectedItems = await fzf({
     items,
@@ -30,7 +35,13 @@ export async function destroy() {
       }
     }
 
+    const worktree = worktrees.find((w) => w.branchName === branchName)
+    if (worktree != null) {
+      console.info(`- Deleting worktree ${worktree.name}`)
+      repo.worktrees.remove(worktree.name, { force: true })
+    }
+
     console.info(`- Deleting local branch ${branch.gitName}`)
-    repo.deleteLocalBranch(branch.name, { force: !branch.isSynced })
+    repo.deleteLocalBranch(branch.name, { force: true })
   }
 }

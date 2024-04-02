@@ -28,8 +28,8 @@ export function getRepoStatus(repo: Repo): RepoStatus {
 
   return {
     localBranches: localBranchStatuses,
-    hasUncommitedChanges: repo.hasUncommitedChanges(),
-    hasUntrackedFiles: repo.hasUntrackedFiles(),
+    hasUncommitedChanges: repo.isBare ? undefined : repo.hasUncommitedChanges(),
+    hasUntrackedFiles: repo.isBare ? undefined : repo.hasUntrackedFiles(),
   }
 }
 

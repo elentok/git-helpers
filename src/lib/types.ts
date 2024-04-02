@@ -32,8 +32,8 @@ export type Branch = LocalBranch | RemoteBranch
 
 export interface RepoStatus {
   localBranches: LocalBranchStatus[]
-  hasUncommitedChanges: boolean
-  hasUntrackedFiles: boolean
+  hasUncommitedChanges?: boolean
+  hasUntrackedFiles?: boolean
 }
 
 export interface LocalBranchStatus extends LocalBranch {
@@ -67,5 +67,6 @@ export interface DirInfo {
 
 export interface Worktree {
   fullPath: string
-  // TODO: relativePath, localBranch
+  name: string
+  branchName: string
 }

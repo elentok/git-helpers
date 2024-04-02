@@ -14,7 +14,7 @@ export interface ShellResult {
 
 const DEFAULT_OPTIONS: ShellOptions = {
   trim: true,
-  throwError: false,
+  throwError: true,
 }
 
 export function shell(cmd: string, options?: ShellOptions): ShellResult {
@@ -46,6 +46,8 @@ export class ShellError extends Error {
   ) {
     const fullCommand = [command, ...(options?.args ?? [])].join(" ")
     const output = result.stdout + "\n" + result.stderr
-    super(`Shell command '${fullCommand}' failed with exitcode ${result.code}:\n\n${output}`)
+    super(
+      `Shell command '${fullCommand}' failed with exitcode ${result.code}:\n\n${output}`,
+    )
   }
 }

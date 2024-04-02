@@ -6,7 +6,7 @@ export function current(repo: Repo): string {
   return run(repo, ["rev-parse", "--abbrev-ref", "HEAD"]).stdout
 }
 
-export function list(repo: Repo): Branch[] {
+export function list(repo: string | Repo): Branch[] {
   const { stdout } = run(repo, ["branch", "--all"])
   return stdout
     .split("\n")
@@ -15,7 +15,7 @@ export function list(repo: Repo): Branch[] {
 }
 
 export function deleteLocalBranch(
-  repo: Repo,
+  repo: string | Repo,
   name: string,
   { force = false }: { force?: boolean } = {},
 ): void {
@@ -23,7 +23,7 @@ export function deleteLocalBranch(
 }
 
 export function deleteRemoteBranch(
-  repo: Repo,
+  repo: string | Repo,
   { name, remoteName }: { name: string; remoteName: string },
 ): void {
   run(repo, ["push", "--delete", remoteName, name])

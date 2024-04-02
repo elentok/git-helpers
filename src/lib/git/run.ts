@@ -2,7 +2,7 @@ import { shell, ShellOptions, ShellResult } from "../shell.ts"
 import { Repo } from "./types.ts"
 
 export function run(
-  repo: Repo,
+  repo: string | Repo,
   args: string[],
   options?: ShellOptions,
 ): ShellResult {

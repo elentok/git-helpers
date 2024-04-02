@@ -1,12 +1,10 @@
-export interface RepoWithDetails {
+export interface Repo {
   root: string
   isBare: boolean
 }
 
-export type Repo = string | RepoWithDetails
-
 export interface DirInfo {
-  repo: RepoWithDetails
+  repo: Repo
   worktreeRoot?: string
 
   isRepoRoot: boolean

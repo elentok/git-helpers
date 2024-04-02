@@ -1,14 +1,14 @@
 import { identifyDir } from "./identifyDir.ts"
-import { RepoWithDetails } from "./types.ts"
+import { Repo } from "./types.ts"
 
-export function findRepo(path: string): RepoWithDetails | undefined {
+export function findRepo(path: string): Repo | undefined {
   const dirInfo = identifyDir(path)
   if (dirInfo == null) return
 
   return dirInfo.repo
 }
 
-export function findRepoOrThrow(dir: string): RepoWithDetails {
+export function findRepoOrThrow(dir: string): Repo {
   const repo = findRepo(dir)
   if (repo == null) {
     throw new Error(`No git repo found at '${dir}'`)
@@ -23,7 +23,7 @@ export function findRepoOrThrow(dir: string): RepoWithDetails {
  *
  * If no repo found shows and error message and exits the process
  */
-export function findRepoOrExit(dir: string): RepoWithDetails {
+export function findRepoOrExit(dir: string): Repo {
   const repo = findRepo(dir)
   if (repo == null) {
     console.error(`Error: No git repo found at '${dir}'`)

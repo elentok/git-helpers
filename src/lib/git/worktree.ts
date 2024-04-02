@@ -3,7 +3,7 @@ import { run } from "./run.ts"
 import { Repo, Worktree } from "./types.ts"
 import { isBare, root } from "./utils.ts"
 
-export function list(repo: Repo): Worktree[] {
+export function list(repo: string | Repo): Worktree[] {
   if (!isBare(repo)) {
     return []
   }
@@ -23,7 +23,7 @@ export function list(repo: Repo): Worktree[] {
 }
 
 export function remove(
-  repo: Repo,
+  repo: string | Repo,
   name: string,
   { force = false }: { force?: boolean } = {},
 ): void {

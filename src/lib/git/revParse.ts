@@ -1,7 +1,8 @@
 import { run } from "./run.ts"
+import { Repo } from "./types.ts"
 
 export function revParseString(
-  repoRoot: string,
+  repoRoot: string | Repo,
   what: "show-toplevel" | "git-dir",
 ): string | undefined {
   const result = run(repoRoot, ["rev-parse", `--${what}`], {
@@ -12,7 +13,7 @@ export function revParseString(
 }
 
 export function revParseBoolean(
-  repoRoot: string,
+  repoRoot: string | Repo,
   what: "is-bare-repository" | "is-inside-work-tree",
 ): boolean {
   const result = run(repoRoot, ["rev-parse", `--${what}`], {

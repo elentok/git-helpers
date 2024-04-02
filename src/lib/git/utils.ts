@@ -2,12 +2,12 @@ import { findRepoOrThrow } from "./findRepo.ts"
 import { run } from "./run.ts"
 import { Repo } from "./types.ts"
 
-export function hash(repo: Repo, ref: string): string {
+export function hash(repo: string | Repo, ref: string): string {
   return run(repo, ["log", "-1", "--pretty=%H", ref]).stdout
 }
 
 export function revCount(
-  repo: Repo,
+  repo: string | Repo,
   fromRef: string,
   toRef: string,
 ): number {
@@ -22,7 +22,7 @@ export function revCount(
   return count
 }
 
-export function hasUncommitedChanges(repo: Repo): boolean {
+export function hasUncommitedChanges(repo: string | Repo): boolean {
   const output = run(repo, ["status", "--porcelain=v1"]).stdout
   if (output.length === 0) return false
 
@@ -32,7 +32,7 @@ export function hasUncommitedChanges(repo: Repo): boolean {
   return lines.length > 0
 }
 
-export function hasUntrackedFiles(repo: Repo): boolean {
+export function hasUntrackedFiles(repo: string | Repo): boolean {
   const output = run(repo, ["status", "--porcelain=v1"]).stdout
   if (output.length === 0) return false
 
@@ -40,7 +40,7 @@ export function hasUntrackedFiles(repo: Repo): boolean {
   return lines.find((l) => l.startsWith("?? ")) != null
 }
 
-export function isBare(repo: Repo): boolean {
+export function isBare(repo: string | Repo): boolean {
   const repoWithDetails = (typeof repo === "string")
     ? findRepoOrThrow(repo)
     : repo
@@ -48,6 +48,6 @@ export function isBare(repo: Repo): boolean {
   return repoWithDetails.isBare
 }
 
-export function root(repo: Repo): string {
+export function root(repo: string | Repo): string {
   return (typeof repo === "string") ? repo : repo.root
 }

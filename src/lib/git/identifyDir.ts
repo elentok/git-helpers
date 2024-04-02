@@ -1,4 +1,4 @@
-import { revParseBoolean, revParseString } from "./git.ts"
+import { revParseBoolean, revParseString } from "./revParse.ts"
 import { DirInfo } from "./types.ts"
 import * as path from "https://deno.land/std@0.214.0/path/mod.ts"
 

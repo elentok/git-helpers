@@ -1,8 +1,8 @@
-import { identifyDir } from "./identify-dir.ts"
+import { identifyDir } from "./identifyDir.ts"
 import { assertEquals } from "std/assert/mod.ts"
 import * as path from "https://deno.land/std@0.214.0/path/mod.ts"
 import { describe, it } from "https://deno.land/std@0.214.0/testing/bdd.ts"
-import { createDummyRepo } from "./test-helpers.ts"
+import { createDummyRepo } from "../test-helpers.ts"
 
 describe("identifyDir", () => {
   describe("standard repo", () => {

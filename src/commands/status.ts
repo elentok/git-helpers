@@ -1,12 +1,10 @@
 import { CHECKMARK, ERROR } from "../lib/helpers.ts"
-import { findRepoOrExit } from "../lib/Repo.ts"
-import { getRepoStatus } from "../lib/status.ts"
+import * as git from "../lib/git/index.ts"
+import { getRepoStatus, SyncStatus } from "../lib/status.ts"
 import chalk from "npm:chalk"
-import { SyncStatus } from "../lib/types.ts"
-import { identifyDir } from "../lib/identify-dir.ts"
 
 export function status({ quick }: { quick?: boolean } = {}) {
-  const dirInfo = identifyDir(Deno.cwd())
+  const dirInfo = git.identifyDir(Deno.cwd())
   if (dirInfo == null) {
     console.error(chalk.red("Error: Not inside a git repository"))
     Deno.exit(1)
@@ -22,9 +20,9 @@ export function status({ quick }: { quick?: boolean } = {}) {
     .join(", ")
   console.info(`Repo: ${dirPrettyInfo}`)
 
-  const repo = findRepoOrExit(Deno.cwd())
+  const repo = git.findRepoOrExit(Deno.cwd())
   if (!quick) {
-    repo.remote.update()
+    git.remote.update(repo)
   }
   const status = getRepoStatus(repo)
 

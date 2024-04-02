@@ -1,4 +1,4 @@
-import { identifyDir } from "../lib/identify-dir.ts"
+import { identifyDir } from "../lib/git/identifyDir.ts"
 
 export function identify() {
   const dirInfo = identifyDir(Deno.cwd())

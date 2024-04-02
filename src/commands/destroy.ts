@@ -1,11 +1,11 @@
-import { findRepoOrExit } from "../lib/Repo.ts"
 import { fzf } from "../lib/fzf.ts"
+import * as git from "../lib/git/index.ts"
 import { getRepoStatus } from "../lib/status.ts"
 
 export async function destroy() {
-  const repo = findRepoOrExit(Deno.cwd())
+  const repo = git.findRepoOrExit(Deno.cwd())
 
-  const worktrees = repo.worktree.list()
+  const worktrees = git.worktree.list(repo)
   const status = getRepoStatus(repo)
 
   const items = status.localBranches.map((b) => {
@@ -31,17 +31,17 @@ export async function destroy() {
     for (const remoteBranch of branch.remoteBranches) {
       if (remoteBranch.status.name === "same") {
         console.info(`- Deleting remote branch ${remoteBranch.gitName}`)
-        repo.deleteRemoteBranch(remoteBranch)
+        git.branch.deleteRemoteBranch(repo, remoteBranch)
       }
     }
 
     const worktree = worktrees.find((w) => w.branchName === branchName)
     if (worktree != null) {
       console.info(`- Deleting worktree ${worktree.name}`)
-      repo.worktrees.remove(worktree.name, { force: true })
+      git.worktree.remove(repo, worktree.name, { force: true })
     }
 
     console.info(`- Deleting local branch ${branch.gitName}`)
-    repo.deleteLocalBranch(branch.name, { force: true })
+    git.branch.deleteLocalBranch(repo, branch.name, { force: true })
   }
 }

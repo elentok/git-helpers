@@ -1,6 +1,6 @@
 import { CHECKMARK, ERROR } from "../lib/helpers.ts"
 import { findRepoOrExit } from "../lib/repo.ts"
-import { getStatus } from "../lib/status.ts"
+import { getRepoStatus } from "../lib/status.ts"
 import chalk from "npm:chalk"
 import { SyncStatus } from "../lib/types.ts"
 import { identifyDir } from "../lib/identify-dir.ts"
@@ -26,7 +26,7 @@ export function status({ quick }: { quick?: boolean } = {}) {
   if (!quick) {
     repo.remoteUpdate()
   }
-  const status = getStatus(repo)
+  const status = getRepoStatus(repo)
 
   if (status.hasUncommitedChanges) {
     console.info(chalk.red(`${ERROR} uncommited changes`))

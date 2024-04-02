@@ -99,6 +99,19 @@ export class Repo {
       .filter((line) => !/\/HEAD /.test(line)) // ignore HEAD
       .map(parseBranchLine)
   }
+
+  deleteLocalBranch(
+    name: string,
+    { force = false }: { force?: boolean } = {},
+  ): void {
+    this.git(["branch", force ? "-D" : "-d", name])
+  }
+
+  deleteRemoteBranch(
+    { name, remoteName }: { name: string; remoteName: string },
+  ): void {
+    this.git(["push", "--delete", remoteName, name])
+  }
 }
 
 /**

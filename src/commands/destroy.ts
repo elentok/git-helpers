@@ -1,27 +1,36 @@
 import { findRepoOrExit } from "../lib/repo.ts"
-import { pickBranch, pickRemote } from "../lib/pickers.ts"
-import { gitBranches } from "../lib/branch.ts"
-import { RemoteBranch, LocalBranch } from "../lib/types.ts"
+import { fzf } from "../lib/fzf.ts"
+import { getRepoStatus } from "../lib/status.ts"
 
 export async function destroy() {
-  console.log("[elentok] [destroy.ts] destroy")
-
   const repo = findRepoOrExit(Deno.cwd())
-  console.log("[elentok] [destroy.ts] destroy", repo)
 
-  // const branches = gitBranches(repo)
-  // console.log("[elentok] [destroy.ts] destroy", branches)
+  const status = getRepoStatus(repo)
 
-  // const branches = await pickBranch(repo, { allowMultiple: true })
-  // console.log("[elentok] [destroy.ts] destroy", branches)
-  //
-  // const localBanches: LocalBranch[] = []
-  // const remoteBranches: RemoteBranch[] = []
-  //
-  // for (const branch of branches) {
-  //   // if (branch.type === "remote")
-  // }
+  const items = status.localBranches.map((b) =>
+    `${b.name} (${b.isSynced ? "synced" : "not synced"})`
+  )
 
-  // const remote = await pickRemote(repo, { selectOne: true })
-  // console.log("[elentok] [destroy.ts] destroy", remote)
+  const selectedItems = await fzf({
+    items,
+    allowMultiple: true,
+  })
+
+  for (const item of selectedItems) {
+    const branchName = item.split(" ")[0]
+    const branch = status.localBranches.find((b) => b.name === branchName)
+    if (branch == null) {
+      console.error(`Invalid branch name: "${branchName}"`)
+      continue
+    }
+    for (const remoteBranch of branch.remoteBranches) {
+      if (remoteBranch.status.name === "same") {
+        console.info(`- Deleting remote branch ${remoteBranch.gitName}`)
+        repo.deleteRemoteBranch(remoteBranch)
+      }
+    }
+
+    console.info(`- Deleting local branch ${branch.gitName}`)
+    repo.deleteLocalBranch(branch.name, { force: !branch.isSynced })
+  }
 }

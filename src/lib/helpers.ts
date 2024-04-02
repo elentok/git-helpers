@@ -19,7 +19,7 @@ export function isDirectory(dir: string): boolean {
 }
 
 export function parseBranchLine(line: string): Branch {
-  line = line.replace(/^\s*\*/g, "").trim()
+  line = line.replace(/^\s*[\*\+]/g, "").trim()
 
   if (line.match(/^remotes\//)) {
     const [_, remoteName, name] = line.split("/", 3)

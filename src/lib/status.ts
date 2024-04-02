@@ -9,7 +9,7 @@ import {
   SyncStatus,
 } from "./types.ts"
 
-export function getStatus(repo: Repo): RepoStatus {
+export function getRepoStatus(repo: Repo): RepoStatus {
   const branches = repo.branches()
 
   const localBranches = branches.filter((b) =>

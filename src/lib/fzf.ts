@@ -14,7 +14,9 @@ export interface FzfOptions extends FzfFlags {
 const FZF_CODE_NO_MATCH = 1
 const FZF_CODE_TERMINATED_BY_USER = 130
 
-export async function fzf({ items, selectOne, exitZero, ...rest }: FzfOptions): Promise<string[]> {
+export async function fzf(
+  { items, selectOne, exitZero, ...rest }: FzfOptions,
+): Promise<string[]> {
   if (items.length === 1 && selectOne) {
     return items
   }
@@ -24,10 +26,13 @@ export async function fzf({ items, selectOne, exitZero, ...rest }: FzfOptions): 
   }
 
   const args = buildArgs(rest)
-  const command = new Deno.Command("fzf", { stdin: "piped", stdout: "piped", args })
+  const command = new Deno.Command("fzf", {
+    stdin: "piped",
+    stdout: "piped",
+    args,
+  })
   const proc = command.spawn()
 
-  console.log("[elentok] [fzf.ts] fzf", items)
   const encoder = new TextEncoder()
   const writer = proc.stdin.getWriter()
   writer.write(encoder.encode(`${items.join("\n")}\n`))
@@ -48,7 +53,10 @@ export async function fzf({ items, selectOne, exitZero, ...rest }: FzfOptions): 
 }
 
 function buildArgs({ allowMultiple, prompt }: FzfFlags): string[] {
-  return [allowMultiple ? "--multi" : null, prompt ? ["--prompt", prompt] : null]
+  return [
+    allowMultiple ? "--multi" : null,
+    prompt ? ["--prompt", prompt] : null,
+  ]
     .filter(isPresent)
     .flat()
 }

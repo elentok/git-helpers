@@ -7,7 +7,7 @@ export class RepoWorktree {
 
   list(): Worktree[] {
     if (!this.repo.isBare) {
-      throw new Error("Only bare repositories can have worktrees")
+      return []
     }
 
     const { stdout } = this.repo.git(["worktree", "list"])

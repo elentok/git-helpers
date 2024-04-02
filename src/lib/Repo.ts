@@ -1,10 +1,10 @@
 import { git } from "./git.ts"
-import { parseBranchLine } from "./helpers.ts"
 import { identifyDir } from "./identify-dir.ts"
+import { RepoBranch } from "./RepoBranch.ts"
+import { RepoRemote } from "./RepoRemote.ts"
 import { RepoWorktree } from "./RepoWorktree.ts"
 import { ShellResult } from "./shell.ts"
 import { ShellOptions } from "./shell.ts"
-import { Branch } from "./types.ts"
 
 export interface CreateRepoOptions {
   bare?: boolean
@@ -12,12 +12,16 @@ export interface CreateRepoOptions {
 
 export class Repo {
   public readonly worktree: RepoWorktree
+  public readonly branch: RepoBranch
+  public readonly remote: RepoRemote
 
   private constructor(
     public readonly root: string,
     public readonly isBare: boolean,
   ) {
     this.worktree = new RepoWorktree(this)
+    this.branch = new RepoBranch(this)
+    this.remote = new RepoRemote(this)
   }
 
   static fromPath(path: string): Repo | undefined {
@@ -47,21 +51,8 @@ export class Repo {
     return git(this.root, args, options)
   }
 
-  remotes(): string[] {
-    return this.git(["remote"]).stdout.split("\n")
-  }
-
-  remoteUpdate(): void {
-    console.info("Updating remotes...")
-    this.git(["remote", "update"])
-  }
-
   hash(ref: string): string {
     return this.git(["log", "-1", "--pretty=%H", ref]).stdout
-  }
-
-  currentBranch(): string {
-    return this.git(["rev-parse", "--abbrev-ref", "HEAD"]).stdout
   }
 
   revCount(
@@ -95,27 +86,6 @@ export class Repo {
 
     const lines = output.split("\n")
     return lines.find((l) => l.startsWith("?? ")) != null
-  }
-
-  branches(): Branch[] {
-    const { stdout } = this.git(["branch", "--all"])
-    return stdout
-      .split("\n")
-      .filter((line) => !/\/HEAD /.test(line)) // ignore HEAD
-      .map(parseBranchLine)
-  }
-
-  deleteLocalBranch(
-    name: string,
-    { force = false }: { force?: boolean } = {},
-  ): void {
-    this.git(["branch", force ? "-D" : "-d", name])
-  }
-
-  deleteRemoteBranch(
-    { name, remoteName }: { name: string; remoteName: string },
-  ): void {
-    this.git(["push", "--delete", remoteName, name])
   }
 }
 

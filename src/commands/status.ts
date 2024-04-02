@@ -24,7 +24,7 @@ export function status({ quick }: { quick?: boolean } = {}) {
 
   const repo = findRepoOrExit(Deno.cwd())
   if (!quick) {
-    repo.remoteUpdate()
+    repo.remote.update()
   }
   const status = getRepoStatus(repo)
 

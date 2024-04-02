@@ -9,7 +9,7 @@ import {
 } from "./types.ts"
 
 export function getRepoStatus(repo: Repo): RepoStatus {
-  const branches = repo.branches()
+  const branches = repo.branch.list()
 
   const localBranches = branches.filter((b) =>
     b.type === "local"

@@ -1,5 +1,5 @@
 import { CHECKMARK, ERROR } from "../lib/helpers.ts"
-import { findRepoOrExit } from "../lib/repo.ts"
+import { findRepoOrExit } from "../lib/Repo.ts"
 import { getRepoStatus } from "../lib/status.ts"
 import chalk from "npm:chalk"
 import { SyncStatus } from "../lib/types.ts"

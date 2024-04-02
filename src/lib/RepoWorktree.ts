@@ -1,8 +1,8 @@
 import { isPresent } from "./helpers.ts"
-import { Repo } from "./repo.ts"
+import { Repo } from "./Repo.ts"
 import { Worktree } from "./types.ts"
 
-export class RepoWorktrees {
+export class RepoWorktree {
   constructor(private repo: Repo) {}
 
   list(): Worktree[] {

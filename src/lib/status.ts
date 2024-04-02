@@ -1,5 +1,4 @@
-import { gitBranches } from "./branch.ts"
-import { Repo } from "./repo.ts"
+import { Repo } from "./Repo.ts"
 import {
   LocalBranch,
   LocalBranchStatus,

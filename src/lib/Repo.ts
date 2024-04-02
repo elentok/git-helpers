@@ -1,23 +1,23 @@
 import { git } from "./git.ts"
-import { isPresent, parseBranchLine } from "./helpers.ts"
+import { parseBranchLine } from "./helpers.ts"
 import { identifyDir } from "./identify-dir.ts"
-import { RepoWorktrees } from "./repo-worktrees.ts"
+import { RepoWorktree } from "./RepoWorktree.ts"
 import { ShellResult } from "./shell.ts"
 import { ShellOptions } from "./shell.ts"
-import { Branch, Worktree } from "./types.ts"
+import { Branch } from "./types.ts"
 
 export interface CreateRepoOptions {
   bare?: boolean
 }
 
 export class Repo {
-  public readonly worktrees: RepoWorktrees
+  public readonly worktree: RepoWorktree
 
   private constructor(
     public readonly root: string,
     public readonly isBare: boolean,
   ) {
-    this.worktrees = new RepoWorktrees(this)
+    this.worktree = new RepoWorktree(this)
   }
 
   static fromPath(path: string): Repo | undefined {

@@ -1,11 +1,11 @@
-import { findRepoOrExit } from "../lib/repo.ts"
+import { findRepoOrExit } from "../lib/Repo.ts"
 import { fzf } from "../lib/fzf.ts"
 import { getRepoStatus } from "../lib/status.ts"
 
 export async function destroy() {
   const repo = findRepoOrExit(Deno.cwd())
 
-  const worktrees = repo.worktrees.list()
+  const worktrees = repo.worktree.list()
   const status = getRepoStatus(repo)
 
   const items = status.localBranches.map((b) => {

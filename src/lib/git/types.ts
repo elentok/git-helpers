@@ -5,10 +5,8 @@ export interface RepoWithDetails {
 
 export type Repo = string | RepoWithDetails
 
-export type RepoType = "standard" | "bare"
-
 export interface DirInfo {
-  repoType: RepoType
+  isBare: boolean
   repoRoot: string
   worktreeRoot?: string
 

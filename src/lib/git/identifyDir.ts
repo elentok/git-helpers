@@ -20,7 +20,7 @@ export function identifyDir(dir: string): DirInfo | undefined {
 
   const repoRoot = context.gitDir == "." ? dir : context.gitDir
   return {
-    repoType: "bare",
+    isBare: true,
     repoRoot,
     isRepoRoot: repoRoot === dir,
     isWorktreeRoot: false,
@@ -42,7 +42,7 @@ function identifyWorktree(context: DirContext): DirInfo | undefined {
   if (gitDirName === ".git") {
     const repoRoot = topLevel
     return {
-      repoType: "standard",
+      isBare: false,
       repoRoot,
       isRepoRoot: repoRoot === dir,
       isWorktreeRoot: repoRoot === dir,
@@ -58,7 +58,7 @@ function identifyWorktree(context: DirContext): DirInfo | undefined {
   }
 
   return {
-    repoType: "bare",
+    isBare: true,
     repoRoot,
     isRepoRoot: repoRoot === dir,
     isWorktreeRoot: worktreeRoot === dir,

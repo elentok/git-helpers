@@ -5,9 +5,9 @@ export function findRepo(path: string): RepoWithDetails | undefined {
   const dirInfo = identifyDir(path)
   if (dirInfo == null) return
 
-  const { repoRoot, repoType } = dirInfo
+  const { repoRoot, isBare } = dirInfo
 
-  return { root: repoRoot, isBare: repoType === "bare" }
+  return { root: repoRoot, isBare }
 }
 
 export function findRepoOrThrow(dir: string): RepoWithDetails {

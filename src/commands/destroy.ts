@@ -2,7 +2,7 @@ import { fzf } from "../lib/fzf.ts"
 import * as git from "../lib/git/index.ts"
 import { getRepoStatus } from "../lib/status.ts"
 
-export async function destroy() {
+export async function destroy({ branchOnly }: { branchOnly?: boolean }) {
   const repo = git.findRepoOrExit(Deno.cwd())
 
   const worktrees = git.worktree.list(repo)
@@ -35,10 +35,12 @@ export async function destroy() {
       }
     }
 
-    const worktree = worktrees.find((w) => w.branchName === branchName)
-    if (worktree != null) {
-      console.info(`- Deleting worktree ${worktree.name}`)
-      git.worktree.remove(repo, worktree.name, { force: true })
+    if (!branchOnly) {
+      const worktree = worktrees.find((w) => w.branchName === branchName)
+      if (worktree != null) {
+        console.info(`- Deleting worktree ${worktree.name}`)
+        git.worktree.remove(repo, worktree.name, { force: true })
+      }
     }
 
     console.info(`- Deleting local branch ${branch.gitName}`)

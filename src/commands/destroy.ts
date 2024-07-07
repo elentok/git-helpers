@@ -5,6 +5,9 @@ import { getRepoStatus } from "../lib/status.ts"
 export async function destroy({ branchOnly }: { branchOnly?: boolean }) {
   const repo = git.findRepoOrExit(Deno.cwd())
 
+  git.remote.update(repo)
+  git.remote.pruneAll(repo)
+
   const worktrees = git.worktree.list(repo)
   const status = getRepoStatus(repo)
 
@@ -28,22 +31,29 @@ export async function destroy({ branchOnly }: { branchOnly?: boolean }) {
       console.error(`Invalid branch name: "${branchName}"`)
       continue
     }
+
+    console.info(`- Destroying ${item}`)
+
     for (const remoteBranch of branch.remoteBranches) {
       if (remoteBranch.status.name === "same") {
-        console.info(`- Deleting remote branch ${remoteBranch.gitName}`)
-        git.branch.deleteRemoteBranch(repo, remoteBranch)
+        console.info(`  - Deleting remote branch ${remoteBranch.gitName}`)
+        try {
+          git.branch.deleteRemoteBranch(repo, remoteBranch)
+        } catch (e) {
+          console.error(`  Failed deleting remote branch ${remoteBranch}`, e)
+        }
       }
     }
 
     if (!branchOnly) {
       const worktree = worktrees.find((w) => w.branchName === branchName)
       if (worktree != null) {
-        console.info(`- Deleting worktree ${worktree.name}`)
+        console.info(`  - Deleting worktree ${worktree.name}`)
         git.worktree.remove(repo, worktree.name, { force: true })
       }
     }
 
-    console.info(`- Deleting local branch ${branch.gitName}`)
+    console.info(`  - Deleting local branch ${branch.gitName}`)
     git.branch.deleteLocalBranch(repo, branch.name, { force: true })
   }
 }

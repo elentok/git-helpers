@@ -32,3 +32,11 @@ export function remove(
     ["worktree", "remove", force ? "-f" : undefined, name].filter(isPresent),
   )
 }
+
+export function move(
+  repo: string | Repo,
+  from: string,
+  to: string,
+): void {
+  run(repo, ["worktree", "move", from, to])
+}

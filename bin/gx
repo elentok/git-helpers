@@ -4,4 +4,4 @@ set -euo pipefail
 
 root="$(dirname "$0")/.."
 
-deno run --allow-read --allow-run --allow-env "${root}/src/cli.ts" "$@"
+deno run --allow-read --allow-write --allow-run --allow-env "${root}/src/cli.ts" "$@"

@@ -2,7 +2,7 @@ import { parseBranchLine } from "./parseBranchLine.ts"
 import { run } from "./run.ts"
 import { Branch, Repo } from "./types.ts"
 
-export function create(repo: Repo, branchName: string): void {
+export function create(repo: string | Repo, branchName: string): void {
   run(repo, ["checkout", "-b", branchName])
 }
 

@@ -41,13 +41,14 @@ export async function renameWorktree() {
 
   console.info("- Updating .git file")
   const dotGitFile = path.join(repo.root, toName, ".git")
-  const dotGit = Deno.readTextFileSync(gitDirFile).replace(
+  const dotGit = Deno.readTextFileSync(dotGitFile).replace(
     fromFullName,
     toFullName,
   )
   Deno.writeTextFileSync(dotGitFile, dotGit)
 
-  git.branch.create(repo, toName)
+  console.info(`- Creating branch '${toName}'`)
+  git.branch.create(path.join(git.root(repo), toName), toName)
 
   console.info("done")
 }

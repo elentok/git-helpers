@@ -17,7 +17,7 @@ export async function renameWorktree() {
 
   const fromName = selectedItems[0]
   console.info(`Rename ${fromName}`)
-  const toName = prompt("   to: ")
+  const toName = prompt("   to:")
   if (toName == null) {
     console.info("User aborted.")
     return

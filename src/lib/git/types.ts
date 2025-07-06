@@ -31,3 +31,9 @@ export interface Worktree {
   name: string
   branchName: string
 }
+
+export interface Commit {
+  hash: string
+  subject: string
+  body: string
+}

@@ -15,9 +15,9 @@ type Repo struct {
 
 // DirInfo describes what kind of git context a directory is in.
 type DirInfo struct {
-	Repo          Repo
-	WorktreeRoot  string // non-empty when inside a linked worktree
-	IsRepoRoot    bool
+	Repo           Repo
+	WorktreeRoot   string // non-empty when inside a linked worktree
+	IsRepoRoot     bool
 	IsWorktreeRoot bool
 }
 
@@ -97,6 +97,12 @@ func identifyWorktree(dir, gitDir string) (*DirInfo, error) {
 
 // detectMainBranch returns "main" or "master" depending on what exists in the repo.
 func detectMainBranch(repoRoot string) string {
+	return RemoteDefaultBranch(repoRoot)
+}
+
+// RemoteDefaultBranch returns the repository's default branch using origin/HEAD
+// when available, then falls back to local branch checks.
+func RemoteDefaultBranch(repoRoot string) string {
 	// Check origin/HEAD first (most reliable for cloned repos)
 	out := runAllowFail(repoRoot, []string{"symbolic-ref", "--short", "refs/remotes/origin/HEAD"})
 	if out != "" {

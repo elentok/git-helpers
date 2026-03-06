@@ -52,6 +52,32 @@ func Push(worktreePath, remote, branch string) error {
 	return err
 }
 
+// PushBranch pushes branch to remote.
+func PushBranch(worktreePath, remote, branch string) error {
+	return Push(worktreePath, remote, branch)
+}
+
+// PushBranchForceWithLease force-pushes branch using --force-with-lease.
+func PushBranchForceWithLease(worktreePath, remote, branch string) error {
+	_, err := run(worktreePath, []string{"push", "--force-with-lease", remote, branch})
+	return err
+}
+
+// IsNonFastForwardPushError returns true when err matches a rejected push that
+// can be resolved with a force push.
+func IsNonFastForwardPushError(err error) bool {
+	runErr, ok := err.(*RunError)
+	if !ok {
+		return false
+	}
+
+	s := strings.ToLower(runErr.Stdout + "\n" + runErr.Stderr)
+	return strings.Contains(s, "non-fast-forward") ||
+		strings.Contains(s, "[rejected]") ||
+		strings.Contains(s, "fetch first") ||
+		strings.Contains(s, "failed to push some refs")
+}
+
 // PruneAllRemotes prunes all configured remotes.
 func PruneAllRemotes(repo Repo) error {
 	remotes, err := ListRemotes(repo)

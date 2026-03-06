@@ -1,6 +1,6 @@
-# gx
+# git-helpers
 
-An interactive TUI for managing git worktrees.
+An collection of git helper (worktree management, etc...)
 
 ## Features
 
@@ -36,21 +36,40 @@ gx
 
 If launched from inside a worktree, the cursor starts on that worktree.
 
+You can also run the TUI explicitly:
+
+```sh
+gx worktrees
+gx wt
+```
+
+Clone as bare + bootstrap initial worktree:
+
+```sh
+gx clone-wt <repo-url> [directory]
+```
+
+Push current worktree branch, with styled force-with-lease confirmation on rejection:
+
+```sh
+gx push
+```
+
 ## Key bindings
 
-| Key | Action |
-|-----|--------|
-| `j` / `↓` | Move down |
-| `k` / `↑` | Move up |
-| `d` | Delete selected worktree (and its branch) |
-| `r` | Rename selected worktree and branch |
-| `c` | Clone selected worktree (copies uncommitted files) |
-| `y` | Yank files from selected worktree into clipboard |
-| `p` | Paste yanked files into selected worktree |
-| `l` | Pull selected worktree's branch |
-| `s` | Push selected worktree's branch |
-| `?` | Toggle full help |
-| `q` / `Ctrl+C` | Quit |
+| Key            | Action                                             |
+| -------------- | -------------------------------------------------- |
+| `j` / `↓`      | Move down                                          |
+| `k` / `↑`      | Move up                                            |
+| `d`            | Delete selected worktree (and its branch)          |
+| `r`            | Rename selected worktree and branch                |
+| `c`            | Clone selected worktree (copies uncommitted files) |
+| `y`            | Yank files from selected worktree into clipboard   |
+| `p`            | Paste yanked files into selected worktree          |
+| `l`            | Pull selected worktree's branch                    |
+| `s`            | Push selected worktree's branch                    |
+| `?`            | Toggle full help                                   |
+| `q` / `Ctrl+C` | Quit                                               |
 
 ## Development
 

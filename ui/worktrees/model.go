@@ -206,6 +206,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		m.clipboard = nil
 		m.statusMsg = fmt.Sprintf("Pasted %d file(s)", msg.n)
+		if wt := m.selectedWorktree(); wt != nil {
+			m.sidebarLoading = true
+			m.viewport.SetContent(m.sidebarContent())
+			return m, cmdLoadSidebarData(m.repo, *wt)
+		}
 		return m, nil
 
 	case worktreesLoadedMsg:

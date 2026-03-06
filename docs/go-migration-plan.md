@@ -4,6 +4,35 @@ Migrate git-helpers from a Deno/TypeScript CLI to a Go TUI using BubbleTea. The 
 is a Worktrees page that replaces the current `status` command with an interactive, always-visible
 worktree dashboard.
 
+## Dependencies
+
+| Package | Purpose |
+|---------|---------|
+| `github.com/charmbracelet/bubbletea` | TUI framework (model-update-view loop) |
+| `github.com/charmbracelet/bubbles` | Pre-built TUI components (see below) |
+| `github.com/charmbracelet/lipgloss` | Terminal styling and layout |
+
+### Bubbles components we use
+
+- **`bubbles/table`** - Worktree list. Provides columns, rows, keyboard navigation (up/down/j/k
+  are built in via KeyMap), selected row tracking, and header/cell/selected styles.
+- **`bubbles/viewport`** - Sidebar. Scrollable content pane for commit log and changed files.
+- **`bubbles/textinput`** - Rename and clone dialogs. Single-line input with default value,
+  cursor, placeholder support.
+- **`bubbles/spinner`** - Loading indicator for async git pull/push operations.
+- **`bubbles/help`** - Help bar at the bottom. Auto-generates help text from `bubbles/key`
+  bindings, supports short (single-line) and full (multi-line) modes.
+- **`bubbles/key`** - Keybinding definitions. All our keys go through this so they integrate
+  with the help component automatically.
+
+### Lipgloss usage
+
+- **Styling** - borders (rounded for sidebar, normal for table), colors (green/yellow/red for
+  sync status), bold/faint for emphasis.
+- **Layout** - `lipgloss.JoinHorizontal` to compose table + sidebar side by side,
+  `lipgloss.JoinVertical` to stack content + help bar. `lipgloss.Place` for centering dialogs.
+- **Dimensions** - `Width`/`Height` constraints to make the layout responsive to terminal size.
+
 ## Architecture Overview
 
 ```
@@ -26,19 +55,17 @@ gx/
 │   ├── app.go               # Root model, page routing, global keybindings
 │   ├── worktrees/            # Worktrees page
 │   │   ├── model.go         # Page model, Update, View
-│   │   ├── table.go         # Worktree table component
-│   │   ├── sidebar.go       # Sidebar: commits + changed files
-│   │   ├── keys.go          # Key map definitions
+│   │   ├── table.go         # Wraps bubbles/table with our columns and row data
+│   │   ├── sidebar.go       # Wraps bubbles/viewport for commit log + changes
+│   │   ├── keys.go          # Key map definitions (bubbles/key bindings)
 │   │   ├── delete.go        # Delete confirmation dialog
-│   │   ├── rename.go        # Rename text input dialog
-│   │   ├── clone.go         # Clone dialog (name input)
+│   │   ├── rename.go        # Rename dialog (wraps bubbles/textinput)
+│   │   ├── clone.go         # Clone dialog (wraps bubbles/textinput)
 │   │   ├── yank.go          # File selection (checkboxes) for yank
 │   │   └── paste.go         # Paste action
 │   ├── styles.go            # Shared lipgloss styles
-│   └── components/          # Reusable components
-│       ├── confirm.go       # Yes/no confirmation dialog
-│       ├── textinput.go     # Single-line text input
-│       └── checklist.go     # Multi-select checkbox list
+│   └── components/          # Custom components (only what bubbles doesn't provide)
+│       └── checklist.go     # Multi-select checkbox list (not in bubbles)
 └── testutil/                # Test helpers
     ├── repo.go              # Create temp bare repos with worktrees
     └── commit.go            # Create dummy commits
@@ -48,6 +75,10 @@ gx/
 
 - **`git/` has no TUI imports.** It returns Go structs; the UI layer formats them. This makes
   the git layer independently testable.
+- **Lean on bubbles for standard components.** Table, text input, viewport, spinner, and help
+  are all provided by bubbles - we wrap them with our data, not reimplement them. The only
+  custom component is the checkbox list for yank (bubbles/list doesn't support multi-select
+  with checkboxes).
 - **Each interaction (delete, rename, clone, yank) is a sub-model** within `ui/worktrees/`. The
   page model delegates to the active sub-model when one is open.
 - **Clipboard is page-level state**, not global. It holds a list of file paths and source worktree.
@@ -99,19 +130,24 @@ Render the worktrees page with the table, navigation, and sidebar. Read-only, no
    - On init: detect repo from cwd, load worktrees, determine active worktree.
    - Global quit: `q`, `ctrl+c`.
 2. Implement `ui/worktrees/table.go`:
-   - Table with columns: Name, Branch, Sync Status.
-   - Sync status shows: "synced", "N behind", "N ahead", "diverged".
-   - Active row = worktree matching cwd (if launched from inside a worktree).
-   - Navigate with `j`/`k` or up/down arrows.
+   - Wrap `bubbles/table.Model` with three columns: Name, Branch, Sync Status.
+   - Configure `table.DefaultKeyMap()` - it already supports up/down/j/k, page up/down, home/end.
+   - Use `table.DefaultStyles()` as base, customize `Selected` style with lipgloss for the
+     active row highlight.
+   - Sync status column shows: "synced", "N behind", "N ahead", "diverged" with lipgloss
+     color (green/yellow/magenta/red).
+   - Set initial cursor to worktree matching cwd via `table.SetCursor()`.
 3. Implement `ui/worktrees/sidebar.go`:
-   - When a worktree is selected, show:
-     - Commits since main branch (abbreviated hash + message).
-     - Uncommitted changes (modified/added/deleted files).
-   - Sidebar updates on row change.
+   - Wrap `bubbles/viewport.Model` for scrollable content.
+   - Render content as a string: commits section (abbreviated hash + message) then changed
+     files section (modified/added/deleted with lipgloss colors).
+   - Set content via `viewport.SetContent()` whenever the selected table row changes.
+   - Style with `lipgloss` rounded border on the left side.
 4. Implement `ui/worktrees/model.go`:
-   - Compose table + sidebar side by side.
-   - Handle window resize with `tea.WindowSizeMsg`.
-5. Implement `ui/styles.go` - lipgloss styles for table, sidebar, status bar.
+   - Compose table + sidebar using `lipgloss.JoinHorizontal(lipgloss.Top, tableView, sidebarView)`.
+   - On `tea.WindowSizeMsg`: allocate ~60% width to table, ~40% to sidebar, resize both via
+     `table.SetWidth()`/`table.SetHeight()` and `viewport.Width`/`viewport.Height`.
+5. Implement `ui/styles.go` - shared lipgloss styles (borders, status colors, section headers).
 6. Implement `main.go`:
    - Parse cwd, find repo, launch BubbleTea program with worktrees page.
    - Wire up `bin/gx` to run the Go binary (or just `go run .` during dev).
@@ -130,20 +166,24 @@ Implement the `d` and `r` interactions.
 
 ### Steps
 
-1. Implement `ui/components/confirm.go` - reusable yes/no dialog.
-2. Implement `ui/components/textinput.go` - single-line input with default value.
-3. Implement `ui/worktrees/delete.go`:
-   - `d` on a worktree opens confirmation: "Delete worktree X and branch Y? [y/N]".
-   - On confirm: call `git/worktree.Remove` + `git/branch.DeleteLocalBranch` +
+1. Implement `ui/worktrees/keys.go`:
+   - Define all key bindings using `bubbles/key.NewBinding()` with `key.WithKeys()` and
+     `key.WithHelp()` so they auto-integrate with the `bubbles/help` component.
+   - Implement `ShortHelp()` and `FullHelp()` (the `help.KeyMap` interface) to control what
+     shows in the help bar.
+2. Implement `ui/worktrees/delete.go`:
+   - `d` on a worktree shows a confirmation prompt inline (simple "Delete X? [y/N]" rendered
+     at the bottom - no need for a full component, just intercept y/n/esc keys).
+   - On `y`: call `git/worktree.Remove` + `git/branch.DeleteLocalBranch` +
      `git/branch.DeleteRemoteBranch`.
-   - Refresh table after deletion.
+   - Refresh table via `table.SetRows()` after deletion.
    - Show error inline if deletion fails.
-4. Implement `ui/worktrees/rename.go`:
-   - `r` opens text input pre-filled with current name.
-   - On submit: call `git worktree move`, rename directory, rename branch.
+3. Implement `ui/worktrees/rename.go`:
+   - `r` opens a `bubbles/textinput.Model` pre-filled with current name via
+     `textinput.SetValue()`. Render it inline below the table.
+   - On enter: call `git worktree move`, rename directory, rename branch.
    - Port the rename logic from the existing `rename-worktree.ts` (gitdir/`.git` file fixups).
    - Refresh table after rename.
-5. Implement `ui/worktrees/keys.go` - centralized key bindings using `bubbles/key`.
 
 ### Done when
 
@@ -159,8 +199,8 @@ Implement the `c` interaction.
 ### Steps
 
 1. Implement `ui/worktrees/clone.go`:
-   - `c` opens text input pre-filled with current worktree name.
-   - On submit: create new worktree as a copy.
+   - `c` opens a `bubbles/textinput.Model` pre-filled with current worktree name.
+   - On enter: create new worktree as a copy.
    - Clone strategy: `git worktree add` with new branch, then `cp -r` working tree files
      (including untracked) from source to destination.
    - Refresh table after clone.
@@ -210,8 +250,8 @@ Implement `gpl` and `gps` chained key interactions.
    - `g` starts a chain, `gp` continues, `gpl` triggers pull, `gps` triggers push.
 2. Implement pull/push as async commands (`tea.Cmd`) that run `git pull`/`git push` in the
    selected worktree directory.
-3. Show a spinner or status message while the operation is running.
-4. Refresh sync status after completion.
+3. Show a `bubbles/spinner.Model` in the status bar while the operation is running.
+4. On completion: stop spinner, refresh sync status via `table.SetRows()`, show result message.
 
 ### Done when
 
@@ -227,7 +267,10 @@ Implement `gpl` and `gps` chained key interactions.
 
 1. Error handling pass: ensure all git errors surface as user-visible messages, not panics.
 2. Handle edge cases: empty repo, no worktrees, detached HEAD, worktree with no branch.
-3. Add a help bar at the bottom showing available keybindings.
+3. Wire up `bubbles/help.Model` at the bottom of the layout:
+   - Renders short help (one-line) by default from the key bindings defined in `keys.go`.
+   - `?` toggles full help (multi-line) showing all available keybindings.
+   - Compose with `lipgloss.JoinVertical(lipgloss.Left, mainContent, helpView)`.
 4. Update `bin/gx` to build and run the Go binary.
 5. Add a `Makefile` or `go install` instructions.
 6. Update `README.md`.

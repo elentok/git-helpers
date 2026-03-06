@@ -4,10 +4,20 @@ import (
 	"gx/git"
 	"gx/ui"
 
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/table"
+	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+)
+
+type mode int
+
+const (
+	modeNormal mode = iota
+	modeDelete
+	modeRename
 )
 
 // ── messages ─────────────────────────────────────────────────────────────────
@@ -69,6 +79,10 @@ type Model struct {
 	sidebarChanges []git.Change
 	sidebarLoading bool
 
+	mode        mode
+	renameInput textinput.Model
+	statusMsg   string
+
 	width  int
 	height int
 	ready  bool // true once we've received the first WindowSizeMsg
@@ -105,10 +119,41 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "q", "ctrl+c":
-			return m, tea.Quit
+		// Mode-specific handling first
+		switch m.mode {
+		case modeDelete:
+			return m.handleDeleteKey(msg)
+		case modeRename:
+			return m.handleRenameKey(msg)
 		}
+		// Normal mode
+		switch {
+		case key.Matches(msg, keys.Quit):
+			return m, tea.Quit
+		case key.Matches(msg, keys.Delete) && len(m.worktrees) > 0:
+			m.mode = modeDelete
+			m.statusMsg = ""
+			return m, nil
+		case key.Matches(msg, keys.Rename) && len(m.worktrees) > 0:
+			m = m.enterRenameMode()
+			return m, nil
+		}
+
+	case deleteResultMsg:
+		if msg.err != nil {
+			m.statusMsg = "Error: " + msg.err.Error()
+			return m, nil
+		}
+		m.statusMsg = ""
+		return m, cmdLoadWorktrees(m.repo)
+
+	case renameResultMsg:
+		if msg.err != nil {
+			m.statusMsg = "Error: " + msg.err.Error()
+			return m, nil
+		}
+		m.statusMsg = ""
+		return m, cmdLoadWorktrees(m.repo)
 
 	case worktreesLoadedMsg:
 		m.loading = false
@@ -199,7 +244,8 @@ func (m Model) View() string {
 		Height(innerSidebarH).
 		Render(m.viewport.View())
 
-	return lipgloss.JoinHorizontal(lipgloss.Top, tableView, sidebarView)
+	content := lipgloss.JoinHorizontal(lipgloss.Top, tableView, sidebarView)
+	return lipgloss.JoinVertical(lipgloss.Left, content, m.statusBarView())
 }
 
 // ── layout helpers ────────────────────────────────────────────────────────────
@@ -211,10 +257,35 @@ func (m Model) splitWidth() (tableW, sidebarW int) {
 }
 
 func (m Model) contentHeight() int {
-	if m.height < 4 {
+	h := m.height - 1 // reserve 1 line for status bar
+	if h < 4 {
 		return 4
 	}
-	return m.height
+	return h
+}
+
+// selectedWorktree returns a pointer to the currently highlighted worktree, or nil.
+func (m Model) selectedWorktree() *git.Worktree {
+	if len(m.worktrees) == 0 {
+		return nil
+	}
+	w := m.worktrees[m.table.Cursor()]
+	return &w
+}
+
+// statusBarView renders the 1-line bar at the bottom of the screen.
+func (m Model) statusBarView() string {
+	switch m.mode {
+	case modeDelete:
+		return m.deleteConfirmView()
+	case modeRename:
+		return m.renameView()
+	default:
+		if m.statusMsg != "" {
+			return "  " + m.statusMsg
+		}
+		return ui.StyleDim.Render("  d delete  r rename  q quit")
+	}
 }
 
 func (m Model) resized() Model {

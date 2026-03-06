@@ -1,0 +1,154 @@
+package worktrees_test
+
+import (
+	"bytes"
+	"testing"
+	"time"
+
+	"gx/git"
+	"gx/testutil"
+	"gx/ui/worktrees"
+
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/x/exp/teatest"
+)
+
+const (
+	termWidth  = 120
+	termHeight = 40
+	loadWait   = 5 * time.Second
+	actionWait = 3 * time.Second
+)
+
+func startTUI(t *testing.T, repoDir string) (git.Repo, *teatest.TestModel) {
+	t.Helper()
+	repo, err := git.FindRepo(repoDir)
+	if err != nil {
+		t.Fatalf("FindRepo: %v", err)
+	}
+	m := worktrees.New(*repo, "")
+	tm := teatest.NewTestModel(t, m, teatest.WithInitialTermSize(termWidth, termHeight))
+	return *repo, tm
+}
+
+func waitForText(t *testing.T, tm *teatest.TestModel, text string, timeout time.Duration) {
+	t.Helper()
+	teatest.WaitFor(t, tm.Output(), func(bts []byte) bool {
+		return bytes.Contains(bts, []byte(text))
+	}, teatest.WithDuration(timeout))
+}
+
+func quit(t *testing.T, tm *teatest.TestModel) {
+	t.Helper()
+	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'q'}})
+	tm.WaitFinished(t, teatest.WithFinalTimeout(3*time.Second))
+}
+
+// ── delete ────────────────────────────────────────────────────────────────────
+
+func TestDeleteConfirmationAppearsAndCancels(t *testing.T) {
+	repoDir := testutil.TempBareRepoWithWorktrees(t, "feature-a")
+	_, tm := startTUI(t, repoDir)
+
+	waitForText(t, tm, "feature-a", loadWait)
+
+	// Enter delete mode
+	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'d'}})
+	waitForText(t, tm, "Delete", actionWait)
+
+	// Cancel with esc — should return to normal without crashing
+	tm.Send(tea.KeyMsg{Type: tea.KeyEsc})
+
+	quit(t, tm)
+}
+
+func TestDeleteWorktree(t *testing.T) {
+	repoDir := testutil.TempBareRepoWithWorktrees(t, "feature-a", "feature-b")
+	repo, tm := startTUI(t, repoDir)
+
+	waitForText(t, tm, "feature-a", loadWait)
+
+	// Delete the selected (first) worktree
+	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'d'}})
+	waitForText(t, tm, "Delete", actionWait)
+	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'y'}})
+
+	// Wait until git actually has only 1 worktree left
+	teatest.WaitFor(t, tm.Output(), func(_ []byte) bool {
+		wts, err := git.ListWorktrees(repo)
+		return err == nil && len(wts) == 1
+	}, teatest.WithDuration(loadWait))
+
+	quit(t, tm)
+}
+
+func TestDeleteCancelWithN(t *testing.T) {
+	repoDir := testutil.TempBareRepoWithWorktrees(t, "feature-a")
+	repo, tm := startTUI(t, repoDir)
+
+	waitForText(t, tm, "feature-a", loadWait)
+
+	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'d'}})
+	waitForText(t, tm, "Delete", actionWait)
+	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'n'}})
+
+	// Worktree should still exist
+	wts, err := git.ListWorktrees(repo)
+	if err != nil {
+		t.Fatalf("ListWorktrees: %v", err)
+	}
+	if len(wts) != 1 {
+		t.Errorf("expected 1 worktree after cancel, got %d", len(wts))
+	}
+
+	quit(t, tm)
+}
+
+// ── rename ────────────────────────────────────────────────────────────────────
+
+func TestRenameInputAppearsAndCancels(t *testing.T) {
+	repoDir := testutil.TempBareRepoWithWorktrees(t, "feature-a")
+	_, tm := startTUI(t, repoDir)
+
+	waitForText(t, tm, "feature-a", loadWait)
+
+	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'r'}})
+	waitForText(t, tm, "Rename", actionWait)
+
+	// Cancel with esc
+	tm.Send(tea.KeyMsg{Type: tea.KeyEsc})
+
+	quit(t, tm)
+}
+
+func TestRenameWorktree(t *testing.T) {
+	repoDir := testutil.TempBareRepoWithWorktrees(t, "feature-a")
+	repo, tm := startTUI(t, repoDir)
+
+	waitForText(t, tm, "feature-a", loadWait)
+
+	// Open rename input (pre-filled with "feature-a")
+	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'r'}})
+	waitForText(t, tm, "Rename", actionWait)
+
+	// Clear the pre-filled value with ctrl+u then type new name
+	tm.Send(tea.KeyMsg{Type: tea.KeyCtrlU})
+	tm.Type("feature-renamed")
+	tm.Send(tea.KeyMsg{Type: tea.KeyEnter})
+
+	// Wait until git reports the renamed worktree
+	teatest.WaitFor(t, tm.Output(), func(_ []byte) bool {
+		wts, err := git.ListWorktrees(repo)
+		if err != nil {
+			return false
+		}
+		for _, wt := range wts {
+			if wt.Name == "feature-renamed" {
+				return true
+			}
+		}
+		return false
+	}, teatest.WithDuration(loadWait))
+
+	quit(t, tm)
+}

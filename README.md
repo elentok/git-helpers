@@ -11,6 +11,8 @@ An collection of git helper (worktree management, etc...)
 - Pull and push the selected worktree's branch
 - Scrollable error modal for any git failures
 
+![screenshot](./docs/screenshot.png)
+
 ## Requirements
 
 - Go 1.21+

@@ -1,6 +1,6 @@
 # gx
 
-An collection of git helper (worktree management, etc...)
+A collection of git helper (worktree management, etc...)
 
 ## Features
 

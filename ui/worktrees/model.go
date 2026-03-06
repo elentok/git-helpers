@@ -40,7 +40,6 @@ func cmdClearStatus(gen int) tea.Cmd {
 	})
 }
 
-
 type worktreesLoadedMsg struct {
 	worktrees []git.Worktree
 	err       error
@@ -51,10 +50,20 @@ type syncStatusMsg struct {
 	status git.SyncStatus
 }
 
+type dirtyStatusMsg struct {
+	worktreePath string
+	dirty        dirtyState
+}
+
 type sidebarDataMsg struct {
 	worktreePath string
 	commits      []git.Commit
 	changes      []git.Change
+}
+
+type dirtyState struct {
+	hasModified  bool
+	hasUntracked bool
 }
 
 // ── commands ──────────────────────────────────────────────────────────────────
@@ -70,6 +79,16 @@ func cmdLoadSyncStatus(repo git.Repo, branch string) tea.Cmd {
 	return func() tea.Msg {
 		status, _ := git.WorktreeSyncStatus(repo, branch)
 		return syncStatusMsg{branch: branch, status: status}
+	}
+}
+
+func cmdLoadDirtyStatus(wt git.Worktree) tea.Cmd {
+	return func() tea.Msg {
+		changes, _ := git.UncommittedChanges(wt.Path)
+		return dirtyStatusMsg{
+			worktreePath: wt.Path,
+			dirty:        dirtyStateFromChanges(changes),
+		}
 	}
 }
 
@@ -90,6 +109,7 @@ type Model struct {
 
 	worktrees []git.Worktree
 	statuses  map[string]git.SyncStatus
+	dirties   map[string]dirtyState
 
 	table    table.Model
 	viewport viewport.Model
@@ -111,7 +131,7 @@ type Model struct {
 
 	help help.Model
 
-	spinner      spinner.Model
+	spinner       spinner.Model
 	spinnerActive bool
 	spinnerLabel  string
 
@@ -133,6 +153,7 @@ func New(repo git.Repo, activeWorktreePath string) Model {
 		repo:               repo,
 		activeWorktreePath: activeWorktreePath,
 		statuses:           make(map[string]git.SyncStatus),
+		dirties:            make(map[string]dirtyState),
 		table:              newTable(),
 		loading:            true,
 		help:               help.New(),
@@ -317,7 +338,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 		m.worktrees = msg.worktrees
-		m.table.SetRows(buildRows(m.worktrees, m.statuses))
+		m.dirties = make(map[string]dirtyState)
+		m.table.SetRows(buildRows(m.worktrees, m.statuses, m.dirties, m.table.Cursor()))
 
 		// Position cursor on the active worktree
 		for i, wt := range m.worktrees {
@@ -332,6 +354,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if wt.Branch != "" {
 				cmds = append(cmds, cmdLoadSyncStatus(m.repo, wt.Branch))
 			}
+			cmds = append(cmds, cmdLoadDirtyStatus(wt))
 		}
 		if len(m.worktrees) > 0 {
 			m.sidebarLoading = true
@@ -342,7 +365,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case syncStatusMsg:
 		m.statuses[msg.branch] = msg.status
-		m.table.SetRows(buildRows(m.worktrees, m.statuses))
+		m.table.SetRows(buildRows(m.worktrees, m.statuses, m.dirties, m.table.Cursor()))
+		return m, nil
+
+	case dirtyStatusMsg:
+		m.dirties[msg.worktreePath] = msg.dirty
+		m.table.SetRows(buildRows(m.worktrees, m.statuses, m.dirties, m.table.Cursor()))
 		return m, nil
 
 	case sidebarDataMsg:
@@ -364,6 +392,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	cmds = append(cmds, tableCmd)
 
 	if m.table.Cursor() != prevCursor && len(m.worktrees) > 0 {
+		m.table.SetRows(buildRows(m.worktrees, m.statuses, m.dirties, m.table.Cursor()))
 		m.sidebarLoading = true
 		m.sidebarCommits = nil
 		m.sidebarChanges = nil
@@ -392,11 +421,33 @@ func (m Model) View() string {
 		return m.errorModalView()
 	}
 
-	_, sidebarW := m.splitWidth()
-	innerSidebarW := sidebarW - 2 // rounded border adds 1 on each side
-	innerSidebarH := m.contentHeight() - 2
+	h := m.contentHeight()
+	tableW, sidebarW := m.splitWidth()
+	tableH, sidebarH := m.splitHeight(h)
 
-	tableView := m.table.View()
+	innerTableW := tableW - 2     // rounded border adds 1 on each side
+	innerSidebarW := sidebarW - 2 // rounded border adds 1 on each side
+	innerTableH := tableH - 2
+	innerSidebarH := sidebarH - 2
+	if innerTableW < 1 {
+		innerTableW = 1
+	}
+	if innerSidebarW < 1 {
+		innerSidebarW = 1
+	}
+	if innerTableH < 1 {
+		innerTableH = 1
+	}
+	if innerSidebarH < 1 {
+		innerSidebarH = 1
+	}
+
+	tableView := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(ui.ColorBorder).
+		Width(innerTableW).
+		Height(innerTableH).
+		Render(m.table.View())
 
 	sidebarView := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
@@ -405,16 +456,49 @@ func (m Model) View() string {
 		Height(innerSidebarH).
 		Render(m.viewport.View())
 
-	content := lipgloss.JoinHorizontal(lipgloss.Top, tableView, sidebarView)
+	var content string
+	if m.useStackedLayout() {
+		content = lipgloss.JoinVertical(lipgloss.Left, tableView, sidebarView)
+	} else {
+		content = lipgloss.JoinHorizontal(lipgloss.Top, tableView, sidebarView)
+	}
 	return lipgloss.JoinVertical(lipgloss.Left, content, m.statusBarView())
 }
 
 // ── layout helpers ────────────────────────────────────────────────────────────
 
 func (m Model) splitWidth() (tableW, sidebarW int) {
+	if m.useStackedLayout() {
+		return m.width, m.width
+	}
 	tableW = int(float64(m.width) * 0.55)
 	sidebarW = m.width - tableW
 	return
+}
+
+func (m Model) splitHeight(total int) (tableH, sidebarH int) {
+	if !m.useStackedLayout() {
+		return total, total
+	}
+	tableH = int(float64(total) * 0.58)
+	if tableH < 8 {
+		tableH = 8
+	}
+	if tableH > total-6 {
+		tableH = total - 6
+	}
+	if tableH < 1 {
+		tableH = 1
+	}
+	sidebarH = total - tableH
+	if sidebarH < 1 {
+		sidebarH = 1
+	}
+	return
+}
+
+func (m Model) useStackedLayout() bool {
+	return m.width <= 100
 }
 
 func (m Model) helpLineCount() int {
@@ -431,6 +515,18 @@ func (m Model) contentHeight() int {
 		return 4
 	}
 	return h
+}
+
+func dirtyStateFromChanges(changes []git.Change) dirtyState {
+	var out dirtyState
+	for _, ch := range changes {
+		if ch.Kind == git.ChangeUntracked {
+			out.hasUntracked = true
+		} else {
+			out.hasModified = true
+		}
+	}
+	return out
 }
 
 // selectedWorktree returns a pointer to the currently highlighted worktree, or nil.
@@ -473,11 +569,20 @@ func (m Model) resized() Model {
 	m.help.Width = m.width // must be set before contentHeight()
 	tableW, sidebarW := m.splitWidth()
 	h := m.contentHeight()
+	tableH, sidebarH := m.splitHeight(h)
 
-	resizeTable(&m.table, tableW, h)
+	tableInnerW := tableW - 2
+	tableInnerH := tableH - 2
+	if tableInnerW < 1 {
+		tableInnerW = 1
+	}
+	if tableInnerH < 1 {
+		tableInnerH = 1
+	}
+	resizeTable(&m.table, tableInnerW, tableInnerH)
 
 	vpW := sidebarW - 2
-	vpH := h - 2
+	vpH := sidebarH - 2
 	if vpW < 1 {
 		vpW = 1
 	}

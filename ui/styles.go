@@ -6,6 +6,7 @@ import "github.com/charmbracelet/lipgloss"
 var (
 	ColorGreen   = lipgloss.Color("2")
 	ColorYellow  = lipgloss.Color("3")
+	ColorCyan    = lipgloss.Color("6")
 	ColorMagenta = lipgloss.Color("5")
 	ColorRed     = lipgloss.Color("1")
 	ColorGray    = lipgloss.Color("8")
@@ -19,6 +20,14 @@ var (
 	StyleStatusBehind   = lipgloss.NewStyle().Foreground(ColorYellow)
 	StyleStatusDiverged = lipgloss.NewStyle().Foreground(ColorRed)
 	StyleStatusUnknown  = lipgloss.NewStyle().Foreground(ColorGray)
+)
+
+// Dirty-state styles
+var (
+	StyleDirtyClean     = lipgloss.NewStyle().Foreground(ColorGray)
+	StyleDirtyModified  = lipgloss.NewStyle().Foreground(ColorYellow)
+	StyleDirtyUntracked = lipgloss.NewStyle().Foreground(ColorCyan)
+	StyleDirtyMixed     = lipgloss.NewStyle().Foreground(ColorMagenta)
 )
 
 // Text styles

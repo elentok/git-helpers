@@ -7,7 +7,8 @@ before:
     - go mod tidy
 
 builds:
-  - env:
+  - binary: gx
+    env:
       - CGO_ENABLED=0
     goos:
       - linux
@@ -30,3 +31,36 @@ changelog:
     exclude:
       - "^docs:"
       - "^test:"
+
+release:
+  footer: >-
+
+    ---
+
+    Released by [GoReleaser](https://github.com/goreleaser/goreleaser).
+
+homebrew_casks:
+  - name: gx
+    binary: gx
+    url:
+      template: "https://github.com/elentok/git-helpers/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+    commit_msg_template: "Brew cask update for {{ .ProjectName }} version {{ .Tag }}"
+    directory: Casks
+    homepage: "https://github.com/elentok/git-helpers/"
+    description: "Interactive TUI and CLI helpers for git."
+    skip_upload: auto
+    hooks:
+      post:
+        install: |
+          if OS.mac?
+            if system_command("/usr/bin/xattr", args: ["-h"]).exit_status == 0
+              system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/gx"]
+            end
+          end
+    repository:
+      owner: elentok
+      name: homebrew-stuff
+      token: "{{ .Env.GORELEASER_HOMEBREW_GITHUB_TOKEN }}"
+    commit_author:
+      name: goreleaserbot
+      email: bot@goreleaser.com

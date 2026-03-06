@@ -1,4 +1,4 @@
-# git-helpers
+# gx
 
 An collection of git helper (worktree management, etc...)
 
@@ -20,12 +20,21 @@ An collection of git helper (worktree management, etc...)
 
 ## Installation
 
-```sh
-# Install to $GOPATH/bin
-make install
+Using homebrew:
 
-# Or build a local binary
-make build
+```sh
+brew tap elentok/stuff
+brew install --cask gx
+```
+
+Using `go install`:
+
+```sh
+go install github.com/elentok/gx@latest
+```
+
+```sh
+make install
 ```
 
 ## Usage

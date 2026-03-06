@@ -35,9 +35,20 @@ func Pull(worktreePath string) error {
 	return err
 }
 
-// Push uploads local branch commits to the remote.
-func Push(worktreePath string) error {
-	_, err := run(worktreePath, []string{"push"})
+// BranchRemote returns the remote configured for branch (e.g. "origin"),
+// falling back to "origin" if none is set.
+func BranchRemote(repo Repo, branch string) string {
+	remote := runAllowFail(repo.Root, []string{"config", "branch." + branch + ".remote"})
+	if remote == "" {
+		return "origin"
+	}
+	return remote
+}
+
+// Push uploads local branch commits to the remote using an explicit
+// "git push <remote> <branch>" invocation.
+func Push(worktreePath, remote, branch string) error {
+	_, err := run(worktreePath, []string{"push", remote, branch})
 	return err
 }
 

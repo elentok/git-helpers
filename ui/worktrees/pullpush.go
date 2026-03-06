@@ -15,8 +15,9 @@ func cmdPull(wt git.Worktree) tea.Cmd {
 	}
 }
 
-func cmdPush(wt git.Worktree) tea.Cmd {
+func cmdPush(repo git.Repo, wt git.Worktree) tea.Cmd {
 	return func() tea.Msg {
-		return pushResultMsg{err: git.Push(wt.Path)}
+		remote := git.BranchRemote(repo, wt.Branch)
+		return pushResultMsg{err: git.Push(wt.Path, remote, wt.Branch)}
 	}
 }

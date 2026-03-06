@@ -198,7 +198,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return m, tea.Batch(cmdPull(*wt), m.spinner.Tick)
 				}
 				m.spinnerLabel = "Pushing " + wt.Name + "…"
-				return m, tea.Batch(cmdPush(*wt), m.spinner.Tick)
+				return m, tea.Batch(cmdPush(m.repo, *wt), m.spinner.Tick)
 			default:
 				m.keySeq = ""
 				return m, nil

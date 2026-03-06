@@ -1,0 +1,27 @@
+package worktrees
+
+import "gx/git"
+
+type clearStatusMsg struct{ gen int }
+
+type worktreesLoadedMsg struct {
+	worktrees []git.Worktree
+	err       error
+}
+
+type syncStatusMsg struct {
+	branch string
+	status git.SyncStatus
+}
+
+type dirtyStatusMsg struct {
+	worktreePath string
+	dirty        dirtyState
+}
+
+type sidebarDataMsg struct {
+	worktreePath  string
+	aheadCommits  []git.Commit
+	behindCommits []git.Commit
+	changes       []git.Change
+}

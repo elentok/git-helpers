@@ -38,6 +38,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m.handleRenameKey(msg)
 		case modeClone:
 			return m.handleCloneKey(msg)
+		case modeNew:
+			return m.handleNewKey(msg)
 		case modeYank:
 			return m.handleYankKey(msg)
 		}
@@ -47,6 +49,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, keys.Help):
 			m.help.ShowAll = !m.help.ShowAll
 			m = m.resized()
+			return m, nil
+		case key.Matches(msg, keys.New) && !m.spinnerActive:
+			m = m.enterNewMode()
 			return m, nil
 		case key.Matches(msg, keys.Delete) && len(m.worktrees) > 0 && !m.spinnerActive:
 			m.mode = modeDelete
@@ -100,6 +105,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, cmdLoadWorktrees(m.repo)
 
 	case cloneResultMsg:
+		if msg.err != nil {
+			return m.showError(msg.err.Error()), nil
+		}
+		m.statusMsg = ""
+		return m, cmdLoadWorktrees(m.repo)
+
+	case newResultMsg:
 		if msg.err != nil {
 			return m.showError(msg.err.Error()), nil
 		}

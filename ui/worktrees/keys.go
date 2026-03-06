@@ -5,6 +5,7 @@ import "github.com/charmbracelet/bubbles/key"
 type keyMap struct {
 	Up     key.Binding
 	Down   key.Binding
+	New    key.Binding
 	Delete key.Binding
 	Rename key.Binding
 	Clone  key.Binding
@@ -28,6 +29,10 @@ var keys = keyMap{
 	Delete: key.NewBinding(
 		key.WithKeys("d"),
 		key.WithHelp("d", "delete"),
+	),
+	New: key.NewBinding(
+		key.WithKeys("n"),
+		key.WithHelp("n", "new worktree"),
 	),
 	Rename: key.NewBinding(
 		key.WithKeys("r"),
@@ -67,13 +72,13 @@ var keys = keyMap{
 // bubbles/help in a later milestone.
 
 func (k keyMap) ShortHelp() []key.Binding {
-	return []key.Binding{k.Up, k.Down, k.Delete, k.Rename, k.Clone, k.Yank, k.Paste, k.Pull, k.Push, k.Quit, k.Help}
+	return []key.Binding{k.Up, k.Down, k.New, k.Delete, k.Rename, k.Clone, k.Yank, k.Paste, k.Pull, k.Push, k.Quit, k.Help}
 }
 
 func (k keyMap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
 		{k.Up, k.Down},
-		{k.Delete, k.Rename, k.Clone},
+		{k.New, k.Delete, k.Rename, k.Clone},
 		{k.Yank, k.Paste},
 		{k.Pull, k.Push, k.Help, k.Quit},
 	}

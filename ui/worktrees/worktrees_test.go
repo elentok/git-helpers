@@ -168,6 +168,48 @@ func TestCloneWorktree(t *testing.T) {
 	quit(t, tm)
 }
 
+// ── new ───────────────────────────────────────────────────────────────────────
+
+func TestNewInputAppearsAndCancels(t *testing.T) {
+	repoDir := testutil.TempBareRepoWithWorktrees(t, "feature-a")
+	_, tm := startTUI(t, repoDir)
+
+	waitForText(t, tm, "feature-a", loadWait)
+
+	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'n'}})
+	waitForText(t, tm, "New worktree", actionWait)
+
+	tm.Send(tea.KeyMsg{Type: tea.KeyEsc})
+	quit(t, tm)
+}
+
+func TestNewWorktree(t *testing.T) {
+	repoDir := testutil.TempBareRepoWithWorktrees(t, "feature-a")
+	repo, tm := startTUI(t, repoDir)
+
+	waitForText(t, tm, "feature-a", loadWait)
+
+	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'n'}})
+	waitForText(t, tm, "New worktree", actionWait)
+	tm.Type("feature-new")
+	tm.Send(tea.KeyMsg{Type: tea.KeyEnter})
+
+	teatest.WaitFor(t, tm.Output(), func(_ []byte) bool {
+		wts, err := git.ListWorktrees(repo)
+		if err != nil {
+			return false
+		}
+		for _, wt := range wts {
+			if wt.Name == "feature-new" && wt.Branch == "feature-new" {
+				return true
+			}
+		}
+		return false
+	}, teatest.WithDuration(loadWait))
+
+	quit(t, tm)
+}
+
 // ── yank / paste ──────────────────────────────────────────────────────────────
 
 func TestYankModalAppearsAndCancels(t *testing.T) {

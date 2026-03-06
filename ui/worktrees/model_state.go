@@ -18,6 +18,7 @@ const (
 	modeDelete
 	modeRename
 	modeClone
+	modeNew
 	modeYank
 	modeError
 )

@@ -77,6 +77,8 @@ func (m Model) statusBarView() string {
 		return m.renameView()
 	case modeClone:
 		return m.cloneView()
+	case modeNew:
+		return m.newView()
 	default:
 		if m.spinnerActive {
 			return "  " + m.spinner.View() + " " + m.spinnerLabel

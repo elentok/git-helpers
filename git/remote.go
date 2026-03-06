@@ -63,6 +63,12 @@ func PushBranchForceWithLease(worktreePath, remote, branch string) error {
 	return err
 }
 
+// PushBranchForce force-pushes branch using --force.
+func PushBranchForce(worktreePath, remote, branch string) error {
+	_, err := run(worktreePath, []string{"push", "--force", remote, branch})
+	return err
+}
+
 // IsNonFastForwardPushError returns true when err matches a rejected push that
 // can be resolved with a force push.
 func IsNonFastForwardPushError(err error) bool {

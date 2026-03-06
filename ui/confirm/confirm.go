@@ -68,24 +68,25 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m model) View() string {
 	title := ui.StyleBold.Render("gx push")
 	body := lipgloss.NewStyle().Padding(1, 2).Render(m.prompt)
-	hint := ui.StyleDim.Render("y: yes  n: no  enter: confirm")
-	yes := chip("Yes", m.choiceYes)
-	no := chip("No", !m.choiceYes)
+	hint := ui.StyleDim.Render("left/right: choose  y/n: quick select  enter: confirm")
+	yes := optionLabel("Yes", m.choiceYes)
+	no := optionLabel("No", !m.choiceYes)
 	return strings.Join([]string{
 		title,
 		body,
-		"  " + yes + "  " + no,
+		"  " + yes + "   " + no,
 		"  " + hint,
 		"",
 	}, "\n")
 }
 
-func chip(label string, selected bool) string {
-	s := lipgloss.NewStyle().Padding(0, 1).Border(lipgloss.RoundedBorder())
+func optionLabel(label string, selected bool) string {
+	s := lipgloss.NewStyle().Padding(0, 1)
 	if selected {
-		s = s.Foreground(ui.ColorGreen).BorderForeground(ui.ColorGreen).Bold(true)
+		s = s.Foreground(ui.ColorGreen).Bold(true)
+		return s.Render("> " + label + " <")
 	} else {
-		s = s.Foreground(ui.ColorGray).BorderForeground(ui.ColorBorder)
+		s = s.Foreground(ui.ColorGray)
+		return s.Render("  " + label + "  ")
 	}
-	return s.Render(label)
 }

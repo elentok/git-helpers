@@ -173,7 +173,22 @@ func runPush(d deps) error {
 		if forceErr := runWithSpinner(d.stdin, d.stderr, forceLabel, func() error {
 			return git.PushBranchForceWithLease(pushDir, remote, branch)
 		}); forceErr != nil {
-			return forceErr
+			prompt := fmt.Sprintf("--force-with-lease failed: %v\nRun plain --force for %s/%s?", forceErr, remote, branch)
+			confirmedForce, confirmErr := d.confirmForce(prompt)
+			if confirmErr != nil {
+				return confirmErr
+			}
+			if !confirmedForce {
+				return fmt.Errorf("push aborted after --force-with-lease failure")
+			}
+			forceLabel = fmt.Sprintf("Force-pushing %s to %s...", branch, remote)
+			if err := runWithSpinner(d.stdin, d.stderr, forceLabel, func() error {
+				return git.PushBranchForce(pushDir, remote, branch)
+			}); err != nil {
+				return err
+			}
+			fmt.Fprintf(d.stdout, "Force-pushed %s to %s with --force\n", branch, remote)
+			return nil
 		}
 		fmt.Fprintf(d.stdout, "Force-pushed %s to %s with --force-with-lease\n", branch, remote)
 		return nil

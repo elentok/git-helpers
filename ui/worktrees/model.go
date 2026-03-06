@@ -39,13 +39,6 @@ func cmdClearStatus(gen int) tea.Cmd {
 	})
 }
 
-type seqResetMsg struct{ gen int }
-
-func cmdSeqReset(gen int) tea.Cmd {
-	return tea.Tick(500*time.Millisecond, func(time.Time) tea.Msg {
-		return seqResetMsg{gen: gen}
-	})
-}
 
 type worktreesLoadedMsg struct {
 	worktrees []git.Worktree
@@ -117,9 +110,6 @@ type Model struct {
 
 	help help.Model
 
-	keySeq    string // accumulated key sequence, e.g. "g", "gp"
-	keySeqGen int    // incremented on each key, used to expire stale resets
-
 	spinner      spinner.Model
 	spinnerActive bool
 	spinnerLabel  string
@@ -178,34 +168,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case modeYank:
 			return m.handleYankKey(msg)
 		}
-		// Normal mode — key-sequence handling (gpl / gps)
-		if m.keySeq != "" || msg.String() == "g" {
-			seq := m.keySeq + msg.String()
-			switch seq {
-			case "g", "gp":
-				m.keySeq = seq
-				m.keySeqGen++
-				return m, cmdSeqReset(m.keySeqGen)
-			case "gpl", "gps":
-				m.keySeq = ""
-				wt := m.selectedWorktree()
-				if wt == nil {
-					return m, nil
-				}
-				m.spinnerActive = true
-				if seq == "gpl" {
-					m.spinnerLabel = "Pulling " + wt.Name + "…"
-					return m, tea.Batch(cmdPull(*wt), m.spinner.Tick)
-				}
-				m.spinnerLabel = "Pushing " + wt.Name + "…"
-				return m, tea.Batch(cmdPush(m.repo, *wt), m.spinner.Tick)
-			default:
-				m.keySeq = ""
-				return m, nil
-			}
-		}
-
-		// Normal mode — single-key bindings
+		// Normal mode
 		switch {
 		case key.Matches(msg, keys.Quit):
 			return m, tea.Quit
@@ -226,6 +189,20 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if wt != nil {
 				m.statusMsg = "Pasting…"
 				return m, cmdPaste(*m.clipboard, *wt)
+			}
+		case key.Matches(msg, keys.Pull) && len(m.worktrees) > 0:
+			wt := m.selectedWorktree()
+			if wt != nil {
+				m.spinnerActive = true
+				m.spinnerLabel = "Pulling " + wt.Name + "…"
+				return m, tea.Batch(cmdPull(*wt), m.spinner.Tick)
+			}
+		case key.Matches(msg, keys.Push) && len(m.worktrees) > 0:
+			wt := m.selectedWorktree()
+			if wt != nil {
+				m.spinnerActive = true
+				m.spinnerLabel = "Pushing " + wt.Name + "…"
+				return m, tea.Batch(cmdPush(m.repo, *wt), m.spinner.Tick)
 			}
 		}
 
@@ -264,12 +241,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case clearStatusMsg:
 		if msg.gen == m.statusGen {
 			m.statusMsg = ""
-		}
-		return m, nil
-
-	case seqResetMsg:
-		if msg.gen == m.keySeqGen {
-			m.keySeq = ""
 		}
 		return m, nil
 
@@ -465,9 +436,6 @@ func (m Model) statusBarView() string {
 	default:
 		if m.spinnerActive {
 			return "  " + m.spinner.View() + " " + m.spinnerLabel
-		}
-		if m.keySeq != "" {
-			return "  " + m.keySeq + "…"
 		}
 		if m.statusMsg != "" {
 			return "  " + m.statusMsg

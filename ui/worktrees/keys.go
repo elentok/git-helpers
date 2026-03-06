@@ -44,13 +44,13 @@ var keys = keyMap{
 		key.WithKeys("p"),
 		key.WithHelp("p", "paste files"),
 	),
-	// Pull and Push are chained sequences (gpl / gps) handled manually;
-	// they have no WithKeys so key.Matches never fires, but they appear in help.
 	Pull: key.NewBinding(
-		key.WithHelp("gpl", "pull"),
+		key.WithKeys("l"),
+		key.WithHelp("l", "pull"),
 	),
 	Push: key.NewBinding(
-		key.WithHelp("gps", "push"),
+		key.WithKeys("s"),
+		key.WithHelp("s", "push"),
 	),
 	Quit: key.NewBinding(
 		key.WithKeys("q", "ctrl+c"),

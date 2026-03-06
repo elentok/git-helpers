@@ -56,3 +56,8 @@ The sidebar shows a preview of the active worktree:
 - The current codebase is written the Deno/Javascript-way, the new codebase should be written the
   Go-way.
 - Write unit tests
+
+## Instructions
+
+1. Plan the implementation, split it into milestones (you can split those to steps if you prefer)
+2. Write the plan to docs/go-migration-plan.md

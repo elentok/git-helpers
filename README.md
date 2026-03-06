@@ -55,6 +55,22 @@ Push current worktree branch, with styled force-with-lease confirmation on rejec
 gx push
 ```
 
+## Configuration
+
+Optional config file:
+
+```sh
+~/.config/gx/config.json
+```
+
+Example:
+
+```json
+{
+  "use-nerdfont-icons": true
+}
+```
+
 ## Key bindings
 
 | Key            | Action                                             |

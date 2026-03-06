@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"gx/config"
 	"gx/git"
 	"gx/ui/confirm"
 	"gx/ui/worktrees"
@@ -83,7 +84,14 @@ func runWorktrees(_ string) error {
 		activeWorktreePath = info.WorktreeRoot
 	}
 
-	m := worktrees.New(*repo, activeWorktreePath)
+	cfg, err := config.Load()
+	if err != nil {
+		return err
+	}
+	settings := worktrees.Settings{
+		UseNerdFontIcons: cfg.UseNerdFontIcons,
+	}
+	m := worktrees.NewWithSettings(*repo, activeWorktreePath, settings)
 	p := tea.NewProgram(m, tea.WithAltScreen())
 	_, err = p.Run()
 	return err

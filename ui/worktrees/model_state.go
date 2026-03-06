@@ -27,10 +27,16 @@ type dirtyState struct {
 	hasUntracked bool
 }
 
+// Settings controls optional rendering behavior for the worktrees UI.
+type Settings struct {
+	UseNerdFontIcons bool
+}
+
 // Model is the BubbleTea model for the worktrees page.
 type Model struct {
 	repo               git.Repo
 	activeWorktreePath string // path of the worktree the user launched from
+	settings           Settings
 
 	worktrees []git.Worktree
 	statuses  map[string]git.SyncStatus
@@ -72,12 +78,18 @@ type Model struct {
 // New creates a new worktrees page model. activeWorktreePath is the path of the
 // worktree the user is currently in (empty if launched from the bare repo root).
 func New(repo git.Repo, activeWorktreePath string) Model {
+	return NewWithSettings(repo, activeWorktreePath, Settings{})
+}
+
+// NewWithSettings creates a new worktrees page model with explicit settings.
+func NewWithSettings(repo git.Repo, activeWorktreePath string, settings Settings) Model {
 	sp := spinner.New()
 	sp.Spinner = spinner.Dot
 
 	return Model{
 		repo:               repo,
 		activeWorktreePath: activeWorktreePath,
+		settings:           settings,
 		statuses:           make(map[string]git.SyncStatus),
 		dirties:            make(map[string]dirtyState),
 		table:              newTable(),

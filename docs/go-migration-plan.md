@@ -11,6 +11,7 @@ worktree dashboard.
 | `github.com/charmbracelet/bubbletea` | TUI framework (model-update-view loop) |
 | `github.com/charmbracelet/bubbles` | Pre-built TUI components (see below) |
 | `github.com/charmbracelet/lipgloss` | Terminal styling and layout |
+| `github.com/charmbracelet/x/exp/teatest` | E2E testing for BubbleTea programs |
 
 ### Bubbles components we use
 
@@ -84,6 +85,67 @@ gx/
 - **Clipboard is page-level state**, not global. It holds a list of file paths and source worktree.
   The sidebar or a status bar shows "N files in clipboard" when non-empty.
 
+## Testing Strategy
+
+### Unit tests (`git/` package)
+
+Standard Go tests using temp directories. The `testutil/` package creates throwaway bare repos
+with worktrees so we can test git operations against real repos without mocking.
+
+### E2E tests (`teatest`)
+
+Use `github.com/charmbracelet/x/exp/teatest` to drive the full TUI. Each test:
+
+1. Creates a temp bare repo with worktrees (via `testutil/`).
+2. Starts the app with `teatest.NewTestModel()`, pointed at the temp repo.
+3. Sends keys and asserts screen content.
+
+```go
+func TestDeleteWorktree(t *testing.T) {
+    repo := testutil.CreateBareRepoWithWorktrees(t, "feature-a", "feature-b")
+
+    m := newModel(repo)
+    tm := teatest.NewTestModel(t, m, teatest.WithInitialTermSize(120, 40))
+
+    // Navigate to feature-a and delete it
+    tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'j'}})
+    teatest.WaitFor(t, tm.Output(), func(bts []byte) bool {
+        return bytes.Contains(bts, []byte("feature-a"))
+    })
+
+    tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'d'}})
+    teatest.WaitFor(t, tm.Output(), func(bts []byte) bool {
+        return bytes.Contains(bts, []byte("Delete"))  // confirmation prompt
+    })
+
+    tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'y'}})
+    teatest.WaitFor(t, tm.Output(), func(bts []byte) bool {
+        return !bytes.Contains(bts, []byte("feature-a"))  // row gone
+    })
+
+    tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'q'}})
+    tm.WaitFinished(t, teatest.WithFinalTimeout(3*time.Second))
+}
+```
+
+Key patterns:
+- **`WaitFor`** to assert screen content after each action (avoids flaky timing issues).
+- **`testutil` temp repos** so tests are isolated and don't touch real repos.
+- **Golden file snapshots** (`teatest.RequireEqualOutput`) for visual regression tests on key
+  screens (initial load, sidebar content, dialogs). Run with `-update` to regenerate.
+
+### What to E2E test
+
+Each milestone adds E2E tests for its features:
+
+| Milestone | E2E tests |
+|-----------|-----------|
+| 2 - Table | App starts, shows worktrees, j/k navigation updates sidebar, active worktree highlighted |
+| 3 - Delete/Rename | d+y deletes and removes row, r+type+enter renames and updates row |
+| 4 - Clone | c+type+enter creates new row in table |
+| 5 - Yank/Paste | y opens checklist, space toggles, enter yanks, p on another worktree pastes |
+| 6 - Pull/Push | gpl shows spinner then updates status, gps same |
+
 ---
 
 ## Milestone 1: Project scaffold + git library
@@ -92,7 +154,7 @@ Set up the Go module, implement the git operations layer, and verify with tests.
 
 ### Steps
 
-1. `go mod init`, add dependencies (`bubbletea`, `lipgloss`, `bubbles`).
+1. `go mod init`, add dependencies (`bubbletea`, `lipgloss`, `bubbles`, `x/exp/teatest`).
 2. Implement `git/run.go` - execute git commands, capture stdout/stderr, return structured errors.
 3. Implement `git/repo.go`:
    - `FindRepo(path) (Repo, error)` - walk up to find `.git` or bare repo.
@@ -157,6 +219,8 @@ Render the worktrees page with the table, navigation, and sidebar. Read-only, no
 - Running `gx` from a bare repo or worktree shows the table with real data.
 - Can navigate rows with j/k, sidebar updates.
 - Active worktree is highlighted when launched from inside one.
+- E2E tests: app starts with correct rows, navigation updates sidebar, golden snapshot for
+  initial screen.
 
 ---
 
@@ -189,6 +253,7 @@ Implement the `d` and `r` interactions.
 
 - Can delete a worktree with `d`, confirm, see it removed from the table.
 - Can rename a worktree with `r`, type new name, see it updated.
+- E2E tests cover both flows end-to-end against a temp repo.
 
 ---
 

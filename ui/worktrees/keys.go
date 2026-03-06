@@ -8,6 +8,8 @@ type keyMap struct {
 	Delete key.Binding
 	Rename key.Binding
 	Clone  key.Binding
+	Yank   key.Binding
+	Paste  key.Binding
 	Quit   key.Binding
 }
 
@@ -32,6 +34,14 @@ var keys = keyMap{
 		key.WithKeys("c"),
 		key.WithHelp("c", "clone"),
 	),
+	Yank: key.NewBinding(
+		key.WithKeys("y"),
+		key.WithHelp("y", "yank files"),
+	),
+	Paste: key.NewBinding(
+		key.WithKeys("p"),
+		key.WithHelp("p", "paste files"),
+	),
 	Quit: key.NewBinding(
 		key.WithKeys("q", "ctrl+c"),
 		key.WithHelp("q", "quit"),
@@ -42,12 +52,12 @@ var keys = keyMap{
 // bubbles/help in a later milestone.
 
 func (k keyMap) ShortHelp() []key.Binding {
-	return []key.Binding{k.Up, k.Down, k.Delete, k.Rename, k.Clone, k.Quit}
+	return []key.Binding{k.Up, k.Down, k.Delete, k.Rename, k.Clone, k.Yank, k.Paste, k.Quit}
 }
 
 func (k keyMap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
 		{k.Up, k.Down},
-		{k.Delete, k.Rename, k.Clone, k.Quit},
+		{k.Delete, k.Rename, k.Clone, k.Yank, k.Paste, k.Quit},
 	}
 }

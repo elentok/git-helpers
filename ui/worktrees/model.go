@@ -1,8 +1,11 @@
 package worktrees
 
 import (
+	"fmt"
+
 	"gx/git"
 	"gx/ui"
+	"gx/ui/components"
 
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/table"
@@ -19,6 +22,7 @@ const (
 	modeDelete
 	modeRename
 	modeClone
+	modeYank
 	modeError
 )
 
@@ -81,10 +85,15 @@ type Model struct {
 	sidebarChanges []git.Change
 	sidebarLoading bool
 
-	mode         mode
-	textInput    textinput.Model // shared by rename and clone modes
-	statusMsg    string
+	mode          mode
+	textInput     textinput.Model // shared by rename and clone modes
+	statusMsg     string
 	errorViewport viewport.Model
+
+	yankLoading  bool
+	yankSource   git.Worktree
+	yankChecklist components.Checklist
+	clipboard    *clipboardState
 
 	width  int
 	height int
@@ -132,6 +141,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m.handleRenameKey(msg)
 		case modeClone:
 			return m.handleCloneKey(msg)
+		case modeYank:
+			return m.handleYankKey(msg)
 		}
 		// Normal mode
 		switch {
@@ -147,6 +158,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, keys.Clone) && len(m.worktrees) > 0:
 			m = m.enterCloneMode()
 			return m, nil
+		case key.Matches(msg, keys.Yank) && len(m.worktrees) > 0:
+			return m.enterYankMode()
+		case key.Matches(msg, keys.Paste) && m.clipboard != nil && len(m.worktrees) > 0:
+			wt := m.selectedWorktree()
+			if wt != nil {
+				m.statusMsg = "Pasting…"
+				return m, cmdPaste(*m.clipboard, *wt)
+			}
 		}
 
 	case deleteResultMsg:
@@ -169,6 +188,25 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		m.statusMsg = ""
 		return m, cmdLoadWorktrees(m.repo)
+
+	case yankDataMsg:
+		if m.mode != modeYank || msg.worktreePath != m.yankSource.Path {
+			return m, nil // stale
+		}
+		if msg.err != nil {
+			return m.showError(msg.err.Error()), nil
+		}
+		m.yankLoading = false
+		m.yankChecklist = components.NewChecklist(changesToChecklistItems(msg.changes))
+		return m, nil
+
+	case pasteResultMsg:
+		if msg.err != nil {
+			return m.showError(msg.err.Error()), nil
+		}
+		m.clipboard = nil
+		m.statusMsg = fmt.Sprintf("Pasted %d file(s)", msg.n)
+		return m, nil
 
 	case worktreesLoadedMsg:
 		m.loading = false
@@ -248,6 +286,9 @@ func (m Model) View() string {
 	if m.err != nil {
 		return "\n  Error: " + m.err.Error()
 	}
+	if m.mode == modeYank {
+		return m.yankModalView()
+	}
 	if m.mode == modeError {
 		return m.errorModalView()
 	}
@@ -309,7 +350,13 @@ func (m Model) statusBarView() string {
 		if m.statusMsg != "" {
 			return "  " + m.statusMsg
 		}
-		return ui.StyleDim.Render("  d delete  r rename  c clone  q quit")
+		if m.clipboard != nil {
+			return ui.StyleDim.Render(fmt.Sprintf(
+				"  %d file(s) from %s  ·  p paste  y yank  d delete  r rename  c clone  q quit",
+				len(m.clipboard.files), m.clipboard.srcName,
+			))
+		}
+		return ui.StyleDim.Render("  y yank  p paste  d delete  r rename  c clone  q quit")
 	}
 }
 

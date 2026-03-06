@@ -168,6 +168,54 @@ func TestCloneWorktree(t *testing.T) {
 	quit(t, tm)
 }
 
+// ── yank / paste ──────────────────────────────────────────────────────────────
+
+func TestYankModalAppearsAndCancels(t *testing.T) {
+	repoDir := testutil.TempBareRepoWithWorktrees(t, "feature-a")
+	_, tm := startTUI(t, repoDir)
+
+	waitForText(t, tm, "feature-a", loadWait)
+
+	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'y'}})
+	waitForText(t, tm, "Yank files from", actionWait)
+
+	tm.Send(tea.KeyMsg{Type: tea.KeyEsc})
+
+	quit(t, tm)
+}
+
+func TestYankAndPaste(t *testing.T) {
+	repoDir := testutil.TempBareRepoWithWorktrees(t, "feature-a", "feature-b")
+
+	// Add an untracked file to feature-a before starting the TUI
+	wtDir := filepath.Join(repoDir, "feature-a")
+	testutil.WriteFile(t, wtDir, "shared.txt", "hello from feature-a")
+
+	_, tm := startTUI(t, repoDir)
+	waitForText(t, tm, "feature-a", loadWait)
+
+	// Yank from feature-a (cursor is on row 0)
+	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'y'}})
+	waitForText(t, tm, "Yank files from", actionWait)
+	// Confirm with all items checked
+	tm.Send(tea.KeyMsg{Type: tea.KeyEnter})
+
+	// Clipboard indicator should appear
+	waitForText(t, tm, "feature-a", actionWait)
+
+	// Navigate to feature-b and paste
+	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'j'}})
+	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'p'}})
+
+	// Wait until the pasted file appears in feature-b
+	teatest.WaitFor(t, tm.Output(), func(_ []byte) bool {
+		data, err := os.ReadFile(filepath.Join(repoDir, "feature-b", "shared.txt"))
+		return err == nil && string(data) == "hello from feature-a"
+	}, teatest.WithDuration(loadWait))
+
+	quit(t, tm)
+}
+
 // ── rename ────────────────────────────────────────────────────────────────────
 
 func TestRenameInputAppearsAndCancels(t *testing.T) {

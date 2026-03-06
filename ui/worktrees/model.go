@@ -10,6 +10,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
+	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/table"
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
@@ -35,6 +36,14 @@ type clearStatusMsg struct{ gen int }
 func cmdClearStatus(gen int) tea.Cmd {
 	return tea.Tick(2*time.Second, func(time.Time) tea.Msg {
 		return clearStatusMsg{gen: gen}
+	})
+}
+
+type seqResetMsg struct{ gen int }
+
+func cmdSeqReset(gen int) tea.Cmd {
+	return tea.Tick(500*time.Millisecond, func(time.Time) tea.Msg {
+		return seqResetMsg{gen: gen}
 	})
 }
 
@@ -108,6 +117,13 @@ type Model struct {
 
 	help help.Model
 
+	keySeq    string // accumulated key sequence, e.g. "g", "gp"
+	keySeqGen int    // incremented on each key, used to expire stale resets
+
+	spinner      spinner.Model
+	spinnerActive bool
+	spinnerLabel  string
+
 	width  int
 	height int
 	ready  bool // true once we've received the first WindowSizeMsg
@@ -119,6 +135,9 @@ type Model struct {
 // New creates a new worktrees page model. activeWorktreePath is the path of the
 // worktree the user is currently in (empty if launched from the bare repo root).
 func New(repo git.Repo, activeWorktreePath string) Model {
+	sp := spinner.New()
+	sp.Spinner = spinner.Dot
+
 	return Model{
 		repo:               repo,
 		activeWorktreePath: activeWorktreePath,
@@ -126,6 +145,7 @@ func New(repo git.Repo, activeWorktreePath string) Model {
 		table:              newTable(),
 		loading:            true,
 		help:               help.New(),
+		spinner:            sp,
 	}
 }
 
@@ -158,7 +178,34 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case modeYank:
 			return m.handleYankKey(msg)
 		}
-		// Normal mode
+		// Normal mode — key-sequence handling (gpl / gps)
+		if m.keySeq != "" || msg.String() == "g" {
+			seq := m.keySeq + msg.String()
+			switch seq {
+			case "g", "gp":
+				m.keySeq = seq
+				m.keySeqGen++
+				return m, cmdSeqReset(m.keySeqGen)
+			case "gpl", "gps":
+				m.keySeq = ""
+				wt := m.selectedWorktree()
+				if wt == nil {
+					return m, nil
+				}
+				m.spinnerActive = true
+				if seq == "gpl" {
+					m.spinnerLabel = "Pulling " + wt.Name + "…"
+					return m, tea.Batch(cmdPull(*wt), m.spinner.Tick)
+				}
+				m.spinnerLabel = "Pushing " + wt.Name + "…"
+				return m, tea.Batch(cmdPush(*wt), m.spinner.Tick)
+			default:
+				m.keySeq = ""
+				return m, nil
+			}
+		}
+
+		// Normal mode — single-key bindings
 		switch {
 		case key.Matches(msg, keys.Quit):
 			return m, tea.Quit
@@ -219,6 +266,48 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.statusMsg = ""
 		}
 		return m, nil
+
+	case seqResetMsg:
+		if msg.gen == m.keySeqGen {
+			m.keySeq = ""
+		}
+		return m, nil
+
+	case spinner.TickMsg:
+		if m.spinnerActive {
+			var cmd tea.Cmd
+			m.spinner, cmd = m.spinner.Update(msg)
+			return m, cmd
+		}
+		return m, nil
+
+	case pullResultMsg:
+		m.spinnerActive = false
+		if msg.err != nil {
+			return m.showError(msg.err.Error()), nil
+		}
+		m.statusGen++
+		m.statusMsg = "Pulled"
+		var cmds []tea.Cmd
+		cmds = append(cmds, cmdClearStatus(m.statusGen))
+		if wt := m.selectedWorktree(); wt != nil && wt.Branch != "" {
+			cmds = append(cmds, cmdLoadSyncStatus(m.repo, wt.Branch))
+		}
+		return m, tea.Batch(cmds...)
+
+	case pushResultMsg:
+		m.spinnerActive = false
+		if msg.err != nil {
+			return m.showError(msg.err.Error()), nil
+		}
+		m.statusGen++
+		m.statusMsg = "Pushed"
+		var cmds []tea.Cmd
+		cmds = append(cmds, cmdClearStatus(m.statusGen))
+		if wt := m.selectedWorktree(); wt != nil && wt.Branch != "" {
+			cmds = append(cmds, cmdLoadSyncStatus(m.repo, wt.Branch))
+		}
+		return m, tea.Batch(cmds...)
 
 	case pasteResultMsg:
 		if msg.err != nil {
@@ -374,6 +463,12 @@ func (m Model) statusBarView() string {
 	case modeClone:
 		return m.cloneView()
 	default:
+		if m.spinnerActive {
+			return "  " + m.spinner.View() + " " + m.spinnerLabel
+		}
+		if m.keySeq != "" {
+			return "  " + m.keySeq + "…"
+		}
 		if m.statusMsg != "" {
 			return "  " + m.statusMsg
 		}

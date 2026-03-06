@@ -10,6 +10,8 @@ type keyMap struct {
 	Clone  key.Binding
 	Yank   key.Binding
 	Paste  key.Binding
+	Pull   key.Binding
+	Push   key.Binding
 	Quit   key.Binding
 }
 
@@ -42,6 +44,14 @@ var keys = keyMap{
 		key.WithKeys("p"),
 		key.WithHelp("p", "paste files"),
 	),
+	// Pull and Push are chained sequences (gpl / gps) handled manually;
+	// they have no WithKeys so key.Matches never fires, but they appear in help.
+	Pull: key.NewBinding(
+		key.WithHelp("gpl", "pull"),
+	),
+	Push: key.NewBinding(
+		key.WithHelp("gps", "push"),
+	),
 	Quit: key.NewBinding(
 		key.WithKeys("q", "ctrl+c"),
 		key.WithHelp("q", "quit"),
@@ -52,12 +62,12 @@ var keys = keyMap{
 // bubbles/help in a later milestone.
 
 func (k keyMap) ShortHelp() []key.Binding {
-	return []key.Binding{k.Up, k.Down, k.Delete, k.Rename, k.Clone, k.Yank, k.Paste, k.Quit}
+	return []key.Binding{k.Up, k.Down, k.Delete, k.Rename, k.Clone, k.Yank, k.Paste, k.Pull, k.Push, k.Quit}
 }
 
 func (k keyMap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
 		{k.Up, k.Down},
-		{k.Delete, k.Rename, k.Clone, k.Yank, k.Paste, k.Quit},
+		{k.Delete, k.Rename, k.Clone, k.Yank, k.Paste, k.Pull, k.Push, k.Quit},
 	}
 }

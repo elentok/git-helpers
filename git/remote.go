@@ -29,6 +29,18 @@ func PruneRemote(repo Repo, remote string) error {
 	return err
 }
 
+// Pull fetches and integrates changes from the remote into the worktree.
+func Pull(worktreePath string) error {
+	_, err := run(worktreePath, []string{"pull"})
+	return err
+}
+
+// Push uploads local branch commits to the remote.
+func Push(worktreePath string) error {
+	_, err := run(worktreePath, []string{"push"})
+	return err
+}
+
 // PruneAllRemotes prunes all configured remotes.
 func PruneAllRemotes(repo Repo) error {
 	remotes, err := ListRemotes(repo)

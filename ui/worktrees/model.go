@@ -2,6 +2,7 @@ package worktrees
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"gx/git"
@@ -155,6 +156,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case tea.KeyMsg:
+		// Global quit
+		if msg.Type == tea.KeyCtrlC {
+			return m, tea.Quit
+		}
 		// Mode-specific handling first
 		switch m.mode {
 		case modeError:
@@ -172,34 +177,41 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch {
 		case key.Matches(msg, keys.Quit):
 			return m, tea.Quit
-		case key.Matches(msg, keys.Delete) && len(m.worktrees) > 0:
+		case key.Matches(msg, keys.Help):
+			m.help.ShowAll = !m.help.ShowAll
+			m = m.resized()
+			return m, nil
+		case key.Matches(msg, keys.Delete) && len(m.worktrees) > 0 && !m.spinnerActive:
 			m.mode = modeDelete
 			m.statusMsg = ""
 			return m, nil
-		case key.Matches(msg, keys.Rename) && len(m.worktrees) > 0:
+		case key.Matches(msg, keys.Rename) && len(m.worktrees) > 0 && !m.spinnerActive:
 			m = m.enterRenameMode()
 			return m, nil
-		case key.Matches(msg, keys.Clone) && len(m.worktrees) > 0:
+		case key.Matches(msg, keys.Clone) && len(m.worktrees) > 0 && !m.spinnerActive:
 			m = m.enterCloneMode()
 			return m, nil
-		case key.Matches(msg, keys.Yank) && len(m.worktrees) > 0:
+		case key.Matches(msg, keys.Yank) && len(m.worktrees) > 0 && !m.spinnerActive:
 			return m.enterYankMode()
-		case key.Matches(msg, keys.Paste) && m.clipboard != nil && len(m.worktrees) > 0:
+		case key.Matches(msg, keys.Paste) && m.clipboard != nil && len(m.worktrees) > 0 && !m.spinnerActive:
 			wt := m.selectedWorktree()
 			if wt != nil {
 				m.statusMsg = "Pasting…"
 				return m, cmdPaste(*m.clipboard, *wt)
 			}
-		case key.Matches(msg, keys.Pull) && len(m.worktrees) > 0:
+		case key.Matches(msg, keys.Pull) && len(m.worktrees) > 0 && !m.spinnerActive:
 			wt := m.selectedWorktree()
 			if wt != nil {
 				m.spinnerActive = true
 				m.spinnerLabel = "Pulling " + wt.Name + "…"
 				return m, tea.Batch(cmdPull(*wt), m.spinner.Tick)
 			}
-		case key.Matches(msg, keys.Push) && len(m.worktrees) > 0:
+		case key.Matches(msg, keys.Push) && len(m.worktrees) > 0 && !m.spinnerActive:
 			wt := m.selectedWorktree()
 			if wt != nil {
+				if wt.Branch == "" {
+					return m.showError("cannot push: worktree is in detached HEAD state"), nil
+				}
 				m.spinnerActive = true
 				m.spinnerLabel = "Pushing " + wt.Name + "…"
 				return m, tea.Batch(cmdPush(m.repo, *wt), m.spinner.Tick)
@@ -405,8 +417,16 @@ func (m Model) splitWidth() (tableW, sidebarW int) {
 	return
 }
 
+func (m Model) helpLineCount() int {
+	v := m.help.View(keys)
+	if v == "" {
+		return 1
+	}
+	return strings.Count(v, "\n") + 1
+}
+
 func (m Model) contentHeight() int {
-	h := m.height - 1 // reserve 1 line for status bar
+	h := m.height - m.helpLineCount()
 	if h < 4 {
 		return 4
 	}
@@ -450,9 +470,9 @@ func (m Model) statusBarView() string {
 }
 
 func (m Model) resized() Model {
+	m.help.Width = m.width // must be set before contentHeight()
 	tableW, sidebarW := m.splitWidth()
 	h := m.contentHeight()
-	m.help.Width = m.width
 
 	resizeTable(&m.table, tableW, h)
 

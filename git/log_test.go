@@ -1,6 +1,7 @@
 package git_test
 
 import (
+	"os/exec"
 	"path/filepath"
 	"testing"
 
@@ -55,5 +56,39 @@ func TestCommitsSinceMain_multipleCommits(t *testing.T) {
 	}
 	if len(commits) != 2 {
 		t.Fatalf("got %d commits, want 2", len(commits))
+	}
+}
+
+func TestCommitsBehindMain(t *testing.T) {
+	dir := testutil.TempRepo(t)
+	repo, _ := git.FindRepo(dir)
+
+	mustGit(t, dir, "checkout", "-b", "feature")
+	testutil.WriteFile(t, dir, "feature.txt", "feature")
+	testutil.CommitAll(t, dir, "feature commit")
+
+	mustGit(t, dir, "checkout", "main")
+	testutil.WriteFile(t, dir, "main.txt", "main")
+	testutil.CommitAll(t, dir, "main commit")
+
+	behind, err := git.CommitsBehindMain(*repo, "feature")
+	if err != nil {
+		t.Fatalf("CommitsBehindMain: %v", err)
+	}
+	if len(behind) != 1 {
+		t.Fatalf("got %d commits behind main, want 1", len(behind))
+	}
+	if behind[0].Subject != "main commit" {
+		t.Fatalf("got behind subject %q, want %q", behind[0].Subject, "main commit")
+	}
+}
+
+func mustGit(t *testing.T, dir string, args ...string) {
+	t.Helper()
+	cmd := exec.Command("git", args...)
+	cmd.Dir = dir
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("git %v failed: %v\n%s", args, err, out)
 	}
 }

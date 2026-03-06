@@ -56,9 +56,10 @@ type dirtyStatusMsg struct {
 }
 
 type sidebarDataMsg struct {
-	worktreePath string
-	commits      []git.Commit
-	changes      []git.Change
+	worktreePath  string
+	aheadCommits  []git.Commit
+	behindCommits []git.Commit
+	changes       []git.Change
 }
 
 type dirtyState struct {
@@ -94,9 +95,15 @@ func cmdLoadDirtyStatus(wt git.Worktree) tea.Cmd {
 
 func cmdLoadSidebarData(repo git.Repo, wt git.Worktree) tea.Cmd {
 	return func() tea.Msg {
-		commits, _ := git.CommitsSinceMain(repo, wt.Branch)
+		aheadCommits, _ := git.CommitsSinceMain(repo, wt.Branch)
+		behindCommits, _ := git.CommitsBehindMain(repo, wt.Branch)
 		changes, _ := git.UncommittedChanges(wt.Path)
-		return sidebarDataMsg{worktreePath: wt.Path, commits: commits, changes: changes}
+		return sidebarDataMsg{
+			worktreePath:  wt.Path,
+			aheadCommits:  aheadCommits,
+			behindCommits: behindCommits,
+			changes:       changes,
+		}
 	}
 }
 
@@ -114,9 +121,10 @@ type Model struct {
 	table    table.Model
 	viewport viewport.Model
 
-	sidebarCommits []git.Commit
-	sidebarChanges []git.Change
-	sidebarLoading bool
+	sidebarAheadCommits  []git.Commit
+	sidebarBehindCommits []git.Commit
+	sidebarChanges       []git.Change
+	sidebarLoading       bool
 
 	mode          mode
 	textInput     textinput.Model // shared by rename and clone modes
@@ -376,7 +384,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case sidebarDataMsg:
 		// Discard stale results (user may have moved the cursor)
 		if len(m.worktrees) > 0 && m.worktrees[m.table.Cursor()].Path == msg.worktreePath {
-			m.sidebarCommits = msg.commits
+			m.sidebarAheadCommits = msg.aheadCommits
+			m.sidebarBehindCommits = msg.behindCommits
 			m.sidebarChanges = msg.changes
 			m.sidebarLoading = false
 			m.viewport.SetContent(m.sidebarContent())
@@ -394,7 +403,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if m.table.Cursor() != prevCursor && len(m.worktrees) > 0 {
 		m.table.SetRows(buildRows(m.worktrees, m.statuses, m.dirties, m.table.Cursor()))
 		m.sidebarLoading = true
-		m.sidebarCommits = nil
+		m.sidebarAheadCommits = nil
+		m.sidebarBehindCommits = nil
 		m.sidebarChanges = nil
 		m.viewport.SetContent(m.sidebarContent())
 		cmds = append(cmds, cmdLoadSidebarData(m.repo, m.worktrees[m.table.Cursor()]))
@@ -602,7 +612,7 @@ func (m Model) sidebarContent() string {
 		w := m.worktrees[m.table.Cursor()]
 		wt = &w
 	}
-	return renderSidebarContent(wt, m.sidebarCommits, m.sidebarChanges, m.sidebarLoading)
+	return renderSidebarContent(wt, m.sidebarAheadCommits, m.sidebarBehindCommits, m.sidebarChanges, m.sidebarLoading)
 }
 
 // ── error modal ───────────────────────────────────────────────────────────────

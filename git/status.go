@@ -57,14 +57,9 @@ type Change struct {
 	Path string
 }
 
-// WorktreeSyncStatus returns the sync status of a worktree branch. It compares
-// the branch against its remote tracking branch (origin/<branch>) if it exists,
-// otherwise against the repo's main branch.
+// WorktreeSyncStatus returns the sync status of a worktree branch compared to
+// the repository's main branch.
 func WorktreeSyncStatus(repo Repo, branch string) (SyncStatus, error) {
-	remoteRef := "origin/" + branch
-	if runAllowFail(repo.Root, []string{"rev-parse", "--verify", remoteRef}) != "" {
-		return syncBetween(repo.Root, branch, remoteRef)
-	}
 	return syncBetween(repo.Root, branch, repo.MainBranch)
 }
 

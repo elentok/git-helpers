@@ -11,17 +11,23 @@ type Commit struct {
 // CommitsSinceMain returns commits on branch that are not reachable from the
 // repo's main branch, ordered newest first.
 func CommitsSinceMain(repo Repo, branch string) ([]Commit, error) {
-	mergeBase, err := run(repo.Root, []string{"merge-base", branch, repo.MainBranch})
+	return commitsBetween(repo, repo.MainBranch, branch)
+}
+
+// CommitsBehindMain returns commits on main that are not reachable from branch,
+// ordered newest first.
+func CommitsBehindMain(repo Repo, branch string) ([]Commit, error) {
+	return commitsBetween(repo, branch, repo.MainBranch)
+}
+
+func commitsBetween(repo Repo, fromRef, toRef string) ([]Commit, error) {
+	mergeBase, err := run(repo.Root, []string{"merge-base", fromRef, toRef})
 	if err != nil {
 		// No merge base (e.g. orphan branch) - return empty rather than error
 		return nil, nil
 	}
 
-	out, err := run(repo.Root, []string{
-		"log",
-		"--pretty=format:%h\t%s",
-		mergeBase + ".." + branch,
-	})
+	out, err := run(repo.Root, []string{"log", "--pretty=format:%h\t%s", mergeBase + ".." + toRef})
 	if err != nil {
 		return nil, err
 	}

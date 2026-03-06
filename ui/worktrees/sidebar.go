@@ -9,7 +9,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-func renderSidebarContent(wt *git.Worktree, commits []git.Commit, changes []git.Change, loading bool) string {
+func renderSidebarContent(wt *git.Worktree, aheadCommits, behindCommits []git.Commit, changes []git.Change, loading bool) string {
 	if wt == nil {
 		return ui.StyleDim.Render("  no worktree selected")
 	}
@@ -19,12 +19,33 @@ func renderSidebarContent(wt *git.Worktree, commits []git.Commit, changes []git.
 
 	var b strings.Builder
 
+	b.WriteString(ui.StyleBold.Render("Worktree"))
+	b.WriteString("\n\n")
+	b.WriteString("  ")
+	b.WriteString(wt.Name)
+	b.WriteString("\n\n")
+
 	b.WriteString(ui.StyleBold.Render("Commits ahead of main"))
 	b.WriteString("\n\n")
-	if len(commits) == 0 {
+	if len(aheadCommits) == 0 {
 		b.WriteString(ui.StyleDim.Render("  none") + "\n")
 	} else {
-		for _, c := range commits {
+		for _, c := range aheadCommits {
+			b.WriteString("  ")
+			b.WriteString(ui.StyleDim.Render(c.Hash))
+			b.WriteString("  ")
+			b.WriteString(c.Subject)
+			b.WriteString("\n")
+		}
+	}
+
+	b.WriteString("\n")
+	b.WriteString(ui.StyleBold.Render("Commits behind main"))
+	b.WriteString("\n\n")
+	if len(behindCommits) == 0 {
+		b.WriteString(ui.StyleDim.Render("  none") + "\n")
+	} else {
+		for _, c := range behindCommits {
 			b.WriteString("  ")
 			b.WriteString(ui.StyleDim.Render(c.Hash))
 			b.WriteString("  ")

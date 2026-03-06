@@ -7,6 +7,7 @@ import (
 	"gx/ui"
 	"gx/ui/components"
 
+	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/table"
 	"github.com/charmbracelet/bubbles/textinput"
@@ -90,10 +91,12 @@ type Model struct {
 	statusMsg     string
 	errorViewport viewport.Model
 
-	yankLoading  bool
-	yankSource   git.Worktree
+	yankLoading   bool
+	yankSource    git.Worktree
 	yankChecklist components.Checklist
-	clipboard    *clipboardState
+	clipboard     *clipboardState
+
+	help help.Model
 
 	width  int
 	height int
@@ -112,6 +115,7 @@ func New(repo git.Repo, activeWorktreePath string) Model {
 		statuses:           make(map[string]git.SyncStatus),
 		table:              newTable(),
 		loading:            true,
+		help:               help.New(),
 	}
 }
 
@@ -356,18 +360,18 @@ func (m Model) statusBarView() string {
 			return "  " + m.statusMsg
 		}
 		if m.clipboard != nil {
-			return ui.StyleDim.Render(fmt.Sprintf(
-				"  %d file(s) from %s  ·  p paste  y yank  d delete  r rename  c clone  q quit",
-				len(m.clipboard.files), m.clipboard.srcName,
-			))
+			prefix := fmt.Sprintf("  %d file(s) from %s  ·  ", len(m.clipboard.files), m.clipboard.srcName)
+			m.help.Width = m.width - len(prefix)
+			return ui.StyleDim.Render(prefix) + m.help.View(keys)
 		}
-		return ui.StyleDim.Render("  y yank  p paste  d delete  r rename  c clone  q quit")
+		return m.help.View(keys)
 	}
 }
 
 func (m Model) resized() Model {
 	tableW, sidebarW := m.splitWidth()
 	h := m.contentHeight()
+	m.help.Width = m.width
 
 	resizeTable(&m.table, tableW, h)
 

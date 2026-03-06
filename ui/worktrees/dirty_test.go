@@ -70,7 +70,18 @@ func TestDirtyAndStatusCellSelectedArePlain(t *testing.T) {
 	if got := dirtyCell(dirtyState{hasModified: true, hasUntracked: true}, true); got != "M?" {
 		t.Fatalf("dirtyCell(selected) = %q, want %q", got, "M?")
 	}
-	if got := statusCell(git.SyncStatus{Name: git.StatusSame}, true); got != "synced" {
+	if got := statusCell(git.SyncStatus{Name: git.StatusSame}, true, false); got != "synced" {
 		t.Fatalf("statusCell(selected) = %q, want %q", got, "synced")
+	}
+}
+
+func TestStatusCellNerdFontReplacesAheadBehind(t *testing.T) {
+	s := git.SyncStatus{Name: git.StatusDiverged, Ahead: 2, Behind: 1}
+	got := statusCell(s, false, true)
+	if !strings.Contains(got, "") || !strings.Contains(got, "") {
+		t.Fatalf("statusCell() = %q, expected nerd-font arrows", got)
+	}
+	if strings.Contains(got, "ahead") || strings.Contains(got, "behind") {
+		t.Fatalf("statusCell() = %q, should not include words ahead/behind", got)
 	}
 }

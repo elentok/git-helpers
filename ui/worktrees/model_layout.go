@@ -93,5 +93,12 @@ func (m Model) sidebarContent() string {
 		w := m.worktrees[m.table.Cursor()]
 		wt = &w
 	}
-	return renderSidebarContent(wt, m.sidebarAheadCommits, m.sidebarBehindCommits, m.sidebarChanges, m.sidebarLoading)
+	return renderSidebarContent(
+		wt,
+		m.sidebarAheadCommits,
+		m.sidebarBehindCommits,
+		m.sidebarChanges,
+		m.sidebarLoading,
+		m.settings.UseNerdFontIcons,
+	)
 }

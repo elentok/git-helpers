@@ -3,6 +3,7 @@ package worktrees
 import (
 	"gx/git"
 	"gx/ui"
+	"strings"
 
 	"github.com/charmbracelet/bubbles/table"
 	"github.com/charmbracelet/lipgloss"
@@ -56,18 +57,33 @@ func resizeTable(t *table.Model, width, height int) {
 	t.SetHeight(height)
 }
 
-func buildRows(worktrees []git.Worktree, statuses map[string]git.SyncStatus, dirties map[string]dirtyState, selected int) []table.Row {
+func buildRows(worktrees []git.Worktree, statuses map[string]git.SyncStatus, dirties map[string]dirtyState, selected int, useNerdFontIcons bool) []table.Row {
+	ic := icons(useNerdFontIcons)
 	rows := make([]table.Row, len(worktrees))
 	for i, wt := range worktrees {
 		isSelected := i == selected
 		rows[i] = table.Row{
-			wt.Name,
-			wt.Branch,
+			worktreeCell(wt.Name, ic),
+			branchCell(wt.Branch, ic),
 			dirtyCell(dirties[wt.Path], isSelected),
-			statusCell(statuses[wt.Branch], isSelected),
+			statusCell(statuses[wt.Branch], isSelected, useNerdFontIcons),
 		}
 	}
 	return rows
+}
+
+func worktreeCell(name string, ic uiIcons) string {
+	if ic.worktreePrefix == "" {
+		return name
+	}
+	return ic.worktreePrefix + name
+}
+
+func branchCell(name string, ic uiIcons) string {
+	if ic.branchPrefix == "" || name == "" {
+		return name
+	}
+	return ic.branchPrefix + name
 }
 
 func dirtyCell(d dirtyState, selected bool) string {
@@ -83,13 +99,17 @@ func dirtyCell(d dirtyState, selected bool) string {
 	return symbol
 }
 
-func statusCell(s git.SyncStatus, selected bool) string {
+func statusCell(s git.SyncStatus, selected bool, useNerdFontIcons bool) string {
 	label := "—"
 	switch s.Name {
 	case git.StatusSame:
 		label = "synced"
 	case git.StatusAhead, git.StatusBehind, git.StatusDiverged:
 		label = s.Pretty()
+	}
+	if useNerdFontIcons {
+		label = strings.ReplaceAll(label, "ahead", "")
+		label = strings.ReplaceAll(label, "behind", "")
 	}
 	if selected {
 		return label

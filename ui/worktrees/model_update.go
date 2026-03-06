@@ -183,7 +183,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		m.worktrees = msg.worktrees
 		m.dirties = make(map[string]dirtyState)
-		m.table.SetRows(buildRows(m.worktrees, m.statuses, m.dirties, m.table.Cursor()))
+		m.table.SetRows(buildRows(m.worktrees, m.statuses, m.dirties, m.table.Cursor(), m.settings.UseNerdFontIcons))
 
 		for i, wt := range m.worktrees {
 			if wt.Path == m.activeWorktreePath {
@@ -207,12 +207,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case syncStatusMsg:
 		m.statuses[msg.branch] = msg.status
-		m.table.SetRows(buildRows(m.worktrees, m.statuses, m.dirties, m.table.Cursor()))
+		m.table.SetRows(buildRows(m.worktrees, m.statuses, m.dirties, m.table.Cursor(), m.settings.UseNerdFontIcons))
 		return m, nil
 
 	case dirtyStatusMsg:
 		m.dirties[msg.worktreePath] = msg.dirty
-		m.table.SetRows(buildRows(m.worktrees, m.statuses, m.dirties, m.table.Cursor()))
+		m.table.SetRows(buildRows(m.worktrees, m.statuses, m.dirties, m.table.Cursor(), m.settings.UseNerdFontIcons))
 		return m, nil
 
 	case sidebarDataMsg:
@@ -233,7 +233,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	cmds = append(cmds, tableCmd)
 
 	if m.table.Cursor() != prevCursor && len(m.worktrees) > 0 {
-		m.table.SetRows(buildRows(m.worktrees, m.statuses, m.dirties, m.table.Cursor()))
+		m.table.SetRows(buildRows(m.worktrees, m.statuses, m.dirties, m.table.Cursor(), m.settings.UseNerdFontIcons))
 		m.sidebarLoading = true
 		m.sidebarAheadCommits = nil
 		m.sidebarBehindCommits = nil

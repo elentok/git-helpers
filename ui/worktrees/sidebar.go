@@ -9,7 +9,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-func renderSidebarContent(wt *git.Worktree, aheadCommits, behindCommits []git.Commit, changes []git.Change, loading bool) string {
+func renderSidebarContent(wt *git.Worktree, aheadCommits, behindCommits []git.Commit, changes []git.Change, loading bool, useNerdFontIcons bool) string {
 	if wt == nil {
 		return ui.StyleDim.Render("  no worktree selected")
 	}
@@ -18,14 +18,15 @@ func renderSidebarContent(wt *git.Worktree, aheadCommits, behindCommits []git.Co
 	}
 
 	var b strings.Builder
+	ic := icons(useNerdFontIcons)
 
-	b.WriteString(ui.StyleBold.Render("Worktree"))
+	b.WriteString(ui.StyleBold.Render(ic.worktreeTitle))
 	b.WriteString("\n\n")
 	b.WriteString("  ")
 	b.WriteString(wt.Name)
 	b.WriteString("\n\n")
 
-	b.WriteString(ui.StyleBold.Render("Commits ahead of main"))
+	b.WriteString(ui.StyleBold.Render(ic.aheadTitle))
 	b.WriteString("\n\n")
 	if len(aheadCommits) == 0 {
 		b.WriteString(ui.StyleDim.Render("  none") + "\n")
@@ -40,7 +41,7 @@ func renderSidebarContent(wt *git.Worktree, aheadCommits, behindCommits []git.Co
 	}
 
 	b.WriteString("\n")
-	b.WriteString(ui.StyleBold.Render("Commits behind main"))
+	b.WriteString(ui.StyleBold.Render(ic.behindTitle))
 	b.WriteString("\n\n")
 	if len(behindCommits) == 0 {
 		b.WriteString(ui.StyleDim.Render("  none") + "\n")
@@ -55,7 +56,7 @@ func renderSidebarContent(wt *git.Worktree, aheadCommits, behindCommits []git.Co
 	}
 
 	b.WriteString("\n")
-	b.WriteString(ui.StyleBold.Render("Changes"))
+	b.WriteString(ui.StyleBold.Render(ic.changesTitle))
 	b.WriteString("\n\n")
 	if len(changes) == 0 {
 		b.WriteString(ui.StyleDim.Render("  clean") + "\n")

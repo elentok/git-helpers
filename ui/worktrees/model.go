@@ -2,6 +2,7 @@ package worktrees
 
 import (
 	"fmt"
+	"time"
 
 	"gx/git"
 	"gx/ui"
@@ -28,6 +29,14 @@ const (
 )
 
 // ── messages ─────────────────────────────────────────────────────────────────
+
+type clearStatusMsg struct{ gen int }
+
+func cmdClearStatus(gen int) tea.Cmd {
+	return tea.Tick(2*time.Second, func(time.Time) tea.Msg {
+		return clearStatusMsg{gen: gen}
+	})
+}
 
 type worktreesLoadedMsg struct {
 	worktrees []git.Worktree
@@ -89,6 +98,7 @@ type Model struct {
 	mode          mode
 	textInput     textinput.Model // shared by rename and clone modes
 	statusMsg     string
+	statusGen     int // incremented each time statusMsg is set, used to expire old ticks
 	errorViewport viewport.Model
 
 	yankLoading   bool
@@ -204,18 +214,26 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.yankChecklist = components.NewChecklist(changesToChecklistItems(msg.changes))
 		return m, nil
 
+	case clearStatusMsg:
+		if msg.gen == m.statusGen {
+			m.statusMsg = ""
+		}
+		return m, nil
+
 	case pasteResultMsg:
 		if msg.err != nil {
 			return m.showError(msg.err.Error()), nil
 		}
 		m.clipboard = nil
+		m.statusGen++
 		m.statusMsg = fmt.Sprintf("Pasted %d file(s)", msg.n)
+		clearCmd := cmdClearStatus(m.statusGen)
 		if wt := m.selectedWorktree(); wt != nil {
 			m.sidebarLoading = true
 			m.viewport.SetContent(m.sidebarContent())
-			return m, cmdLoadSidebarData(m.repo, *wt)
+			return m, tea.Batch(clearCmd, cmdLoadSidebarData(m.repo, *wt))
 		}
-		return m, nil
+		return m, clearCmd
 
 	case worktreesLoadedMsg:
 		m.loading = false

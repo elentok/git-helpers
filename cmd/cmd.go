@@ -153,7 +153,10 @@ func runPush(d deps) error {
 	}
 
 	remote := git.BranchRemote(info.Repo, branch)
-	if err := git.PushBranch(pushDir, remote, branch); err != nil {
+	pushLabel := fmt.Sprintf("Pushing %s to %s...", branch, remote)
+	if err := runWithSpinner(d.stdin, d.stderr, pushLabel, func() error {
+		return git.PushBranch(pushDir, remote, branch)
+	}); err != nil {
 		if !git.IsNonFastForwardPushError(err) {
 			return err
 		}
@@ -166,7 +169,10 @@ func runPush(d deps) error {
 		if !confirmed {
 			return fmt.Errorf("push aborted")
 		}
-		if forceErr := git.PushBranchForceWithLease(pushDir, remote, branch); forceErr != nil {
+		forceLabel := fmt.Sprintf("Force-pushing %s to %s with lease...", branch, remote)
+		if forceErr := runWithSpinner(d.stdin, d.stderr, forceLabel, func() error {
+			return git.PushBranchForceWithLease(pushDir, remote, branch)
+		}); forceErr != nil {
 			return forceErr
 		}
 		fmt.Fprintf(d.stdout, "Force-pushed %s to %s with --force-with-lease\n", branch, remote)

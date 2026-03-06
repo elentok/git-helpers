@@ -18,6 +18,7 @@ const (
 	modeNormal mode = iota
 	modeDelete
 	modeRename
+	modeClone
 )
 
 // ── messages ─────────────────────────────────────────────────────────────────
@@ -79,9 +80,9 @@ type Model struct {
 	sidebarChanges []git.Change
 	sidebarLoading bool
 
-	mode        mode
-	renameInput textinput.Model
-	statusMsg   string
+	mode      mode
+	textInput textinput.Model // shared by rename and clone modes
+	statusMsg string
 
 	width  int
 	height int
@@ -125,6 +126,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m.handleDeleteKey(msg)
 		case modeRename:
 			return m.handleRenameKey(msg)
+		case modeClone:
+			return m.handleCloneKey(msg)
 		}
 		// Normal mode
 		switch {
@@ -137,6 +140,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, keys.Rename) && len(m.worktrees) > 0:
 			m = m.enterRenameMode()
 			return m, nil
+		case key.Matches(msg, keys.Clone) && len(m.worktrees) > 0:
+			m = m.enterCloneMode()
+			return m, nil
 		}
 
 	case deleteResultMsg:
@@ -148,6 +154,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, cmdLoadWorktrees(m.repo)
 
 	case renameResultMsg:
+		if msg.err != nil {
+			m.statusMsg = "Error: " + msg.err.Error()
+			return m, nil
+		}
+		m.statusMsg = ""
+		return m, cmdLoadWorktrees(m.repo)
+
+	case cloneResultMsg:
 		if msg.err != nil {
 			m.statusMsg = "Error: " + msg.err.Error()
 			return m, nil
@@ -280,11 +294,13 @@ func (m Model) statusBarView() string {
 		return m.deleteConfirmView()
 	case modeRename:
 		return m.renameView()
+	case modeClone:
+		return m.cloneView()
 	default:
 		if m.statusMsg != "" {
 			return "  " + m.statusMsg
 		}
-		return ui.StyleDim.Render("  d delete  r rename  q quit")
+		return ui.StyleDim.Render("  d delete  r rename  c clone  q quit")
 	}
 }
 

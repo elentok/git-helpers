@@ -47,7 +47,7 @@ func (m Model) enterRenameMode() Model {
 		return m
 	}
 	m.mode = modeRename
-	m.renameInput = newRenameInput(wt.Name)
+	m.textInput = newRenameInput(wt.Name)
 	m.statusMsg = ""
 	return m
 }
@@ -64,7 +64,7 @@ func (m Model) handleRenameKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case key.Matches(msg, submit):
-		newName := strings.TrimSpace(m.renameInput.Value())
+		newName := strings.TrimSpace(m.textInput.Value())
 		wt := m.selectedWorktree()
 		if newName == "" || wt == nil || newName == wt.Name {
 			m.mode = modeNormal
@@ -78,11 +78,11 @@ func (m Model) handleRenameKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 	// Pass other keys (typing, backspace, etc.) to the textinput
 	var tiCmd tea.Cmd
-	m.renameInput, tiCmd = m.renameInput.Update(msg)
+	m.textInput, tiCmd = m.textInput.Update(msg)
 	return m, tiCmd
 }
 
 // renameView returns the one-line status bar text for rename mode.
 func (m Model) renameView() string {
-	return "  Rename to: " + m.renameInput.View()
+	return "  Rename to: " + m.textInput.View()
 }

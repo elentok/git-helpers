@@ -76,6 +76,30 @@ func TestListWorktrees_paths(t *testing.T) {
 	}
 }
 
+func TestAddWorktree(t *testing.T) {
+	repoDir := testutil.TempBareRepo(t)
+	repo, _ := git.FindRepo(repoDir)
+
+	newPath := filepath.Join(repoDir, "feature")
+	if err := git.AddWorktree(*repo, "feature", newPath, "main"); err != nil {
+		t.Fatalf("AddWorktree: %v", err)
+	}
+
+	wts, err := git.ListWorktrees(*repo)
+	if err != nil {
+		t.Fatalf("ListWorktrees: %v", err)
+	}
+	if len(wts) != 1 {
+		t.Fatalf("got %d worktrees after add, want 1", len(wts))
+	}
+	if wts[0].Name != "feature" {
+		t.Errorf("Name = %q, want %q", wts[0].Name, "feature")
+	}
+	if wts[0].Branch != "feature" {
+		t.Errorf("Branch = %q, want %q", wts[0].Branch, "feature")
+	}
+}
+
 func TestRemoveWorktree(t *testing.T) {
 	repoDir := testutil.TempBareRepoWithWorktrees(t, "to-delete", "keep")
 	repo, _ := git.FindRepo(repoDir)

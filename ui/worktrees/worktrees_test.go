@@ -2,6 +2,8 @@ package worktrees_test
 
 import (
 	"bytes"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -99,6 +101,68 @@ func TestDeleteCancelWithN(t *testing.T) {
 	}
 	if len(wts) != 1 {
 		t.Errorf("expected 1 worktree after cancel, got %d", len(wts))
+	}
+
+	quit(t, tm)
+}
+
+// ── clone ─────────────────────────────────────────────────────────────────────
+
+func TestCloneInputAppearsAndCancels(t *testing.T) {
+	repoDir := testutil.TempBareRepoWithWorktrees(t, "feature-a")
+	_, tm := startTUI(t, repoDir)
+
+	waitForText(t, tm, "feature-a", loadWait)
+
+	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'c'}})
+	waitForText(t, tm, "Clone", actionWait)
+
+	tm.Send(tea.KeyMsg{Type: tea.KeyEsc})
+
+	quit(t, tm)
+}
+
+func TestCloneWorktree(t *testing.T) {
+	repoDir := testutil.TempBareRepoWithWorktrees(t, "feature-a")
+	repo, tm := startTUI(t, repoDir)
+
+	// Add an untracked file to the source worktree before starting the TUI
+	wtDir := filepath.Join(repoDir, "feature-a")
+	testutil.WriteFile(t, wtDir, "untracked.txt", "hello from untracked")
+
+	waitForText(t, tm, "feature-a", loadWait)
+
+	// Open clone input (pre-filled with "feature-a")
+	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'c'}})
+	waitForText(t, tm, "Clone", actionWait)
+
+	// Clear pre-filled value and type new name
+	tm.Send(tea.KeyMsg{Type: tea.KeyCtrlU})
+	tm.Type("feature-copy")
+	tm.Send(tea.KeyMsg{Type: tea.KeyEnter})
+
+	// Wait until the cloned worktree appears
+	teatest.WaitFor(t, tm.Output(), func(_ []byte) bool {
+		wts, err := git.ListWorktrees(repo)
+		if err != nil {
+			return false
+		}
+		for _, wt := range wts {
+			if wt.Name == "feature-copy" {
+				return true
+			}
+		}
+		return false
+	}, teatest.WithDuration(loadWait))
+
+	// Verify the untracked file was copied into the clone
+	clonedFile := filepath.Join(repoDir, "feature-copy", "untracked.txt")
+	data, err := os.ReadFile(clonedFile)
+	if err != nil {
+		t.Fatalf("untracked.txt missing in clone: %v", err)
+	}
+	if string(data) != "hello from untracked" {
+		t.Errorf("untracked.txt content = %q, want %q", string(data), "hello from untracked")
 	}
 
 	quit(t, tm)

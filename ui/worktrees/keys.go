@@ -7,6 +7,7 @@ type keyMap struct {
 	Down   key.Binding
 	Delete key.Binding
 	Rename key.Binding
+	Clone  key.Binding
 	Quit   key.Binding
 }
 
@@ -27,6 +28,10 @@ var keys = keyMap{
 		key.WithKeys("r"),
 		key.WithHelp("r", "rename"),
 	),
+	Clone: key.NewBinding(
+		key.WithKeys("c"),
+		key.WithHelp("c", "clone"),
+	),
 	Quit: key.NewBinding(
 		key.WithKeys("q", "ctrl+c"),
 		key.WithHelp("q", "quit"),
@@ -37,12 +42,12 @@ var keys = keyMap{
 // bubbles/help in a later milestone.
 
 func (k keyMap) ShortHelp() []key.Binding {
-	return []key.Binding{k.Up, k.Down, k.Delete, k.Rename, k.Quit}
+	return []key.Binding{k.Up, k.Down, k.Delete, k.Rename, k.Clone, k.Quit}
 }
 
 func (k keyMap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
 		{k.Up, k.Down},
-		{k.Delete, k.Rename, k.Quit},
+		{k.Delete, k.Rename, k.Clone, k.Quit},
 	}
 }

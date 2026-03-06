@@ -76,3 +76,15 @@ func MoveWorktree(repo Repo, from, to string) error {
 	_, err := run(repo.Root, []string{"worktree", "move", from, to})
 	return err
 }
+
+// AddWorktree creates a new linked worktree at newPath with a new branch newName,
+// starting at fromRef (branch name, tag, or commit hash). fromRef may be empty,
+// in which case git uses the current HEAD of the repo.
+func AddWorktree(repo Repo, newName, newPath, fromRef string) error {
+	args := []string{"worktree", "add", "-b", newName, newPath}
+	if fromRef != "" {
+		args = append(args, fromRef)
+	}
+	_, err := run(repo.Root, args)
+	return err
+}

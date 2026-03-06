@@ -62,3 +62,33 @@ func Load() (Config, error) {
 
 	return cfg, nil
 }
+
+// Init writes the default config file and returns its path.
+// It returns an error if the file already exists.
+func Init() (string, error) {
+	path, err := FilePath()
+	if err != nil {
+		return "", err
+	}
+
+	if _, err := os.Stat(path); err == nil {
+		return "", fmt.Errorf("config already exists at %s", path)
+	} else if !os.IsNotExist(err) {
+		return "", fmt.Errorf("stat config %s: %w", path, err)
+	}
+
+	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+		return "", fmt.Errorf("create config dir: %w", err)
+	}
+
+	b, err := json.MarshalIndent(Default(), "", "  ")
+	if err != nil {
+		return "", fmt.Errorf("encode default config: %w", err)
+	}
+	b = append(b, '\n')
+
+	if err := os.WriteFile(path, b, 0644); err != nil {
+		return "", fmt.Errorf("write config %s: %w", path, err)
+	}
+	return path, nil
+}

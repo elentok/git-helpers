@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"gx/config"
 	"gx/git"
@@ -21,6 +23,9 @@ type deps struct {
 	getwd        func() (string, error)
 	runWorktrees func(string) error
 	confirmForce func(string) (bool, error)
+	initConfig   func() (string, error)
+	getenv       func(string) string
+	runEditor    func(editor, path string, in io.Reader, out, err io.Writer) error
 }
 
 func defaultDeps() deps {
@@ -31,6 +36,9 @@ func defaultDeps() deps {
 		getwd:        os.Getwd,
 		runWorktrees: runWorktrees,
 		confirmForce: confirm.Run,
+		initConfig:   config.Init,
+		getenv:       os.Getenv,
+		runEditor:    runEditorCommand,
 	}
 }
 
@@ -51,6 +59,10 @@ func execute(args []string, d deps) error {
 		return runCloneWT(args[1:], d)
 	case "push":
 		return runPush(d)
+	case "init":
+		return runInit(d)
+	case "edit-config":
+		return runEditConfig(d)
 	case "-h", "--help", "help":
 		printUsage(d.stdout)
 		return nil
@@ -65,6 +77,8 @@ func printUsage(w io.Writer) {
 	fmt.Fprintln(w, "  gx worktrees|wt")
 	fmt.Fprintln(w, "  gx clone-wt <repo-url> [directory]")
 	fmt.Fprintln(w, "  gx push")
+	fmt.Fprintln(w, "  gx init")
+	fmt.Fprintln(w, "  gx edit-config")
 }
 
 func runWorktrees(_ string) error {
@@ -203,5 +217,52 @@ func runPush(d deps) error {
 	}
 
 	fmt.Fprintf(d.stdout, "Pushed %s to %s\n", branch, remote)
+	return nil
+}
+
+func runInit(d deps) error {
+	path, err := d.initConfig()
+	if err != nil {
+		return err
+	}
+	fmt.Fprintf(d.stdout, "Created config file at %s\n", path)
+	return nil
+}
+
+func runEditConfig(d deps) error {
+	path, err := config.FilePath()
+	if err != nil {
+		return err
+	}
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		createdPath, initErr := d.initConfig()
+		if initErr != nil {
+			return initErr
+		}
+		fmt.Fprintf(d.stdout, "Created config file at %s\n", createdPath)
+	} else if err != nil {
+		return err
+	}
+
+	editor := d.getenv("EDITOR")
+	if strings.TrimSpace(editor) == "" {
+		return fmt.Errorf("$EDITOR is not set")
+	}
+	return d.runEditor(editor, path, d.stdin, d.stdout, d.stderr)
+}
+
+func runEditorCommand(editor, path string, in io.Reader, out, errOut io.Writer) error {
+	parts := strings.Fields(editor)
+	if len(parts) == 0 {
+		return fmt.Errorf("$EDITOR is empty")
+	}
+	args := append(parts[1:], path)
+	cmd := exec.Command(parts[0], args...)
+	cmd.Stdin = in
+	cmd.Stdout = out
+	cmd.Stderr = errOut
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("run editor %q: %w", editor, err)
+	}
 	return nil
 }

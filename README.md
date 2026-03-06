@@ -55,6 +55,18 @@ Push current worktree branch, with styled force-with-lease confirmation on rejec
 gx push
 ```
 
+Create an initial config file with defaults:
+
+```sh
+gx init
+```
+
+Edit config in `$EDITOR`:
+
+```sh
+gx edit-config
+```
+
 ## Configuration
 
 Optional config file:

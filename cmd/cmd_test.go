@@ -3,6 +3,7 @@ package cmd
 import (
 	"bytes"
 	"errors"
+	"io"
 	"strings"
 	"testing"
 
@@ -116,5 +117,80 @@ func TestExecute_PushRejectedInBareRepo(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "must be run from a regular repo or linked worktree") {
 		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestExecute_Init(t *testing.T) {
+	var stdout bytes.Buffer
+	called := false
+	d := deps{
+		stdout: &stdout,
+		stderr: bytes.NewBuffer(nil),
+		initConfig: func() (string, error) {
+			called = true
+			return "/tmp/gx/config.json", nil
+		},
+	}
+
+	if err := execute([]string{"init"}, d); err != nil {
+		t.Fatalf("execute init: %v", err)
+	}
+	if !called {
+		t.Fatal("expected initConfig to be called")
+	}
+	if !strings.Contains(stdout.String(), "Created config file at /tmp/gx/config.json") {
+		t.Fatalf("unexpected stdout: %q", stdout.String())
+	}
+}
+
+func TestExecute_EditConfig_RequiresEditor(t *testing.T) {
+	d := deps{
+		stdout: bytes.NewBuffer(nil),
+		stderr: bytes.NewBuffer(nil),
+		initConfig: func() (string, error) {
+			return "/tmp/gx/config.json", nil
+		},
+		getenv: func(string) string { return "" },
+	}
+
+	err := execute([]string{"edit-config"}, d)
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	if !strings.Contains(err.Error(), "$EDITOR is not set") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestExecute_EditConfig_RunsEditor(t *testing.T) {
+	var stdout bytes.Buffer
+	var gotEditor, gotPath string
+	d := deps{
+		stdout: &stdout,
+		stderr: bytes.NewBuffer(nil),
+		initConfig: func() (string, error) {
+			return "/tmp/gx/config.json", nil
+		},
+		getenv: func(k string) string {
+			if k == "EDITOR" {
+				return "vim"
+			}
+			return ""
+		},
+		runEditor: func(editor, path string, _ io.Reader, _, _ io.Writer) error {
+			gotEditor = editor
+			gotPath = path
+			return nil
+		},
+	}
+
+	if err := execute([]string{"edit-config"}, d); err != nil {
+		t.Fatalf("execute edit-config: %v", err)
+	}
+	if gotEditor != "vim" {
+		t.Fatalf("editor = %q, want %q", gotEditor, "vim")
+	}
+	if gotPath == "" {
+		t.Fatal("expected non-empty config path")
 	}
 }

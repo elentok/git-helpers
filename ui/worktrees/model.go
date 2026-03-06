@@ -19,6 +19,7 @@ const (
 	modeDelete
 	modeRename
 	modeClone
+	modeError
 )
 
 // ── messages ─────────────────────────────────────────────────────────────────
@@ -80,9 +81,10 @@ type Model struct {
 	sidebarChanges []git.Change
 	sidebarLoading bool
 
-	mode      mode
-	textInput textinput.Model // shared by rename and clone modes
-	statusMsg string
+	mode         mode
+	textInput    textinput.Model // shared by rename and clone modes
+	statusMsg    string
+	errorViewport viewport.Model
 
 	width  int
 	height int
@@ -122,6 +124,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		// Mode-specific handling first
 		switch m.mode {
+		case modeError:
+			return m.handleErrorKey(msg)
 		case modeDelete:
 			return m.handleDeleteKey(msg)
 		case modeRename:
@@ -147,24 +151,21 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case deleteResultMsg:
 		if msg.err != nil {
-			m.statusMsg = "Error: " + msg.err.Error()
-			return m, nil
+			return m.showError(msg.err.Error()), nil
 		}
 		m.statusMsg = ""
 		return m, cmdLoadWorktrees(m.repo)
 
 	case renameResultMsg:
 		if msg.err != nil {
-			m.statusMsg = "Error: " + msg.err.Error()
-			return m, nil
+			return m.showError(msg.err.Error()), nil
 		}
 		m.statusMsg = ""
 		return m, cmdLoadWorktrees(m.repo)
 
 	case cloneResultMsg:
 		if msg.err != nil {
-			m.statusMsg = "Error: " + msg.err.Error()
-			return m, nil
+			return m.showError(msg.err.Error()), nil
 		}
 		m.statusMsg = ""
 		return m, cmdLoadWorktrees(m.repo)
@@ -172,6 +173,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case worktreesLoadedMsg:
 		m.loading = false
 		if msg.err != nil {
+			if m.ready {
+				return m.showError(msg.err.Error()), nil
+			}
 			m.err = msg.err
 			return m, nil
 		}
@@ -244,6 +248,9 @@ func (m Model) View() string {
 	if m.err != nil {
 		return "\n  Error: " + m.err.Error()
 	}
+	if m.mode == modeError {
+		return m.errorModalView()
+	}
 
 	_, sidebarW := m.splitWidth()
 	innerSidebarW := sidebarW - 2 // rounded border adds 1 on each side
@@ -290,6 +297,8 @@ func (m Model) selectedWorktree() *git.Worktree {
 // statusBarView renders the 1-line bar at the bottom of the screen.
 func (m Model) statusBarView() string {
 	switch m.mode {
+	case modeError:
+		return ""
 	case modeDelete:
 		return m.deleteConfirmView()
 	case modeRename:
@@ -332,4 +341,64 @@ func (m Model) sidebarContent() string {
 		wt = &w
 	}
 	return renderSidebarContent(wt, m.sidebarCommits, m.sidebarChanges, m.sidebarLoading)
+}
+
+// ── error modal ───────────────────────────────────────────────────────────────
+
+// showError switches the model into error mode with a scrollable viewport.
+func (m Model) showError(errMsg string) Model {
+	vpW := m.width * 2 / 3
+	if vpW < 40 {
+		vpW = 40
+	}
+	if vpW > 80 {
+		vpW = 80
+	}
+	// overhead: border (2) + title line (1) + blank (1) + blank (1) + hint (1) = 6
+	vpH := m.height/2 - 6
+	if vpH < 3 {
+		vpH = 3
+	}
+	vp := viewport.New(vpW-2, vpH) // -2 for left/right border
+	vp.SetContent(errMsg)
+	m.errorViewport = vp
+	m.mode = modeError
+	return m
+}
+
+// handleErrorKey scrolls the error viewport or dismisses it.
+func (m Model) handleErrorKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	switch msg.Type {
+	case tea.KeyEsc, tea.KeyEnter:
+		m.mode = modeNormal
+		return m, nil
+	}
+	if msg.Type == tea.KeyRunes && msg.String() == "q" {
+		m.mode = modeNormal
+		return m, nil
+	}
+	var cmd tea.Cmd
+	m.errorViewport, cmd = m.errorViewport.Update(msg)
+	return m, cmd
+}
+
+// errorModalView renders a centred modal with the error text.
+func (m Model) errorModalView() string {
+	titleStyle := lipgloss.NewStyle().Foreground(ui.ColorRed).Bold(true)
+	hintStyle := ui.StyleDim
+	borderStyle := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(ui.ColorRed).
+		Padding(0, 1).
+		Width(m.errorViewport.Width)
+
+	inner := lipgloss.JoinVertical(lipgloss.Left,
+		titleStyle.Render("Error"),
+		"",
+		m.errorViewport.View(),
+		"",
+		hintStyle.Render("esc / enter / q  to dismiss"),
+	)
+	modal := borderStyle.Render(inner)
+	return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, modal)
 }

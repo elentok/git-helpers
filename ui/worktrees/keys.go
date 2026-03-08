@@ -13,8 +13,9 @@ type keyMap struct {
 	Paste  key.Binding
 	Pull   key.Binding
 	Push   key.Binding
-	Track  key.Binding
-	Help   key.Binding
+	Track   key.Binding
+	Refresh key.Binding
+	Help    key.Binding
 	Quit   key.Binding
 }
 
@@ -63,6 +64,10 @@ var keys = keyMap{
 		key.WithKeys("t"),
 		key.WithHelp("t", "track"),
 	),
+	Refresh: key.NewBinding(
+		key.WithKeys("R"),
+		key.WithHelp("R", "refresh"),
+	),
 	Help: key.NewBinding(
 		key.WithKeys("?"),
 		key.WithHelp("?", "toggle help"),
@@ -77,7 +82,7 @@ var keys = keyMap{
 // bubbles/help in a later milestone.
 
 func (k keyMap) ShortHelp() []key.Binding {
-	return []key.Binding{k.Up, k.Down, k.New, k.Delete, k.Rename, k.Clone, k.Yank, k.Paste, k.Pull, k.Push, k.Track, k.Quit, k.Help}
+	return []key.Binding{k.Up, k.Down, k.New, k.Delete, k.Rename, k.Clone, k.Yank, k.Paste, k.Pull, k.Push, k.Track, k.Refresh, k.Quit, k.Help}
 }
 
 func (k keyMap) FullHelp() [][]key.Binding {
@@ -85,6 +90,6 @@ func (k keyMap) FullHelp() [][]key.Binding {
 		{k.Up, k.Down},
 		{k.New, k.Delete, k.Rename, k.Clone},
 		{k.Yank, k.Paste},
-		{k.Pull, k.Push, k.Track, k.Help, k.Quit},
+		{k.Pull, k.Push, k.Track, k.Refresh, k.Help, k.Quit},
 	}
 }

@@ -90,6 +90,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.spinnerLabel = "Pushing " + wt.Name + "…"
 				return m, tea.Batch(cmdPush(m.repo, *wt), m.spinner.Tick)
 			}
+		case key.Matches(msg, keys.Refresh) && !m.spinnerActive:
+			m.loading = true
+			return m, cmdLoadWorktrees(m.repo)
 		case key.Matches(msg, keys.Track) && len(m.worktrees) > 0 && !m.spinnerActive && m.sidebarUpstream == "":
 			wt := m.selectedWorktree()
 			if wt != nil {

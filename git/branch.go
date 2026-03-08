@@ -53,13 +53,22 @@ func CurrentBranch(dir string) (string, error) {
 }
 
 // UpstreamBranch returns the upstream tracking ref (e.g. "origin/feature") for
-// a local branch, or "" if no upstream is configured.
+// a local branch. It first checks the configured tracking branch, then falls
+// back to "origin/<branch>" if that ref exists. Returns "" if neither applies.
 func UpstreamBranch(repoRoot, branch string) string {
-	return runAllowFail(repoRoot, []string{
+	if up := runAllowFail(repoRoot, []string{
 		"for-each-ref",
 		"--format=%(upstream:short)",
 		"refs/heads/" + branch,
-	})
+	}); up != "" {
+		return up
+	}
+	// Fall back to the conventional origin/<branch> ref.
+	candidate := "origin/" + branch
+	if runAllowFail(repoRoot, []string{"rev-parse", "--verify", candidate}) != "" {
+		return candidate
+	}
+	return ""
 }
 
 // CreateBranch creates and checks out a new branch.

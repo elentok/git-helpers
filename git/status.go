@@ -58,9 +58,14 @@ type Change struct {
 }
 
 // WorktreeSyncStatus returns the sync status of a worktree branch compared to
-// the repository's main branch.
+// its upstream remote tracking branch. Returns StatusUnknown if no upstream is
+// configured.
 func WorktreeSyncStatus(repo Repo, branch string) (SyncStatus, error) {
-	return syncBetween(repo.Root, branch, repo.MainBranch)
+	upstream := UpstreamBranch(repo.Root, branch)
+	if upstream == "" {
+		return SyncStatus{Name: StatusUnknown}, nil
+	}
+	return syncBetween(repo.Root, branch, upstream)
 }
 
 func syncBetween(repoRoot, localRef, remoteRef string) (SyncStatus, error) {

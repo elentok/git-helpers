@@ -31,7 +31,8 @@ func TempRepo(t *testing.T) string {
 }
 
 // TempBareRepo creates a bare git repo by cloning a regular repo.
-// The bare repo has one commit on "main".
+// The bare repo has one commit on "main", with remote tracking refs populated
+// and main configured to track origin/main.
 func TempBareRepo(t *testing.T) string {
 	t.Helper()
 	src := TempRepo(t)
@@ -39,6 +40,11 @@ func TempBareRepo(t *testing.T) string {
 	// Remove the empty TempDir so git clone can create it cleanly
 	os.RemoveAll(bare)
 	mustRun(t, ".", "git", "clone", "--bare", src, bare)
+	// Configure origin to populate refs/remotes/origin/* on fetch (bare clones
+	// use refs/heads/* by default), then fetch so remote tracking refs exist.
+	mustGit(t, bare, "config", "remote.origin.fetch", "+refs/heads/*:refs/remotes/origin/*")
+	mustGit(t, bare, "fetch", "origin")
+	mustGit(t, bare, "branch", "--set-upstream-to=origin/main", "main")
 	return bare
 }
 
@@ -86,6 +92,12 @@ func CommitAll(t *testing.T, dir, message string) {
 	t.Helper()
 	mustGit(t, dir, "add", ".")
 	mustGit(t, dir, "commit", "-m", message)
+}
+
+// SetBranchUpstream sets the upstream tracking reference for a local branch.
+func SetBranchUpstream(t *testing.T, dir, branch, upstream string) {
+	t.Helper()
+	mustGit(t, dir, "branch", "--set-upstream-to="+upstream, branch)
 }
 
 func mustGit(t *testing.T, dir string, args ...string) {

@@ -68,7 +68,26 @@ func TestUncommittedChanges_untracked(t *testing.T) {
 	}
 }
 
-func TestWorktreeSyncStatus_sameAsMain(t *testing.T) {
+func TestWorktreeSyncStatus_aheadOfUpstream(t *testing.T) {
+	repoDir := testutil.TempBareRepoWithWorktrees(t, "feature")
+	// Set feature to track origin/main so there is a configured upstream.
+	testutil.SetBranchUpstream(t, repoDir, "feature", "origin/main")
+	repo, _ := git.FindRepo(repoDir)
+
+	status, err := git.WorktreeSyncStatus(*repo, "feature")
+	if err != nil {
+		t.Fatalf("WorktreeSyncStatus: %v", err)
+	}
+	// feature has 1 commit ahead of origin/main
+	if status.Name != git.StatusAhead {
+		t.Errorf("Status = %q, want %q", status.Name, git.StatusAhead)
+	}
+	if status.Ahead != 1 {
+		t.Errorf("Ahead = %d, want 1", status.Ahead)
+	}
+}
+
+func TestWorktreeSyncStatus_noUpstream(t *testing.T) {
 	repoDir := testutil.TempBareRepoWithWorktrees(t, "feature")
 	repo, _ := git.FindRepo(repoDir)
 
@@ -76,12 +95,9 @@ func TestWorktreeSyncStatus_sameAsMain(t *testing.T) {
 	if err != nil {
 		t.Fatalf("WorktreeSyncStatus: %v", err)
 	}
-	// feature has 1 commit ahead of main
-	if status.Name != git.StatusAhead {
-		t.Errorf("Status = %q, want %q", status.Name, git.StatusAhead)
-	}
-	if status.Ahead != 1 {
-		t.Errorf("Ahead = %d, want 1", status.Ahead)
+	// No upstream configured → unknown
+	if status.Name != git.StatusUnknown {
+		t.Errorf("Status = %q, want %q", status.Name, git.StatusUnknown)
 	}
 }
 

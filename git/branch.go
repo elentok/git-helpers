@@ -52,6 +52,16 @@ func CurrentBranch(dir string) (string, error) {
 	return run(dir, []string{"rev-parse", "--abbrev-ref", "HEAD"})
 }
 
+// UpstreamBranch returns the upstream tracking ref (e.g. "origin/feature") for
+// a local branch, or "" if no upstream is configured.
+func UpstreamBranch(repoRoot, branch string) string {
+	return runAllowFail(repoRoot, []string{
+		"for-each-ref",
+		"--format=%(upstream:short)",
+		"refs/heads/" + branch,
+	})
+}
+
 // CreateBranch creates and checks out a new branch.
 func CreateBranch(repo Repo, name string) error {
 	_, err := run(repo.Root, []string{"checkout", "-b", name})

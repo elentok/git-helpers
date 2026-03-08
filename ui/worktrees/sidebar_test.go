@@ -13,10 +13,10 @@ func TestRenderSidebarContent_IncludesBehindSection(t *testing.T) {
 	behind := []git.Commit{{Hash: "def5678", Subject: "behind commit"}}
 
 	out := renderSidebarContent(wt, ahead, behind, nil, false, false)
-	if !strings.Contains(out, "Commits ahead of main") {
+	if !strings.Contains(out, "Commits ahead of remote") {
 		t.Fatal("missing ahead section")
 	}
-	if !strings.Contains(out, "Commits behind main") {
+	if !strings.Contains(out, "Commits behind remote") {
 		t.Fatal("missing behind section")
 	}
 	if !strings.Contains(out, "behind commit") {
@@ -30,7 +30,7 @@ func TestRenderSidebarContent_UsesNerdFontIcons(t *testing.T) {
 	if !strings.Contains(out, "󰙅 Worktree") {
 		t.Fatal("missing nerd-font worktree title")
 	}
-	if !strings.Contains(out, " Commits ahead of main") {
+	if !strings.Contains(out, " Commits ahead of remote") {
 		t.Fatal("missing nerd-font ahead title")
 	}
 }

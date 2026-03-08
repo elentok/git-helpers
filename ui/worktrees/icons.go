@@ -13,8 +13,8 @@ func icons(useNerdFont bool) uiIcons {
 	if !useNerdFont {
 		return uiIcons{
 			worktreeTitle: "Worktree",
-			aheadTitle:    "Commits ahead of main",
-			behindTitle:   "Commits behind main",
+			aheadTitle:    "Commits ahead of remote",
+			behindTitle:   "Commits behind remote",
 			changesTitle:  "Changes",
 		}
 	}
@@ -22,8 +22,8 @@ func icons(useNerdFont bool) uiIcons {
 		worktreePrefix: "󰉋 ",
 		branchPrefix:   " ",
 		worktreeTitle:  "󰙅 Worktree",
-		aheadTitle:     " Commits ahead of main",
-		behindTitle:    " Commits behind main",
+		aheadTitle:     " Commits ahead of remote",
+		behindTitle:    " Commits behind remote",
 		changesTitle:   "󰈔 Changes",
 	}
 }

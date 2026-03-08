@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.2.1
+
+- Added `U` keybinding to run `git remote update` and refresh all worktree statuses
+
 ## v0.2.0
 
 - Added `gx version` command (also `--version`, `-v`) to print the current binary version

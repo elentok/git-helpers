@@ -89,6 +89,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, keys.Refresh) && !m.spinnerActive:
 			m.loading = true
 			return m, cmdLoadWorktrees(m.repo)
+		case key.Matches(msg, keys.RemoteUpdate) && !m.spinnerActive:
+			m.spinnerActive = true
+			m.spinnerLabel = "Fetching remotes…"
+			return m, tea.Batch(cmdRemoteUpdate(m.repo), m.spinner.Tick)
 		case key.Matches(msg, keys.Track) && len(m.worktrees) > 0 && !m.spinnerActive && m.sidebarUpstream == "":
 			wt := m.selectedWorktree()
 			if wt != nil {
@@ -181,6 +185,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, cmdLoadSyncStatus(m.repo, wt.Branch), cmdLoadSidebarData(m.repo, *wt))
 		}
 		return m, tea.Batch(cmds...)
+
+	case remoteUpdateResultMsg:
+		m.spinnerActive = false
+		if msg.err != nil {
+			return m.showError(msg.err.Error()), nil
+		}
+		m.loading = true
+		return m, cmdLoadWorktrees(m.repo)
 
 	case trackResultMsg:
 		m.spinnerActive = false

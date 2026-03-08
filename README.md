@@ -124,6 +124,7 @@ Example:
 | `s`            | Push selected worktree's branch                    |
 | `t`            | Track remote branch (set upstream)                 |
 | `R`            | Refresh worktree list and statuses                 |
+| `U`            | Run `git remote update` and refresh                |
 | `?`            | Toggle full help                                   |
 | `q` / `Ctrl+C` | Quit                                               |
 

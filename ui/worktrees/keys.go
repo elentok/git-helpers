@@ -13,8 +13,9 @@ type keyMap struct {
 	Paste  key.Binding
 	Pull   key.Binding
 	Push   key.Binding
-	Track   key.Binding
-	Refresh key.Binding
+	Track         key.Binding
+	Refresh       key.Binding
+	RemoteUpdate  key.Binding
 	Help    key.Binding
 	Quit   key.Binding
 }
@@ -68,6 +69,10 @@ var keys = keyMap{
 		key.WithKeys("R"),
 		key.WithHelp("R", "refresh"),
 	),
+	RemoteUpdate: key.NewBinding(
+		key.WithKeys("U"),
+		key.WithHelp("U", "remote update"),
+	),
 	Help: key.NewBinding(
 		key.WithKeys("?"),
 		key.WithHelp("?", "toggle help"),
@@ -90,6 +95,6 @@ func (k keyMap) FullHelp() [][]key.Binding {
 		{k.Up, k.Down},
 		{k.New, k.Delete, k.Rename, k.Clone},
 		{k.Yank, k.Paste},
-		{k.Pull, k.Push, k.Track, k.Refresh, k.Help, k.Quit},
+		{k.Pull, k.Push, k.Track, k.Refresh, k.RemoteUpdate, k.Help, k.Quit},
 	}
 }

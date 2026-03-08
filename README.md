@@ -9,6 +9,7 @@ A collection of git helper (worktree management, etc...)
 - Create, rename, clone, and delete worktrees interactively
 - Yank files from one worktree and paste them into another
 - Pull and push the selected worktree's branch
+- Startup check for misconfigured fetch refspec with an option to fix automatically
 - Scrollable error modal for any git failures
 - See [Changelog](./CHANGELOG.md)
 

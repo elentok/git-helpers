@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.1.5
+
+- `gx clone-wt` now immediately fixes the fetch refspec after cloning, so remote tracking refs populate correctly on the first fetch
+- On startup, the worktrees view checks whether the fetch refspec is misconfigured or remote tracking refs are missing, and offers to fix it automatically
+- Delete and track confirmations are now shown as a centred modal with Yes/No buttons instead of a status-bar prompt
+- Pull and push now also refresh the sidebar after completing
+- Fixed a bug where the `origin/<branch>` fallback could match a bad local branch instead of the remote tracking ref
+
 ## v0.1.4
 
 - Added `R` keybinding to refresh the worktree list and all statuses

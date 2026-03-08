@@ -10,6 +10,8 @@ builds:
   - binary: gx
     env:
       - CGO_ENABLED=0
+    ldflags:
+      - -s -w -X gx/cmd.version={{.Version}}
     goos:
       - linux
       - darwin

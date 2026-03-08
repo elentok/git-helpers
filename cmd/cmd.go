@@ -63,6 +63,8 @@ func execute(args []string, d deps) error {
 		return runInit(d)
 	case "edit-config":
 		return runEditConfig(d)
+	case "version", "--version", "-v":
+		return runVersion(d.stdout)
 	case "-h", "--help", "help":
 		printUsage(d.stdout)
 		return nil
@@ -79,6 +81,7 @@ func printUsage(w io.Writer) {
 	fmt.Fprintln(w, "  gx push")
 	fmt.Fprintln(w, "  gx init")
 	fmt.Fprintln(w, "  gx edit-config")
+	fmt.Fprintln(w, "  gx version")
 }
 
 func runWorktrees(_ string) error {

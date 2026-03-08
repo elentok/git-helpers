@@ -5,7 +5,7 @@ A collection of git helper (worktree management, etc...)
 ## Features
 
 - Browse all linked worktrees in a table with sync status (ahead / behind / diverged)
-- Sidebar showing commits ahead of main and uncommitted file changes
+- Sidebar showing commits ahead/behind the remote tracking branch and uncommitted file changes
 - Create, rename, clone, and delete worktrees interactively
 - Yank files from one worktree and paste them into another
 - Pull and push the selected worktree's branch
@@ -108,6 +108,8 @@ Example:
 | `p`            | Paste yanked files into selected worktree          |
 | `l`            | Pull selected worktree's branch                    |
 | `s`            | Push selected worktree's branch                    |
+| `t`            | Track remote branch (set upstream)                 |
+| `R`            | Refresh worktree list and statuses                 |
 | `?`            | Toggle full help                                   |
 | `q` / `Ctrl+C` | Quit                                               |
 

@@ -69,10 +69,10 @@ func UpstreamBranch(repoRoot, branch string) string {
 	}); up != "" {
 		return up
 	}
-	// Fall back to the conventional origin/<branch> ref.
-	candidate := "origin/" + branch
-	if runAllowFail(repoRoot, []string{"rev-parse", "--verify", candidate}) != "" {
-		return candidate
+	// Fall back to the conventional remote tracking ref, using the full path to
+	// avoid ambiguity with any local branch that happens to be named origin/<branch>.
+	if runAllowFail(repoRoot, []string{"rev-parse", "--verify", "refs/remotes/origin/" + branch}) != "" {
+		return "origin/" + branch
 	}
 	return ""
 }

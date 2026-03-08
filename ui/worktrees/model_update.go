@@ -166,7 +166,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.statusMsg = "Pulled"
 		cmds = append(cmds, cmdClearStatus(m.statusGen))
 		if wt := m.selectedWorktree(); wt != nil && wt.Branch != "" {
-			cmds = append(cmds, cmdLoadSyncStatus(m.repo, wt.Branch))
+			m.sidebarLoading = true
+			m.viewport.SetContent(m.sidebarContent())
+			cmds = append(cmds, cmdLoadSyncStatus(m.repo, wt.Branch), cmdLoadSidebarData(m.repo, *wt))
 		}
 		return m, tea.Batch(cmds...)
 
@@ -179,7 +181,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.statusMsg = "Pushed"
 		cmds = append(cmds, cmdClearStatus(m.statusGen))
 		if wt := m.selectedWorktree(); wt != nil && wt.Branch != "" {
-			cmds = append(cmds, cmdLoadSyncStatus(m.repo, wt.Branch))
+			m.sidebarLoading = true
+			m.viewport.SetContent(m.sidebarContent())
+			cmds = append(cmds, cmdLoadSyncStatus(m.repo, wt.Branch), cmdLoadSidebarData(m.repo, *wt))
 		}
 		return m, tea.Batch(cmds...)
 

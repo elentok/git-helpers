@@ -13,7 +13,7 @@
 #   feature-ui    ahead         (2 ahead, 0 behind) + untracked file
 #   bugfix-login  synced        (0 ahead, 0 behind)
 #   refactor-db   synced        (0 ahead, 0 behind) + staged + untracked files
-#   chore-cleanup no tracking   (local branch only, no remote tracking set)
+#   chore-cleanup no tracking   (remote exists but local tracking not configured)
 
 set -euo pipefail
 
@@ -185,6 +185,16 @@ func queryDB(sql string) error { return nil }"
   commit "Add database layer"
   git push origin refactor-db
 
+  # ── chore-cleanup: exists on remote but worktree won't track it ───────────
+  git checkout main
+  git checkout -b chore-cleanup
+  write-file src/cleanup.go "package main
+
+func removeDeprecated() {}
+func archiveLogs()      {}"
+  commit "Start cleanup work"
+  git push origin chore-cleanup
+
   git checkout main
   git push origin --tags  # push all version tags to upstream
 }
@@ -249,16 +259,9 @@ type Session struct {
   # bugfix-login — synced
   git worktree add -b bugfix-login bugfix-login origin/bugfix-login
 
-  # chore-cleanup — local branch only, no remote tracking configured
-  git branch --no-track chore-cleanup origin/main
+  # chore-cleanup — remote branch exists but local branch has no tracking set
+  git branch --no-track chore-cleanup origin/chore-cleanup
   git worktree add chore-cleanup chore-cleanup
-  cd chore-cleanup
-  write-file src/cleanup.go "package main
-
-func removeDeprecated() {}
-func archiveLogs()      {}"
-  commit "Start cleanup work"
-  cd ..
 
   # refactor-db — synced with origin, but has staged + untracked changes
   git worktree add -b refactor-db refactor-db origin/refactor-db

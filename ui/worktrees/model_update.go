@@ -32,10 +32,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch m.mode {
 		case modeError:
 			return m.handleErrorKey(msg)
-		case modeDelete:
-			return m.handleDeleteKey(msg)
-		case modeTrack:
-			return m.handleTrackKey(msg)
+		case modeConfirm:
+			return m.handleConfirmKey(msg)
 		case modeRename:
 			return m.handleRenameKey(msg)
 		case modeClone:
@@ -56,9 +54,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m = m.enterNewMode()
 			return m, nil
 		case key.Matches(msg, keys.Delete) && len(m.worktrees) > 0 && !m.spinnerActive:
-			m.mode = modeDelete
-			m.statusMsg = ""
-			return m, nil
+			return m.enterDeleteConfirm(), nil
 		case key.Matches(msg, keys.Rename) && len(m.worktrees) > 0 && !m.spinnerActive:
 			m = m.enterRenameMode()
 			return m, nil
@@ -99,8 +95,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if wt.Branch == "" {
 					return m.showError("cannot track: worktree is in detached HEAD state"), nil
 				}
-				m.mode = modeTrack
-				m.statusMsg = ""
+				return m.enterTrackConfirm(), nil
 			}
 		}
 

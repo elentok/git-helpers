@@ -4,9 +4,7 @@ import (
 	"fmt"
 
 	"gx/git"
-	"gx/ui"
 
-	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -19,36 +17,13 @@ func cmdTrack(repo git.Repo, wt git.Worktree) tea.Cmd {
 	}
 }
 
-func (m Model) handleTrackKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
-	confirm := key.NewBinding(key.WithKeys("y"))
-	cancel := key.NewBinding(key.WithKeys("n", "esc", "q"))
-
-	switch {
-	case key.Matches(msg, confirm):
-		wt := m.selectedWorktree()
-		if wt == nil {
-			m.mode = modeNormal
-			return m, nil
-		}
-		m.mode = modeNormal
-		m.spinnerActive = true
-		m.spinnerLabel = "Tracking " + wt.Name + "…"
-		return m, tea.Batch(cmdTrack(m.repo, *wt), m.spinner.Tick)
-
-	case key.Matches(msg, cancel):
-		m.mode = modeNormal
-		m.statusMsg = ""
-	}
-	return m, nil
-}
-
-func (m Model) trackConfirmView() string {
+func (m Model) enterTrackConfirm() Model {
 	wt := m.selectedWorktree()
 	if wt == nil {
-		return ""
+		return m
 	}
 	remote := git.BranchRemote(m.repo, wt.Branch)
-	prompt := fmt.Sprintf("  Track %s/%s? ", remote, wt.Branch)
-	hint := ui.StyleBold.Render("[y/N]")
-	return prompt + hint
+	prompt := fmt.Sprintf("Track %s/%s?\n\nThis will run:\n  git branch --set-upstream-to=%s/%s %s",
+		remote, wt.Branch, remote, wt.Branch, wt.Branch)
+	return m.enterConfirm(prompt, cmdTrack(m.repo, *wt), "Tracking "+wt.Name+"…")
 }

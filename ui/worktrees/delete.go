@@ -4,9 +4,7 @@ import (
 	"fmt"
 
 	"gx/git"
-	"gx/ui"
 
-	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -28,36 +26,11 @@ func cmdDelete(repo git.Repo, wt git.Worktree) tea.Cmd {
 	}
 }
 
-// handleDeleteKey handles key events while in delete-confirmation mode.
-func (m Model) handleDeleteKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
-	confirm := key.NewBinding(key.WithKeys("y"))
-	cancel := key.NewBinding(key.WithKeys("n", "esc", "q"))
-
-	switch {
-	case key.Matches(msg, confirm):
-		wt := m.selectedWorktree()
-		if wt == nil {
-			m.mode = modeNormal
-			return m, nil
-		}
-		m.mode = modeNormal
-		m.statusMsg = fmt.Sprintf("Deleting '%s'…", wt.Name)
-		return m, cmdDelete(m.repo, *wt)
-
-	case key.Matches(msg, cancel):
-		m.mode = modeNormal
-		m.statusMsg = ""
-	}
-	return m, nil
-}
-
-// deleteConfirmView returns the one-line status bar text for delete mode.
-func (m Model) deleteConfirmView() string {
+func (m Model) enterDeleteConfirm() Model {
 	wt := m.selectedWorktree()
 	if wt == nil {
-		return ""
+		return m
 	}
-	prompt := fmt.Sprintf("  Delete '%s' (branch: %s)? ", wt.Name, wt.Branch)
-	hint := ui.StyleBold.Render("[y/N]")
-	return prompt + hint
+	prompt := fmt.Sprintf("Delete worktree '%s' (branch: %s)?", wt.Name, wt.Branch)
+	return m.enterConfirm(prompt, cmdDelete(m.repo, *wt), "")
 }

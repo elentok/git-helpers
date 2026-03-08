@@ -9,18 +9,18 @@ import (
 	"github.com/charmbracelet/bubbles/table"
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
+	tea "github.com/charmbracelet/bubbletea"
 )
 
 type mode int
 
 const (
 	modeNormal mode = iota
-	modeDelete
+	modeConfirm
 	modeRename
 	modeClone
 	modeNew
 	modeYank
-	modeTrack
 	modeError
 )
 
@@ -58,6 +58,11 @@ type Model struct {
 	statusMsg     string
 	statusGen     int // incremented each time statusMsg is set, used to expire old ticks
 	errorViewport viewport.Model
+
+	confirmPrompt       string
+	confirmYes          bool
+	confirmCmd          tea.Cmd // executed when the user confirms
+	confirmSpinnerLabel string  // if non-empty, spinner is started on confirm
 
 	yankLoading   bool
 	yankSource    git.Worktree

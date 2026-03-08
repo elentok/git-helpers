@@ -21,6 +21,9 @@ func (m Model) View() string {
 	if m.mode == modeError {
 		return m.errorModalView()
 	}
+	if m.mode == modeConfirm {
+		return m.confirmModalView()
+	}
 
 	h := m.contentHeight()
 	tableW, sidebarW := m.splitWidth()
@@ -71,10 +74,6 @@ func (m Model) statusBarView() string {
 	switch m.mode {
 	case modeError:
 		return ""
-	case modeDelete:
-		return m.deleteConfirmView()
-	case modeTrack:
-		return m.trackConfirmView()
 	case modeRename:
 		return m.renameView()
 	case modeClone:

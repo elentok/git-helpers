@@ -1,6 +1,60 @@
 package git
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
+
+const expectedFetchRefspec = "+refs/heads/*:refs/remotes/origin/*"
+
+// FetchConfigProblem describes a misconfigured origin fetch setup and the
+// commands needed to fix it.
+type FetchConfigProblem struct {
+	Description string
+	Commands    []string
+}
+
+// CheckFetchConfig checks whether origin is configured to populate
+// refs/remotes/origin/* and that those refs exist. Returns nil if everything
+// looks fine, or a FetchConfigProblem describing what to fix.
+func CheckFetchConfig(repoRoot string) *FetchConfigProblem {
+	// No origin remote — nothing to check.
+	if runAllowFail(repoRoot, []string{"remote", "get-url", "origin"}) == "" {
+		return nil
+	}
+
+	refspec := runAllowFail(repoRoot, []string{"config", "remote.origin.fetch"})
+	hasRefs := runAllowFail(repoRoot, []string{"for-each-ref", "--format=x", "--count=1", "refs/remotes/origin/"}) != ""
+
+	if refspec == expectedFetchRefspec && hasRefs {
+		return nil
+	}
+
+	var desc string
+	var cmds []string
+
+	if refspec != expectedFetchRefspec {
+		desc = fmt.Sprintf(
+			"The fetch refspec for origin is %q.\nIt should be %q so that remote tracking refs are populated.",
+			refspec, expectedFetchRefspec,
+		)
+		cmds = append(cmds, fmt.Sprintf("git config remote.origin.fetch '%s'", expectedFetchRefspec))
+	} else {
+		desc = "No remote tracking refs found for origin (refs/remotes/origin/* is empty)."
+	}
+	cmds = append(cmds, "git fetch origin")
+
+	return &FetchConfigProblem{Description: desc, Commands: cmds}
+}
+
+// FixFetchConfig corrects the origin fetch refspec and runs git fetch.
+func FixFetchConfig(repoRoot string) error {
+	if _, err := run(repoRoot, []string{"config", "remote.origin.fetch", expectedFetchRefspec}); err != nil {
+		return err
+	}
+	_, err := run(repoRoot, []string{"fetch", "origin"})
+	return err
+}
 
 // ListRemotes returns the names of all configured remotes.
 func ListRemotes(repo Repo) ([]string, error) {

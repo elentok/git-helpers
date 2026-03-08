@@ -92,6 +92,23 @@ func runWorktrees(_ string) error {
 		return err
 	}
 
+	if problem := git.CheckFetchConfig(repo.Root); problem != nil {
+		cmdList := strings.Join(problem.Commands, "\n  ")
+		prompt := fmt.Sprintf(
+			"%s\n\nWorktree statuses may not show correctly without this.\n\nFix by running:\n  %s",
+			problem.Description, cmdList,
+		)
+		confirmed, err := confirm.Run(prompt)
+		if err != nil {
+			return err
+		}
+		if confirmed {
+			if err := git.FixFetchConfig(repo.Root); err != nil {
+				fmt.Fprintf(os.Stderr, "warning: failed to fix fetch config: %v\n", err)
+			}
+		}
+	}
+
 	// Detect which worktree the user launched from, if any.
 	var activeWorktreePath string
 	if info, err := git.IdentifyDir(cwd); err == nil {

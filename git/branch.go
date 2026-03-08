@@ -52,9 +52,9 @@ func CurrentBranch(dir string) (string, error) {
 	return run(dir, []string{"rev-parse", "--abbrev-ref", "HEAD"})
 }
 
-// TrackRemote configures branch to track <remote>/<branch>.
+// TrackRemote configures an existing branch to track <remote>/<branch>.
 func TrackRemote(repoRoot, remote, branch string) error {
-	_, err := run(repoRoot, []string{"branch", "--track", remote + "/" + branch})
+	_, err := run(repoRoot, []string{"branch", "--set-upstream-to=" + remote + "/" + branch, branch})
 	return err
 }
 

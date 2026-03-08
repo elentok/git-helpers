@@ -2,8 +2,17 @@
 #
 # Debugs why worktree statuses may not be showing correctly.
 # Run from inside any git repo or bare repo.
+#
+# Usage:
+#   scripts/debug.sh           # diagnose only
+#   scripts/debug.sh --fix     # diagnose and fix issues automatically
 
 set -euo pipefail
+
+FIX=false
+if [[ "${1:-}" == "--fix" ]]; then
+  FIX=true
+fi
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -51,15 +60,21 @@ echo ""
 
 echo -e "${BOLD}Fetch refspec (origin)${RESET}"
 REFSPEC=$(git -C "$REPO_ROOT" config remote.origin.fetch 2>/dev/null || true)
+EXPECTED_REFSPEC="+refs/heads/*:refs/remotes/origin/*"
 if [[ -z "$REFSPEC" ]]; then
   fail "No fetch refspec for origin"
-elif [[ "$REFSPEC" == "+refs/heads/*:refs/remotes/origin/*" ]]; then
+elif [[ "$REFSPEC" == "$EXPECTED_REFSPEC" ]]; then
   ok "$REFSPEC"
   dim "Remote tracking refs will be stored under refs/remotes/origin/*"
 else
   warn "$REFSPEC"
-  dim "Expected +refs/heads/*:refs/remotes/origin/* for remote tracking refs to work"
-  dim "Fix: git config remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*'"
+  dim "Expected $EXPECTED_REFSPEC for remote tracking refs to work"
+  if [[ "$FIX" == true ]]; then
+    git -C "$REPO_ROOT" config remote.origin.fetch "$EXPECTED_REFSPEC"
+    ok "Fixed: set fetch refspec to $EXPECTED_REFSPEC"
+  else
+    dim "Fix: git config remote.origin.fetch '$EXPECTED_REFSPEC'  (or re-run with --fix)"
+  fi
 fi
 echo ""
 
@@ -68,8 +83,17 @@ echo ""
 echo -e "${BOLD}Remote tracking refs (refs/remotes/origin/*)${RESET}"
 REMOTE_REFS=$(git -C "$REPO_ROOT" for-each-ref --format='%(refname:short)' refs/remotes/origin/ 2>/dev/null || true)
 if [[ -z "$REMOTE_REFS" ]]; then
-  fail "No remote tracking refs found — run: git fetch origin"
-else
+  fail "No remote tracking refs found"
+  if [[ "$FIX" == true ]]; then
+    echo ""
+    git -C "$REPO_ROOT" fetch origin
+    ok "Fetched origin"
+    REMOTE_REFS=$(git -C "$REPO_ROOT" for-each-ref --format='%(refname:short)' refs/remotes/origin/ 2>/dev/null || true)
+  else
+    dim "Fix: git fetch origin  (or re-run with --fix)"
+  fi
+fi
+if [[ -n "$REMOTE_REFS" ]]; then
   while IFS= read -r ref; do
     hash=$(git -C "$REPO_ROOT" rev-parse --short "$ref")
     dim "$ref  ($hash)"

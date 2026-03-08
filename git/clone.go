@@ -64,7 +64,7 @@ func inferCloneDirFromURL(repoURL string) string {
 	if i >= 0 && i+1 < len(s) {
 		name = s[i+1:]
 	}
-	return strings.TrimSuffix(name, ".git")
+	return name
 }
 
 // AddWorktreeFromRemote adds a worktree for branch. It first tries to check out

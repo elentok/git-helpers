@@ -20,6 +20,7 @@ const (
 	modeClone
 	modeNew
 	modeYank
+	modeTrack
 	modeError
 )
 
@@ -46,6 +47,7 @@ type Model struct {
 	table    table.Model
 	viewport viewport.Model
 
+	sidebarUpstream      string // empty if no remote tracking branch found
 	sidebarAheadCommits  []git.Commit
 	sidebarBehindCommits []git.Commit
 	sidebarChanges       []git.Change

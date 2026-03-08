@@ -21,6 +21,7 @@ type dirtyStatusMsg struct {
 
 type sidebarDataMsg struct {
 	worktreePath  string
+	upstream      string // empty if no remote tracking branch found
 	aheadCommits  []git.Commit
 	behindCommits []git.Commit
 	changes       []git.Change

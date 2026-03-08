@@ -95,6 +95,7 @@ func (m Model) sidebarContent() string {
 	}
 	return renderSidebarContent(
 		wt,
+		m.sidebarUpstream,
 		m.sidebarAheadCommits,
 		m.sidebarBehindCommits,
 		m.sidebarChanges,

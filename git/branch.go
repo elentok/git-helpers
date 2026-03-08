@@ -52,6 +52,12 @@ func CurrentBranch(dir string) (string, error) {
 	return run(dir, []string{"rev-parse", "--abbrev-ref", "HEAD"})
 }
 
+// TrackRemote configures branch to track <remote>/<branch>.
+func TrackRemote(repoRoot, remote, branch string) error {
+	_, err := run(repoRoot, []string{"branch", "--track", remote + "/" + branch})
+	return err
+}
+
 // UpstreamBranch returns the upstream tracking ref (e.g. "origin/feature") for
 // a local branch. It first checks the configured tracking branch, then falls
 // back to "origin/<branch>" if that ref exists. Returns "" if neither applies.

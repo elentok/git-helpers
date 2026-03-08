@@ -9,7 +9,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-func renderSidebarContent(wt *git.Worktree, aheadCommits, behindCommits []git.Commit, changes []git.Change, loading bool, useNerdFontIcons bool) string {
+func renderSidebarContent(wt *git.Worktree, upstream string, aheadCommits, behindCommits []git.Commit, changes []git.Change, loading bool, useNerdFontIcons bool) string {
 	if wt == nil {
 		return ui.StyleDim.Render("  no worktree selected")
 	}
@@ -26,32 +26,37 @@ func renderSidebarContent(wt *git.Worktree, aheadCommits, behindCommits []git.Co
 	b.WriteString(wt.Name)
 	b.WriteString("\n\n")
 
-	b.WriteString(ui.StyleBold.Render(ic.aheadTitle))
-	b.WriteString("\n\n")
-	if len(aheadCommits) == 0 {
-		b.WriteString(ui.StyleDim.Render("  none") + "\n")
+	if upstream == "" {
+		b.WriteString(ui.StyleDim.Render("  no remote tracking branch") + "\n")
+		b.WriteString(ui.StyleDim.Render("  press t to track origin/<branch>") + "\n")
 	} else {
-		for _, c := range aheadCommits {
-			b.WriteString("  ")
-			b.WriteString(ui.StyleDim.Render(c.Hash))
-			b.WriteString("  ")
-			b.WriteString(c.Subject)
-			b.WriteString("\n")
+		b.WriteString(ui.StyleBold.Render(ic.aheadTitle))
+		b.WriteString("\n\n")
+		if len(aheadCommits) == 0 {
+			b.WriteString(ui.StyleDim.Render("  none") + "\n")
+		} else {
+			for _, c := range aheadCommits {
+				b.WriteString("  ")
+				b.WriteString(ui.StyleDim.Render(c.Hash))
+				b.WriteString("  ")
+				b.WriteString(c.Subject)
+				b.WriteString("\n")
+			}
 		}
-	}
 
-	b.WriteString("\n")
-	b.WriteString(ui.StyleBold.Render(ic.behindTitle))
-	b.WriteString("\n\n")
-	if len(behindCommits) == 0 {
-		b.WriteString(ui.StyleDim.Render("  none") + "\n")
-	} else {
-		for _, c := range behindCommits {
-			b.WriteString("  ")
-			b.WriteString(ui.StyleDim.Render(c.Hash))
-			b.WriteString("  ")
-			b.WriteString(c.Subject)
-			b.WriteString("\n")
+		b.WriteString("\n")
+		b.WriteString(ui.StyleBold.Render(ic.behindTitle))
+		b.WriteString("\n\n")
+		if len(behindCommits) == 0 {
+			b.WriteString(ui.StyleDim.Render("  none") + "\n")
+		} else {
+			for _, c := range behindCommits {
+				b.WriteString("  ")
+				b.WriteString(ui.StyleDim.Render(c.Hash))
+				b.WriteString("  ")
+				b.WriteString(c.Subject)
+				b.WriteString("\n")
+			}
 		}
 	}
 

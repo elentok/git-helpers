@@ -57,6 +57,7 @@ func PushBranch(worktreePath, remote, branch string) error {
 	return Push(worktreePath, remote, branch)
 }
 
+
 // PushBranchForceWithLease force-pushes branch using --force-with-lease.
 func PushBranchForceWithLease(worktreePath, remote, branch string) error {
 	_, err := run(worktreePath, []string{"push", "--force-with-lease", remote, branch})

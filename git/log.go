@@ -20,25 +20,10 @@ func CommitsBehindMain(repo Repo, branch string) ([]Commit, error) {
 	return commitsBetween(repo, branch, repo.MainBranch)
 }
 
-// CommitsSinceUpstream returns commits on branch not reachable from its upstream
-// tracking branch, ordered newest first. Returns nil if no upstream is configured.
-func CommitsSinceUpstream(repo Repo, branch string) ([]Commit, error) {
-	upstream := UpstreamBranch(repo.Root, branch)
-	if upstream == "" {
-		return nil, nil
-	}
-	return commitsBetween(repo, upstream, branch)
-}
-
-// CommitsBehindUpstream returns commits on the upstream tracking branch not
-// reachable from branch, ordered newest first. Returns nil if no upstream is
-// configured.
-func CommitsBehindUpstream(repo Repo, branch string) ([]Commit, error) {
-	upstream := UpstreamBranch(repo.Root, branch)
-	if upstream == "" {
-		return nil, nil
-	}
-	return commitsBetween(repo, branch, upstream)
+// CommitsBetween returns commits reachable from toRef but not fromRef, ordered
+// newest first.
+func CommitsBetween(repo Repo, fromRef, toRef string) ([]Commit, error) {
+	return commitsBetween(repo, fromRef, toRef)
 }
 
 func commitsBetween(repo Repo, fromRef, toRef string) ([]Commit, error) {

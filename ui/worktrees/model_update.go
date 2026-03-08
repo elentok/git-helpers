@@ -34,6 +34,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m.handleErrorKey(msg)
 		case modeDelete:
 			return m.handleDeleteKey(msg)
+		case modeTrack:
+			return m.handleTrackKey(msg)
 		case modeRename:
 			return m.handleRenameKey(msg)
 		case modeClone:
@@ -87,6 +89,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.spinnerActive = true
 				m.spinnerLabel = "Pushing " + wt.Name + "…"
 				return m, tea.Batch(cmdPush(m.repo, *wt), m.spinner.Tick)
+			}
+		case key.Matches(msg, keys.Track) && len(m.worktrees) > 0 && !m.spinnerActive && m.sidebarUpstream == "":
+			wt := m.selectedWorktree()
+			if wt != nil {
+				if wt.Branch == "" {
+					return m.showError("cannot track: worktree is in detached HEAD state"), nil
+				}
+				m.mode = modeTrack
+				m.statusMsg = ""
 			}
 		}
 
@@ -169,6 +180,21 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, tea.Batch(cmds...)
 
+	case trackResultMsg:
+		m.spinnerActive = false
+		if msg.err != nil {
+			return m.showError(msg.err.Error()), nil
+		}
+		m.statusGen++
+		m.statusMsg = "Tracking remote branch"
+		cmds = append(cmds, cmdClearStatus(m.statusGen))
+		if wt := m.selectedWorktree(); wt != nil && wt.Branch != "" {
+			m.sidebarLoading = true
+			m.viewport.SetContent(m.sidebarContent())
+			cmds = append(cmds, cmdLoadSyncStatus(m.repo, wt.Branch), cmdLoadSidebarData(m.repo, *wt))
+		}
+		return m, tea.Batch(cmds...)
+
 	case pasteResultMsg:
 		if msg.err != nil {
 			return m.showError(msg.err.Error()), nil
@@ -229,6 +255,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case sidebarDataMsg:
 		if len(m.worktrees) > 0 && m.worktrees[m.table.Cursor()].Path == msg.worktreePath {
+			m.sidebarUpstream = msg.upstream
 			m.sidebarAheadCommits = msg.aheadCommits
 			m.sidebarBehindCommits = msg.behindCommits
 			m.sidebarChanges = msg.changes
@@ -247,6 +274,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if m.table.Cursor() != prevCursor && len(m.worktrees) > 0 {
 		m.table.SetRows(buildRows(m.worktrees, m.statuses, m.dirties, m.table.Cursor(), m.settings.UseNerdFontIcons))
 		m.sidebarLoading = true
+		m.sidebarUpstream = ""
 		m.sidebarAheadCommits = nil
 		m.sidebarBehindCommits = nil
 		m.sidebarChanges = nil

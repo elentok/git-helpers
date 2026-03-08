@@ -13,6 +13,7 @@ type keyMap struct {
 	Paste  key.Binding
 	Pull   key.Binding
 	Push   key.Binding
+	Track  key.Binding
 	Help   key.Binding
 	Quit   key.Binding
 }
@@ -58,6 +59,10 @@ var keys = keyMap{
 		key.WithKeys("s"),
 		key.WithHelp("s", "push"),
 	),
+	Track: key.NewBinding(
+		key.WithKeys("t"),
+		key.WithHelp("t", "track"),
+	),
 	Help: key.NewBinding(
 		key.WithKeys("?"),
 		key.WithHelp("?", "toggle help"),
@@ -72,7 +77,7 @@ var keys = keyMap{
 // bubbles/help in a later milestone.
 
 func (k keyMap) ShortHelp() []key.Binding {
-	return []key.Binding{k.Up, k.Down, k.New, k.Delete, k.Rename, k.Clone, k.Yank, k.Paste, k.Pull, k.Push, k.Quit, k.Help}
+	return []key.Binding{k.Up, k.Down, k.New, k.Delete, k.Rename, k.Clone, k.Yank, k.Paste, k.Pull, k.Push, k.Track, k.Quit, k.Help}
 }
 
 func (k keyMap) FullHelp() [][]key.Binding {
@@ -80,6 +85,6 @@ func (k keyMap) FullHelp() [][]key.Binding {
 		{k.Up, k.Down},
 		{k.New, k.Delete, k.Rename, k.Clone},
 		{k.Yank, k.Paste},
-		{k.Pull, k.Push, k.Help, k.Quit},
+		{k.Pull, k.Push, k.Track, k.Help, k.Quit},
 	}
 }

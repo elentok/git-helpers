@@ -7,12 +7,13 @@
 #   worktrees/      – bare clone of upstream.git with linked worktrees
 #
 # Worktree states after setup:
-#   main          synced    (0 ahead, 0 behind)
-#   feature-auth  diverged  (1 ahead, 1 behind) + modified file
-#   feature-api   behind    (0 ahead, 2 behind)
-#   feature-ui    ahead     (2 ahead, 0 behind) + untracked file
-#   bugfix-login  synced    (0 ahead, 0 behind)
-#   refactor-db   synced    (0 ahead, 0 behind) + staged + untracked files
+#   main          synced        (0 ahead, 0 behind)
+#   feature-auth  diverged      (1 ahead, 1 behind) + modified file
+#   feature-api   behind        (0 ahead, 2 behind)
+#   feature-ui    ahead         (2 ahead, 0 behind) + untracked file
+#   bugfix-login  synced        (0 ahead, 0 behind)
+#   refactor-db   synced        (0 ahead, 0 behind) + staged + untracked files
+#   chore-cleanup no tracking   (local branch only, no remote tracking set)
 
 set -euo pipefail
 
@@ -247,6 +248,17 @@ type Session struct {
 
   # bugfix-login — synced
   git worktree add -b bugfix-login bugfix-login origin/bugfix-login
+
+  # chore-cleanup — local branch only, no remote tracking configured
+  git branch --no-track chore-cleanup origin/main
+  git worktree add chore-cleanup chore-cleanup
+  cd chore-cleanup
+  write-file src/cleanup.go "package main
+
+func removeDeprecated() {}
+func archiveLogs()      {}"
+  commit "Start cleanup work"
+  cd ..
 
   # refactor-db — synced with origin, but has staged + untracked changes
   git worktree add -b refactor-db refactor-db origin/refactor-db

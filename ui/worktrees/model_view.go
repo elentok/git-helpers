@@ -73,6 +73,8 @@ func (m Model) statusBarView() string {
 		return ""
 	case modeDelete:
 		return m.deleteConfirmView()
+	case modeTrack:
+		return m.trackConfirmView()
 	case modeRename:
 		return m.renameView()
 	case modeClone:

@@ -40,11 +40,16 @@ func cmdLoadDirtyStatus(wt git.Worktree) tea.Cmd {
 
 func cmdLoadSidebarData(repo git.Repo, wt git.Worktree) tea.Cmd {
 	return func() tea.Msg {
-		aheadCommits, _ := git.CommitsSinceUpstream(repo, wt.Branch)
-		behindCommits, _ := git.CommitsBehindUpstream(repo, wt.Branch)
+		upstream := git.UpstreamBranch(repo.Root, wt.Branch)
+		var aheadCommits, behindCommits []git.Commit
+		if upstream != "" {
+			aheadCommits, _ = git.CommitsBetween(repo, upstream, wt.Branch)
+			behindCommits, _ = git.CommitsBetween(repo, wt.Branch, upstream)
+		}
 		changes, _ := git.UncommittedChanges(wt.Path)
 		return sidebarDataMsg{
 			worktreePath:  wt.Path,
+			upstream:      upstream,
 			aheadCommits:  aheadCommits,
 			behindCommits: behindCommits,
 			changes:       changes,

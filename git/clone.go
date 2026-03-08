@@ -38,10 +38,23 @@ func CloneBare(repoURL, targetDir, cwd string) (string, error) {
 			name = inferCloneDirFromURL(repoURL)
 		}
 	}
-	if filepath.IsAbs(name) {
-		return name, nil
+
+	repoRoot := name
+	if !filepath.IsAbs(repoRoot) {
+		repoRoot = filepath.Join(cwd, repoRoot)
 	}
-	return filepath.Join(cwd, name), nil
+
+	// git clone --bare sets the fetch refspec to "+refs/heads/*:refs/heads/*",
+	// which fetches remote branches directly into local refs rather than into
+	// refs/remotes/origin/*. This means remote tracking refs never get
+	// populated, so ahead/behind status and upstream tracking won't work.
+	// We fix the refspec immediately after cloning so that subsequent fetches
+	// behave like a normal clone.
+	if _, err := run(repoRoot, []string{"config", "remote.origin.fetch", expectedFetchRefspec}); err != nil {
+		return "", err
+	}
+
+	return repoRoot, nil
 }
 
 func inferCloneDirFromURL(repoURL string) string {

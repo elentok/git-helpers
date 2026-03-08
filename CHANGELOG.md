@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.2.0
+
+- Added `gx version` command (also `--version`, `-v`) to print the current binary version
+- Added `scripts/bump.sh` for bumping the version, creating an annotated git tag
+
 ## v0.1.5
 
 - `gx clone-wt` now immediately fixes the fetch refspec after cloning, so remote tracking refs populate correctly on the first fetch

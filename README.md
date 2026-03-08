@@ -2,6 +2,13 @@
 
 A collection of git helper (worktree management, etc...)
 
+## Disclaimer
+
+I wrote the original version of the tool in Typescript a while ago but at some
+point I realized I wanted something a bit different and had Claude Code migrate it
+to Go with a lot of UI changes (see [convert-to-go.md](./docs/prompts/convert-to-go.md)
+and [go-migration-plan.md](/docs/go-migration-plan.md)).
+
 ## Features
 
 - Browse all linked worktrees in a table with sync status (ahead / behind / diverged)
@@ -78,6 +85,12 @@ Edit config in `$EDITOR`:
 
 ```sh
 gx edit-config
+```
+
+Print the current binary version:
+
+```sh
+gx version
 ```
 
 ## Configuration

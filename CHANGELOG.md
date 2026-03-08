@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.2.0
+## v0.2.0
 
 - Added `gx version` command (also `--version`, `-v`) to print the current binary version
 - Added `scripts/bump.sh` for bumping the version, creating an annotated git tag

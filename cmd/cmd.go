@@ -54,22 +54,13 @@ func execute(args []string, d deps) error {
 
 	switch args[0] {
 	case "worktrees", "wt":
-		return d.runWorktrees("")
-	case "clone-wt":
-		return runCloneWT(args[1:], d)
+		return runWorktreeCmd(args[1:], d)
 	case "push":
 		return runPush(d)
 	case "init":
 		return runInit(d)
 	case "edit-config":
 		return runEditConfig(d)
-	case "list-worktrees":
-		return runListWorktrees(d)
-	case "worktree-abs-path":
-		if len(args) < 2 {
-			return fmt.Errorf("usage: gx worktree-abs-path <worktree-name>")
-		}
-		return runWorktreeAbsPath(args[1], d)
 	case "doctor":
 		return runDoctor(args[1:], d)
 	case "version", "--version", "-v":
@@ -85,15 +76,34 @@ func execute(args []string, d deps) error {
 
 func printUsage(w io.Writer) {
 	fmt.Fprintln(w, "Usage:")
-	fmt.Fprintln(w, "  gx worktrees|wt")
-	fmt.Fprintln(w, "  gx list-worktrees")
-	fmt.Fprintln(w, "  gx worktree-abs-path <worktree-name>")
-	fmt.Fprintln(w, "  gx clone-wt <repo-url> [directory]")
+	fmt.Fprintln(w, "  gx [worktrees|wt]            open the worktree UI")
+	fmt.Fprintln(w, "  gx wt list                   list worktree names")
+	fmt.Fprintln(w, "  gx wt abs-path <name>        print absolute path of a worktree")
+	fmt.Fprintln(w, "  gx wt clone <url> [dir]      clone using the .bare trick")
 	fmt.Fprintln(w, "  gx push")
 	fmt.Fprintln(w, "  gx init")
 	fmt.Fprintln(w, "  gx edit-config")
 	fmt.Fprintln(w, "  gx doctor [--fix]")
 	fmt.Fprintln(w, "  gx version")
+}
+
+func runWorktreeCmd(args []string, d deps) error {
+	if len(args) == 0 {
+		return d.runWorktrees("")
+	}
+	switch args[0] {
+	case "list":
+		return runListWorktrees(d)
+	case "abs-path":
+		if len(args) < 2 {
+			return fmt.Errorf("usage: gx wt abs-path <name>")
+		}
+		return runWorktreeAbsPath(args[1], d)
+	case "clone":
+		return runCloneWT(args[1:], d)
+	default:
+		return fmt.Errorf("unknown wt subcommand %q", args[0])
+	}
 }
 
 func runWorktrees(_ string) error {
@@ -145,7 +155,7 @@ func runWorktrees(_ string) error {
 
 func runCloneWT(args []string, d deps) error {
 	if len(args) < 1 || len(args) > 2 {
-		return fmt.Errorf("clone-wt expects <repo-url> [directory]")
+		return fmt.Errorf("usage: gx wt clone <repo-url> [directory]")
 	}
 
 	cwd, err := d.getwd()

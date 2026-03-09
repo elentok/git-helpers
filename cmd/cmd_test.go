@@ -19,8 +19,8 @@ func TestExecute_ListWorktrees(t *testing.T) {
 		getwd:  func() (string, error) { return repoDir, nil },
 	}
 
-	if err := execute([]string{"list-worktrees"}, d); err != nil {
-		t.Fatalf("execute list-worktrees: %v", err)
+	if err := execute([]string{"wt", "list"}, d); err != nil {
+		t.Fatalf("execute wt list: %v", err)
 	}
 
 	lines := strings.Split(strings.TrimSpace(stdout.String()), "\n")
@@ -41,8 +41,8 @@ func TestExecute_WorktreeAbsPath(t *testing.T) {
 		getwd:  func() (string, error) { return repoDir, nil },
 	}
 
-	if err := execute([]string{"worktree-abs-path", "feature-a"}, d); err != nil {
-		t.Fatalf("execute worktree-abs-path: %v", err)
+	if err := execute([]string{"wt", "abs-path", "feature-a"}, d); err != nil {
+		t.Fatalf("execute wt abs-path: %v", err)
 	}
 
 	got := strings.TrimSpace(stdout.String())
@@ -62,13 +62,13 @@ func TestExecute_ListWorktrees_FromInsideWorktree(t *testing.T) {
 		getwd:  func() (string, error) { return wtDir, nil },
 	}
 
-	if err := execute([]string{"list-worktrees"}, d); err != nil {
-		t.Fatalf("execute list-worktrees: %v", err)
+	if err := execute([]string{"wt", "list"}, d); err != nil {
+		t.Fatalf("execute wt list: %v", err)
 	}
 
 	for _, line := range strings.Split(strings.TrimSpace(stdout.String()), "\n") {
 		if strings.ContainsRune(line, '/') {
-			t.Errorf("list-worktrees output contains path separator: %q", line)
+			t.Errorf("wt list output contains path separator: %q", line)
 		}
 	}
 }
@@ -83,8 +83,8 @@ func TestExecute_WorktreeAbsPath_FromInsideWorktree(t *testing.T) {
 		getwd:  func() (string, error) { return wtDir, nil },
 	}
 
-	if err := execute([]string{"worktree-abs-path", "feature-b"}, d); err != nil {
-		t.Fatalf("execute worktree-abs-path: %v", err)
+	if err := execute([]string{"wt", "abs-path", "feature-b"}, d); err != nil {
+		t.Fatalf("execute wt abs-path: %v", err)
 	}
 
 	got := strings.TrimSpace(stdout.String())
@@ -102,7 +102,7 @@ func TestExecute_WorktreeAbsPath_NotFound(t *testing.T) {
 		getwd:  func() (string, error) { return repoDir, nil },
 	}
 
-	err := execute([]string{"worktree-abs-path", "does-not-exist"}, d)
+	err := execute([]string{"wt", "abs-path", "does-not-exist"}, d)
 	if err == nil {
 		t.Fatal("expected error for missing worktree")
 	}
@@ -117,7 +117,7 @@ func TestExecute_WorktreeAbsPath_MissingArg(t *testing.T) {
 		stderr: bytes.NewBuffer(nil),
 	}
 
-	err := execute([]string{"worktree-abs-path"}, d)
+	err := execute([]string{"wt", "abs-path"}, d)
 	if err == nil {
 		t.Fatal("expected error for missing argument")
 	}
@@ -143,8 +143,8 @@ func TestExecute_DefaultRunsWorktrees(t *testing.T) {
 }
 
 func TestExecute_WorktreesAliases(t *testing.T) {
-	for _, arg := range []string{"worktrees", "wt"} {
-		t.Run(arg, func(t *testing.T) {
+	for _, args := range [][]string{{"worktrees"}, {"wt"}} {
+		t.Run(args[0], func(t *testing.T) {
 			called := 0
 			d := deps{
 				stdout: bytes.NewBuffer(nil),
@@ -154,7 +154,7 @@ func TestExecute_WorktreesAliases(t *testing.T) {
 					return nil
 				},
 			}
-			if err := execute([]string{arg}, d); err != nil {
+			if err := execute(args, d); err != nil {
 				t.Fatalf("execute: %v", err)
 			}
 			if called != 1 {

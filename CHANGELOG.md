@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.3.2
+
+- Added `gx list-worktrees` command that prints all worktree names, one per line
+- Added `gx worktree-abs-path <name>` command that prints the absolute path of the named worktree
+- When pushing a branch for the first time, the GitHub PR creation URL is detected and a modal asks whether to open it in the browser (defaults to Yes)
+- Fixed `run` to capture stderr even on success (needed for parsing remote push output)
+
 ## v0.3.1
 
 - Rebinded pull to `p` and push to `P`, freeing up the old `l` / `s` keys

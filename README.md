@@ -17,6 +17,7 @@ and [go-migration-plan.md](/docs/go-migration-plan.md)).
 - Yank files from one worktree and paste them into another
 - Pull, push, and remote-update the selected worktree's branch
 - `gx clone-wt` clones using the `.bare` directory trick for a clean layout
+- `gx list-worktrees` and `gx worktree-abs-path` for scripting and shell integration
 - `gx doctor` checks for and optionally fixes common configuration issues
 - Startup check for misconfigured fetch refspec with an option to fix automatically
 - Scrollable error modal for any git failures
@@ -96,6 +97,18 @@ Edit config in `$EDITOR`:
 
 ```sh
 gx edit-config
+```
+
+List all worktree names:
+
+```sh
+gx list-worktrees
+```
+
+Get the absolute path of a worktree by name:
+
+```sh
+gx worktree-abs-path <worktree-name>
 ```
 
 Check the repo for common configuration issues:

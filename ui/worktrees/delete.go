@@ -9,7 +9,10 @@ import (
 )
 
 // deleteResultMsg is sent when a delete operation completes.
-type deleteResultMsg struct{ err error }
+type deleteResultMsg struct {
+	name string
+	err  error
+}
 
 // cmdDelete removes the worktree directory and force-deletes its branch.
 func cmdDelete(repo git.Repo, wt git.Worktree) tea.Cmd {
@@ -22,7 +25,7 @@ func cmdDelete(repo git.Repo, wt git.Worktree) tea.Cmd {
 				return deleteResultMsg{err: err}
 			}
 		}
-		return deleteResultMsg{}
+		return deleteResultMsg{name: wt.Name}
 	}
 }
 
@@ -32,5 +35,5 @@ func (m Model) enterDeleteConfirm() Model {
 		return m
 	}
 	prompt := fmt.Sprintf("Delete worktree '%s' (branch: %s)?", wt.Name, wt.Branch)
-	return m.enterConfirm(prompt, cmdDelete(m.repo, *wt), "")
+	return m.enterConfirm(prompt, cmdDelete(m.repo, *wt), "Deleting "+wt.Name+"…")
 }

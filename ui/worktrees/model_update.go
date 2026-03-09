@@ -107,8 +107,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.err != nil {
 			return m.showError(msg.err.Error()), nil
 		}
-		m.statusMsg = ""
-		return m, cmdLoadWorktrees(m.repo)
+		m.statusGen++
+		m.statusMsg = fmt.Sprintf("Worktree %s deleted successfully", msg.name)
+		return m, tea.Batch(cmdLoadWorktrees(m.repo), cmdClearStatus(m.statusGen))
 
 	case renameResultMsg:
 		if msg.err != nil {

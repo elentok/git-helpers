@@ -16,8 +16,9 @@ and [go-migration-plan.md](/docs/go-migration-plan.md)).
 - Create, rename, clone, and delete worktrees interactively
 - Yank files from one worktree and paste them into another
 - Pull, push, and remote-update the selected worktree's branch
-- `gx clone-wt` clones using the `.bare` directory trick for a clean layout
-- `gx list-worktrees` and `gx worktree-abs-path` for scripting and shell integration
+- `gx wt clone` clones using the `.bare` directory trick for a clean layout
+- `gx wt list` and `gx wt abs-path` for scripting and shell integration
+- Press `l` to open the selected worktree in lazygit
 - `gx doctor` checks for and optionally fixes common configuration issues
 - Startup check for misconfigured fetch refspec with an option to fix automatically
 - Scrollable error modal for any git failures
@@ -69,7 +70,7 @@ gx wt
 Clone using the `.bare` directory trick and bootstrap the initial worktree:
 
 ```sh
-gx clone-wt <repo-url> [directory]
+gx wt clone <repo-url> [directory]
 ```
 
 This creates:
@@ -79,6 +80,13 @@ my-repo/
   .bare/      ← bare git repo
   .git         ← gitdir: ./.bare
   main/        ← initial worktree
+```
+
+List worktree names or get the absolute path of one (useful for scripting):
+
+```sh
+gx wt list
+gx wt abs-path <name>
 ```
 
 Push current worktree branch, with styled force-with-lease confirmation on rejection:
@@ -97,18 +105,6 @@ Edit config in `$EDITOR`:
 
 ```sh
 gx edit-config
-```
-
-List all worktree names:
-
-```sh
-gx list-worktrees
-```
-
-Get the absolute path of a worktree by name:
-
-```sh
-gx worktree-abs-path <worktree-name>
 ```
 
 Check the repo for common configuration issues:
@@ -152,6 +148,7 @@ Example:
 | `y`            | Yank files from selected worktree into clipboard   |
 | `p`            | Pull selected worktree's branch                    |
 | `P`            | Push selected worktree's branch                    |
+| `l`            | Open selected worktree in lazygit                  |
 | `t`            | Track remote branch (set upstream)                 |
 | `R`            | Refresh worktree list and statuses                 |
 | `U`            | Run `git remote update` and refresh                |

@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.4.0
+
+- Added `l` keybinding to open the selected worktree in lazygit (suspends the UI, restores it when lazygit exits)
+- Consolidated worktree-related CLI commands under `gx wt`:
+  - `gx wt list` — list worktree names
+  - `gx wt abs-path <name>` — print absolute path of a worktree
+  - `gx wt clone <url> [dir]` — clone using the `.bare` trick
+
 ## v0.3.2
 
 - Added `gx list-worktrees` command that prints all worktree names, one per line

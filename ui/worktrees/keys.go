@@ -12,6 +12,7 @@ type keyMap struct {
 	Yank   key.Binding
 	Pull   key.Binding
 	Push   key.Binding
+	Lazygit       key.Binding
 	Track         key.Binding
 	Refresh       key.Binding
 	RemoteUpdate  key.Binding
@@ -56,6 +57,10 @@ var keys = keyMap{
 		key.WithKeys("P"),
 		key.WithHelp("P", "push"),
 	),
+	Lazygit: key.NewBinding(
+		key.WithKeys("l"),
+		key.WithHelp("l", "lazygit"),
+	),
 	Track: key.NewBinding(
 		key.WithKeys("t"),
 		key.WithHelp("t", "track"),
@@ -82,7 +87,7 @@ var keys = keyMap{
 // bubbles/help in a later milestone.
 
 func (k keyMap) ShortHelp() []key.Binding {
-	return []key.Binding{k.Up, k.Down, k.New, k.Delete, k.Rename, k.Clone, k.Yank, k.Pull, k.Push, k.Track, k.Refresh, k.Quit, k.Help}
+	return []key.Binding{k.Up, k.Down, k.New, k.Delete, k.Rename, k.Clone, k.Yank, k.Pull, k.Push, k.Lazygit, k.Track, k.Refresh, k.Quit, k.Help}
 }
 
 func (k keyMap) FullHelp() [][]key.Binding {
@@ -90,6 +95,6 @@ func (k keyMap) FullHelp() [][]key.Binding {
 		{k.Up, k.Down},
 		{k.New, k.Delete, k.Rename, k.Clone},
 		{k.Yank},
-		{k.Pull, k.Push, k.Track, k.Refresh, k.RemoteUpdate, k.Help, k.Quit},
+		{k.Pull, k.Push, k.Lazygit, k.Track, k.Refresh, k.RemoteUpdate, k.Help, k.Quit},
 	}
 }

@@ -66,6 +66,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		case key.Matches(msg, keys.Yank) && len(m.worktrees) > 0 && !m.spinnerActive:
 			return m.enterYankMode()
+		case key.Matches(msg, keys.Lazygit) && len(m.worktrees) > 0 && !m.spinnerActive:
+			wt := m.selectedWorktree()
+			if wt != nil {
+				return m, cmdLazygit(*wt)
+			}
 		case key.Matches(msg, keys.Pull) && len(m.worktrees) > 0 && !m.spinnerActive:
 			wt := m.selectedWorktree()
 			if wt != nil {
@@ -194,6 +199,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Batch(cmds...)
 		}
 		return m, tea.Batch(cmds...)
+
+	case lazygitFinishedMsg:
+		if msg.err != nil {
+			return m.showError(msg.err.Error()), nil
+		}
+		m.loading = true
+		return m, cmdLoadWorktrees(m.repo)
 
 	case urlOpenedMsg:
 

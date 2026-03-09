@@ -63,6 +63,13 @@ func execute(args []string, d deps) error {
 		return runInit(d)
 	case "edit-config":
 		return runEditConfig(d)
+	case "list-worktrees":
+		return runListWorktrees(d)
+	case "worktree-abs-path":
+		if len(args) < 2 {
+			return fmt.Errorf("usage: gx worktree-abs-path <worktree-name>")
+		}
+		return runWorktreeAbsPath(args[1], d)
 	case "doctor":
 		return runDoctor(args[1:], d)
 	case "version", "--version", "-v":
@@ -79,6 +86,8 @@ func execute(args []string, d deps) error {
 func printUsage(w io.Writer) {
 	fmt.Fprintln(w, "Usage:")
 	fmt.Fprintln(w, "  gx worktrees|wt")
+	fmt.Fprintln(w, "  gx list-worktrees")
+	fmt.Fprintln(w, "  gx worktree-abs-path <worktree-name>")
 	fmt.Fprintln(w, "  gx clone-wt <repo-url> [directory]")
 	fmt.Fprintln(w, "  gx push")
 	fmt.Fprintln(w, "  gx init")
@@ -172,6 +181,47 @@ func runCloneWT(args []string, d deps) error {
 
 	fmt.Fprintf(d.stdout, "Cloned to %s and created worktree %s\n", outerDir, wtPath)
 	return nil
+}
+
+func runListWorktrees(d deps) error {
+	cwd, err := d.getwd()
+	if err != nil {
+		return err
+	}
+	repo, err := git.FindRepo(cwd)
+	if err != nil {
+		return err
+	}
+	wts, err := git.ListWorktrees(*repo)
+	if err != nil {
+		return err
+	}
+	for _, wt := range wts {
+		fmt.Fprintln(d.stdout, wt.Name)
+	}
+	return nil
+}
+
+func runWorktreeAbsPath(name string, d deps) error {
+	cwd, err := d.getwd()
+	if err != nil {
+		return err
+	}
+	repo, err := git.FindRepo(cwd)
+	if err != nil {
+		return err
+	}
+	wts, err := git.ListWorktrees(*repo)
+	if err != nil {
+		return err
+	}
+	for _, wt := range wts {
+		if wt.Name == name {
+			fmt.Fprintln(d.stdout, wt.Path)
+			return nil
+		}
+	}
+	return fmt.Errorf("worktree %q not found", name)
 }
 
 func runPush(d deps) error {

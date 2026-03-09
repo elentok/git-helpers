@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.3.0
+
+- `gx clone-wt` now uses the `.bare` directory trick: clones into `my-repo/.bare/` and writes a `my-repo/.git` file pointing to it, so worktrees live cleanly alongside `.bare/` rather than inside it
+- Delete worktree now shows a spinner while the deletion runs and a "Worktree {name} deleted successfully" toast on completion
+- Added `gx doctor` command to check a repo for common configuration issues:
+  - Verifies the origin fetch refspec is set correctly
+  - For `.bare`-style repos: verifies the outer `.git` file points to `.bare`
+  - For `.bare`-style repos: verifies each worktree's `.git` file points to the correct location
+- Added `gx doctor --fix` to interactively apply fixes with confirmation prompts
+
 ## v0.2.1
 
 - Added `U` keybinding to run `git remote update` and refresh all worktree statuses

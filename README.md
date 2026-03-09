@@ -15,7 +15,9 @@ and [go-migration-plan.md](/docs/go-migration-plan.md)).
 - Sidebar showing commits ahead/behind the remote tracking branch and uncommitted file changes
 - Create, rename, clone, and delete worktrees interactively
 - Yank files from one worktree and paste them into another
-- Pull and push the selected worktree's branch
+- Pull, push, and remote-update the selected worktree's branch
+- `gx clone-wt` clones using the `.bare` directory trick for a clean layout
+- `gx doctor` checks for and optionally fixes common configuration issues
 - Startup check for misconfigured fetch refspec with an option to fix automatically
 - Scrollable error modal for any git failures
 - See [Changelog](./CHANGELOG.md)
@@ -63,10 +65,19 @@ gx worktrees
 gx wt
 ```
 
-Clone as bare + bootstrap initial worktree:
+Clone using the `.bare` directory trick and bootstrap the initial worktree:
 
 ```sh
 gx clone-wt <repo-url> [directory]
+```
+
+This creates:
+
+```
+my-repo/
+  .bare/      ← bare git repo
+  .git         ← gitdir: ./.bare
+  main/        ← initial worktree
 ```
 
 Push current worktree branch, with styled force-with-lease confirmation on rejection:

@@ -104,6 +104,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 	case deleteResultMsg:
+		m.spinnerActive = false
 		if msg.err != nil {
 			return m.showError(msg.err.Error()), nil
 		}

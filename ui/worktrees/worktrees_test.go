@@ -84,6 +84,23 @@ func TestDeleteWorktree(t *testing.T) {
 	quit(t, tm)
 }
 
+func TestDeleteWorktree_ShowsToastAfterDeletion(t *testing.T) {
+	repoDir := testutil.TempBareRepoWithWorktrees(t, "feature-a", "feature-b")
+	_, tm := startTUI(t, repoDir)
+
+	waitForText(t, tm, "feature-a", loadWait)
+
+	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'d'}})
+	waitForText(t, tm, "Delete", actionWait)
+	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'y'}})
+
+	// The toast proves spinnerActive was cleared — if the spinner stays stuck
+	// the model never re-renders status messages and this will time out.
+	waitForText(t, tm, "feature-a deleted successfully", loadWait)
+
+	quit(t, tm)
+}
+
 func TestDeleteCancelWithN(t *testing.T) {
 	repoDir := testutil.TempBareRepoWithWorktrees(t, "feature-a")
 	repo, tm := startTUI(t, repoDir)

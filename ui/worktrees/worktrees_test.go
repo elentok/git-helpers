@@ -141,7 +141,7 @@ func TestCloneInputAppearsAndCancels(t *testing.T) {
 
 func TestCloneWorktree(t *testing.T) {
 	repoDir := testutil.TempBareRepoWithWorktrees(t, "feature-a")
-	repo, tm := startTUI(t, repoDir)
+	_, tm := startTUI(t, repoDir)
 
 	// Add an untracked file to the source worktree before starting the TUI
 	wtDir := filepath.Join(repoDir, "feature-a")
@@ -158,22 +158,15 @@ func TestCloneWorktree(t *testing.T) {
 	tm.Type("feature-copy")
 	tm.Send(tea.KeyMsg{Type: tea.KeyEnter})
 
-	// Wait until the cloned worktree appears
+	// Wait until the untracked file appears in the clone. Waiting for the file
+	// (rather than just the worktree in git's list) avoids a race where git
+	// reports the worktree as existing before cmdClone has finished copying files.
+	clonedFile := filepath.Join(repoDir, "feature-copy", "untracked.txt")
 	teatest.WaitFor(t, tm.Output(), func(_ []byte) bool {
-		wts, err := git.ListWorktrees(repo)
-		if err != nil {
-			return false
-		}
-		for _, wt := range wts {
-			if wt.Name == "feature-copy" {
-				return true
-			}
-		}
-		return false
+		_, err := os.ReadFile(clonedFile)
+		return err == nil
 	}, teatest.WithDuration(loadWait))
 
-	// Verify the untracked file was copied into the clone
-	clonedFile := filepath.Join(repoDir, "feature-copy", "untracked.txt")
 	data, err := os.ReadFile(clonedFile)
 	if err != nil {
 		t.Fatalf("untracked.txt missing in clone: %v", err)

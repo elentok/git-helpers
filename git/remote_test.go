@@ -1,6 +1,26 @@
 package git
 
-import "testing"
+import (
+	"testing"
+)
+
+func TestExtractPRURL(t *testing.T) {
+	// Simulated GitHub stderr from a first-time push
+	githubOutput := `
+remote: Create a pull request for 'my-branch' on GitHub by visiting:
+remote:      https://github.com/elentok/gx/pull/new/my-branch
+remote:
+`
+	got := ExtractPRURL(githubOutput)
+	want := "https://github.com/elentok/gx/pull/new/my-branch"
+	if got != want {
+		t.Fatalf("ExtractPRURL() = %q, want %q", got, want)
+	}
+
+	if got := ExtractPRURL("remote: Everything up-to-date\n"); got != "" {
+		t.Fatalf("ExtractPRURL() = %q, want empty", got)
+	}
+}
 
 func TestIsNonFastForwardPushError(t *testing.T) {
 	tests := []struct {

@@ -33,7 +33,7 @@ func CloneBare(repoURL, targetDir, cwd string) (string, error) {
 	}
 
 	bareDir := filepath.Join(outerDir, ".bare")
-	if _, err := run(cwd, []string{"clone", "--bare", repoURL, bareDir}); err != nil {
+	if _, _, err := run(cwd, []string{"clone", "--bare", repoURL, bareDir}); err != nil {
 		return "", err
 	}
 
@@ -49,7 +49,7 @@ func CloneBare(repoURL, targetDir, cwd string) (string, error) {
 	// populated, so ahead/behind status and upstream tracking won't work.
 	// We fix the refspec immediately after cloning so that subsequent fetches
 	// behave like a normal clone.
-	if _, err := run(bareDir, []string{"config", "remote.origin.fetch", expectedFetchRefspec}); err != nil {
+	if _, _, err := run(bareDir, []string{"config", "remote.origin.fetch", expectedFetchRefspec}); err != nil {
 		return "", err
 	}
 
@@ -70,9 +70,9 @@ func inferCloneDirFromURL(repoURL string) string {
 // an existing local branch, then falls back to creating a tracking branch from
 // remoteBranch (for freshly cloned bare repositories).
 func AddWorktreeFromRemote(repo Repo, worktreePath, branch, remoteBranch string) error {
-	if _, err := run(repo.Root, []string{"worktree", "add", worktreePath, branch}); err == nil {
+	if _, _, err := run(repo.Root, []string{"worktree", "add", worktreePath, branch}); err == nil {
 		return nil
 	}
-	_, err := run(repo.Root, []string{"worktree", "add", "--track", "-b", branch, worktreePath, remoteBranch})
+	_, _, err := run(repo.Root, []string{"worktree", "add", "--track", "-b", branch, worktreePath, remoteBranch})
 	return err
 }

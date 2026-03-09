@@ -27,13 +27,13 @@ func CommitsBetween(repo Repo, fromRef, toRef string) ([]Commit, error) {
 }
 
 func commitsBetween(repo Repo, fromRef, toRef string) ([]Commit, error) {
-	mergeBase, err := run(repo.Root, []string{"merge-base", fromRef, toRef})
+	mergeBase, _, err := run(repo.Root, []string{"merge-base", fromRef, toRef})
 	if err != nil {
 		// No merge base (e.g. orphan branch) - return empty rather than error
 		return nil, nil
 	}
 
-	out, err := run(repo.Root, []string{"log", "--pretty=format:%h\t%s", mergeBase + ".." + toRef})
+	out, _, err := run(repo.Root, []string{"log", "--pretty=format:%h\t%s", mergeBase + ".." + toRef})
 	if err != nil {
 		return nil, err
 	}

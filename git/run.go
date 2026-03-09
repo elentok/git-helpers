@@ -1,6 +1,7 @@
 package git
 
 import (
+	"bytes"
 	"fmt"
 	"os/exec"
 	"strings"
@@ -20,29 +21,34 @@ func (e *RunError) Error() string {
 		strings.Join(e.Args, " "), e.Code, e.Stdout, e.Stderr)
 }
 
-// run executes a git command in the given directory and returns trimmed stdout.
-// Returns a *RunError if the command exits non-zero.
-func run(dir string, args []string) (string, error) {
+// run executes a git command in the given directory and returns trimmed stdout
+// and stderr. Returns a *RunError if the command exits non-zero.
+func run(dir string, args []string) (stdout, stderr string, err error) {
 	cmd := exec.Command("git", args...)
 	cmd.Dir = dir
-	out, err := cmd.Output()
-	if err != nil {
-		if exitErr, ok := err.(*exec.ExitError); ok {
-			return "", &RunError{
+	var outBuf, errBuf bytes.Buffer
+	cmd.Stdout = &outBuf
+	cmd.Stderr = &errBuf
+	runErr := cmd.Run()
+	stdout = strings.TrimRight(outBuf.String(), "\r\n")
+	stderr = strings.TrimRight(errBuf.String(), "\r\n")
+	if runErr != nil {
+		if exitErr, ok := runErr.(*exec.ExitError); ok {
+			return "", "", &RunError{
 				Args:   args,
 				Dir:    dir,
-				Stdout: strings.TrimSpace(string(out)),
-				Stderr: strings.TrimSpace(string(exitErr.Stderr)),
+				Stdout: strings.TrimSpace(stdout),
+				Stderr: strings.TrimSpace(stderr),
 				Code:   exitErr.ExitCode(),
 			}
 		}
-		return "", fmt.Errorf("git %s: %w", strings.Join(args, " "), err)
+		return "", "", fmt.Errorf("git %s: %w", strings.Join(args, " "), runErr)
 	}
-	return strings.TrimRight(string(out), "\r\n"), nil
+	return stdout, stderr, nil
 }
 
 // runAllowFail runs a git command and returns stdout, or "" if it fails.
 func runAllowFail(dir string, args []string) string {
-	out, _ := run(dir, args)
+	out, _, _ := run(dir, args)
 	return out
 }

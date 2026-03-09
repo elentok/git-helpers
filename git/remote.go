@@ -49,16 +49,16 @@ func CheckFetchConfig(repoRoot string) *FetchConfigProblem {
 
 // FixFetchConfig corrects the origin fetch refspec and runs git fetch.
 func FixFetchConfig(repoRoot string) error {
-	if _, err := run(repoRoot, []string{"config", "remote.origin.fetch", expectedFetchRefspec}); err != nil {
+	if _, _, err := run(repoRoot, []string{"config", "remote.origin.fetch", expectedFetchRefspec}); err != nil {
 		return err
 	}
-	_, err := run(repoRoot, []string{"fetch", "origin"})
+	_, _, err := run(repoRoot, []string{"fetch", "origin"})
 	return err
 }
 
 // ListRemotes returns the names of all configured remotes.
 func ListRemotes(repo Repo) ([]string, error) {
-	out, err := run(repo.Root, []string{"remote"})
+	out, _, err := run(repo.Root, []string{"remote"})
 	if err != nil {
 		return nil, err
 	}
@@ -73,19 +73,19 @@ func ListRemotes(repo Repo) ([]string, error) {
 
 // UpdateRemotes fetches updates from all remotes.
 func UpdateRemotes(repo Repo) error {
-	_, err := run(repo.Root, []string{"remote", "update"})
+	_, _, err := run(repo.Root, []string{"remote", "update"})
 	return err
 }
 
 // PruneRemote removes remote-tracking references for deleted remote branches.
 func PruneRemote(repo Repo, remote string) error {
-	_, err := run(repo.Root, []string{"remote", "prune", remote})
+	_, _, err := run(repo.Root, []string{"remote", "prune", remote})
 	return err
 }
 
 // Pull fetches and integrates changes from the remote into the worktree.
 func Pull(worktreePath string) error {
-	_, err := run(worktreePath, []string{"pull"})
+	_, _, err := run(worktreePath, []string{"pull"})
 	return err
 }
 
@@ -102,25 +102,43 @@ func BranchRemote(repo Repo, branch string) string {
 // Push uploads local branch commits to the remote using an explicit
 // "git push <remote> <branch>" invocation.
 func Push(worktreePath, remote, branch string) error {
-	_, err := run(worktreePath, []string{"push", remote, branch})
+	_, _, err := run(worktreePath, []string{"push", remote, branch})
 	return err
 }
 
-// PushBranch pushes branch to remote.
-func PushBranch(worktreePath, remote, branch string) error {
-	return Push(worktreePath, remote, branch)
+// PushBranch pushes branch to remote and returns any PR creation URL found in
+// the git output (e.g. the GitHub "Create a pull request" link), or "" if none.
+func PushBranch(worktreePath, remote, branch string) (prURL string, err error) {
+	stdout, stderr, err := run(worktreePath, []string{"push", remote, branch})
+	if err != nil {
+		return "", err
+	}
+	return ExtractPRURL(stdout + "\n" + stderr), nil
+}
+
+// ExtractPRURL scans git push output for a GitHub PR creation URL.
+// Git prefixes remote messages with "remote: ", so we strip that first.
+func ExtractPRURL(output string) string {
+	for _, line := range strings.Split(output, "\n") {
+		line = strings.TrimPrefix(strings.TrimSpace(line), "remote:")
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, "https://") && strings.Contains(line, "/pull/new/") {
+			return line
+		}
+	}
+	return ""
 }
 
 
 // PushBranchForceWithLease force-pushes branch using --force-with-lease.
 func PushBranchForceWithLease(worktreePath, remote, branch string) error {
-	_, err := run(worktreePath, []string{"push", "--force-with-lease", remote, branch})
+	_, _, err := run(worktreePath, []string{"push", "--force-with-lease", remote, branch})
 	return err
 }
 
 // PushBranchForce force-pushes branch using --force.
 func PushBranchForce(worktreePath, remote, branch string) error {
-	_, err := run(worktreePath, []string{"push", "--force", remote, branch})
+	_, _, err := run(worktreePath, []string{"push", "--force", remote, branch})
 	return err
 }
 

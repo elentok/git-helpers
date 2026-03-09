@@ -187,7 +187,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.viewport.SetContent(m.sidebarContent())
 			cmds = append(cmds, cmdLoadSyncStatus(m.repo, wt.Branch), cmdLoadSidebarData(m.repo, *wt))
 		}
+		if msg.prURL != "" {
+			prompt := fmt.Sprintf("Open pull request page?\n\n%s", msg.prURL)
+			m = m.enterConfirm(prompt, cmdOpenURL(msg.prURL), "")
+			m.confirmYes = true
+			return m, tea.Batch(cmds...)
+		}
 		return m, tea.Batch(cmds...)
+
+	case urlOpenedMsg:
 
 	case forcePushResultMsg:
 		m.spinnerActive = false

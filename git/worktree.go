@@ -16,7 +16,7 @@ type Worktree struct {
 
 // ListWorktrees returns all linked worktrees for the repo (excludes the bare root).
 func ListWorktrees(repo Repo) ([]Worktree, error) {
-	out, err := run(repo.Root, []string{"worktree", "list", "--porcelain"})
+	out, _, err := run(repo.Root, []string{"worktree", "list", "--porcelain"})
 	if err != nil {
 		return nil, err
 	}
@@ -67,13 +67,13 @@ func RemoveWorktree(repo Repo, name string, force bool) error {
 		args = append(args, "-f")
 	}
 	args = append(args, name)
-	_, err := run(repo.Root, args)
+	_, _, err := run(repo.Root, args)
 	return err
 }
 
 // MoveWorktree moves a worktree from one path to another.
 func MoveWorktree(repo Repo, from, to string) error {
-	_, err := run(repo.Root, []string{"worktree", "move", from, to})
+	_, _, err := run(repo.Root, []string{"worktree", "move", from, to})
 	return err
 }
 
@@ -85,6 +85,6 @@ func AddWorktree(repo Repo, newName, newPath, fromRef string) error {
 	if fromRef != "" {
 		args = append(args, fromRef)
 	}
-	_, err := run(repo.Root, args)
+	_, _, err := run(repo.Root, args)
 	return err
 }

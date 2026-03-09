@@ -12,7 +12,7 @@ type Branch struct {
 
 // ListBranches returns all local and remote branches, excluding HEAD pointers.
 func ListBranches(repo Repo) ([]Branch, error) {
-	out, err := run(repo.Root, []string{"branch", "--all"})
+	out, _, err := run(repo.Root, []string{"branch", "--all"})
 	if err != nil {
 		return nil, err
 	}
@@ -49,12 +49,13 @@ func parseBranchLine(line string) Branch {
 
 // CurrentBranch returns the short name of the current branch in dir.
 func CurrentBranch(dir string) (string, error) {
-	return run(dir, []string{"rev-parse", "--abbrev-ref", "HEAD"})
+	out, _, err := run(dir, []string{"rev-parse", "--abbrev-ref", "HEAD"})
+	return out, err
 }
 
 // TrackRemote configures an existing branch to track <remote>/<branch>.
 func TrackRemote(repoRoot, remote, branch string) error {
-	_, err := run(repoRoot, []string{"branch", "--set-upstream-to=" + remote + "/" + branch, branch})
+	_, _, err := run(repoRoot, []string{"branch", "--set-upstream-to=" + remote + "/" + branch, branch})
 	return err
 }
 
@@ -79,7 +80,7 @@ func UpstreamBranch(repoRoot, branch string) string {
 
 // CreateBranch creates and checks out a new branch.
 func CreateBranch(repo Repo, name string) error {
-	_, err := run(repo.Root, []string{"checkout", "-b", name})
+	_, _, err := run(repo.Root, []string{"checkout", "-b", name})
 	return err
 }
 
@@ -89,18 +90,18 @@ func DeleteLocalBranch(repo Repo, name string, force bool) error {
 	if force {
 		flag = "-D"
 	}
-	_, err := run(repo.Root, []string{"branch", flag, name})
+	_, _, err := run(repo.Root, []string{"branch", flag, name})
 	return err
 }
 
 // DeleteRemoteBranch deletes a branch on the remote.
 func DeleteRemoteBranch(repo Repo, remoteName, branchName string) error {
-	_, err := run(repo.Root, []string{"push", "--delete", remoteName, branchName})
+	_, _, err := run(repo.Root, []string{"push", "--delete", remoteName, branchName})
 	return err
 }
 
 // RenameBranch renames a local branch from oldName to newName.
 func RenameBranch(repo Repo, oldName, newName string) error {
-	_, err := run(repo.Root, []string{"branch", "-m", oldName, newName})
+	_, _, err := run(repo.Root, []string{"branch", "-m", oldName, newName})
 	return err
 }

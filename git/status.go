@@ -104,7 +104,7 @@ func syncBetween(repoRoot, localRef, remoteRef string) (SyncStatus, error) {
 }
 
 func revCount(repoRoot, fromRef, toRef string) (int, error) {
-	out, err := run(repoRoot, []string{"rev-list", "--count", fromRef + ".." + toRef})
+	out, _, err := run(repoRoot, []string{"rev-list", "--count", fromRef + ".." + toRef})
 	if err != nil {
 		return 0, err
 	}
@@ -118,7 +118,7 @@ func revCount(repoRoot, fromRef, toRef string) (int, error) {
 // UncommittedChanges returns modified, added, deleted, and untracked files in
 // the worktree at the given path.
 func UncommittedChanges(worktreePath string) ([]Change, error) {
-	out, err := run(worktreePath, []string{"status", "--porcelain=v1"})
+	out, _, err := run(worktreePath, []string{"status", "--porcelain=v1"})
 	if err != nil {
 		return nil, err
 	}

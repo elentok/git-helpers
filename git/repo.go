@@ -8,9 +8,20 @@ import (
 
 // Repo represents a git repository.
 type Repo struct {
-	Root       string
-	IsBare     bool
-	MainBranch string // "main" or "master"
+	Root        string
+	WorktreeDir string // directory where linked worktrees live; if empty, defaults to Root
+	IsBare      bool
+	MainBranch  string // "main" or "master"
+}
+
+// LinkedWorktreeDir returns the directory where linked worktrees are created.
+// For normal bare repos this is the same as Root; for .bare repos it is the
+// parent directory that contains both .bare/ and the worktrees.
+func (r Repo) LinkedWorktreeDir() string {
+	if r.WorktreeDir != "" {
+		return r.WorktreeDir
+	}
+	return r.Root
 }
 
 // DirInfo describes what kind of git context a directory is in.
@@ -44,15 +55,26 @@ func IdentifyDir(dir string) (*DirInfo, error) {
 		return identifyWorktree(dir, gitDir)
 	}
 
-	// Bare repo: gitDir "." means the current dir is the git dir itself
+	// Bare repo: gitDir "." means the current dir is the git dir itself.
+	// Otherwise resolve to an absolute path (git may return a relative path,
+	// e.g. ".bare" for the .bare trick).
 	repoRoot := dir
 	if gitDir != "." {
+		if !filepath.IsAbs(gitDir) {
+			gitDir = filepath.Join(dir, gitDir)
+		}
 		repoRoot = gitDir
 	}
 
+	// For the .bare trick, worktrees live in the parent directory alongside .bare/.
+	worktreeDir := repoRoot
+	if filepath.Base(repoRoot) == ".bare" {
+		worktreeDir = filepath.Dir(repoRoot)
+	}
+
 	return &DirInfo{
-		Repo:           Repo{Root: repoRoot, IsBare: true, MainBranch: detectMainBranch(repoRoot)},
-		IsRepoRoot:     repoRoot == dir,
+		Repo:           Repo{Root: repoRoot, WorktreeDir: worktreeDir, IsBare: true, MainBranch: detectMainBranch(repoRoot)},
+		IsRepoRoot:     repoRoot == dir || worktreeDir == dir,
 		IsWorktreeRoot: false,
 	}, nil
 }
@@ -84,11 +106,20 @@ func identifyWorktree(dir, gitDir string) (*DirInfo, error) {
 
 	repoRoot := parentDir
 	if parentGitDir != "." {
+		if !filepath.IsAbs(parentGitDir) {
+			parentGitDir = filepath.Join(parentDir, parentGitDir)
+		}
 		repoRoot = parentGitDir
 	}
 
+	// For the .bare trick, worktrees live in the parent directory alongside .bare/.
+	worktreeDir := repoRoot
+	if filepath.Base(repoRoot) == ".bare" {
+		worktreeDir = filepath.Dir(repoRoot)
+	}
+
 	return &DirInfo{
-		Repo:           Repo{Root: repoRoot, IsBare: true, MainBranch: detectMainBranch(repoRoot)},
+		Repo:           Repo{Root: repoRoot, WorktreeDir: worktreeDir, IsBare: true, MainBranch: detectMainBranch(repoRoot)},
 		WorktreeRoot:   worktreeRoot,
 		IsRepoRoot:     repoRoot == dir,
 		IsWorktreeRoot: worktreeRoot == dir,

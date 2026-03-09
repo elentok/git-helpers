@@ -20,10 +20,10 @@ func ListWorktrees(repo Repo) ([]Worktree, error) {
 	if err != nil {
 		return nil, err
 	}
-	return parseWorktreePorcelain(out, repo.Root), nil
+	return parseWorktreePorcelain(out, repo.LinkedWorktreeDir()), nil
 }
 
-func parseWorktreePorcelain(out, repoRoot string) []Worktree {
+func parseWorktreePorcelain(out, worktreeDir string) []Worktree {
 	var worktrees []Worktree
 	var cur *Worktree
 
@@ -41,7 +41,7 @@ func parseWorktreePorcelain(out, repoRoot string) []Worktree {
 		}
 		if after, ok := strings.CutPrefix(line, "worktree "); ok {
 			flush()
-			name := strings.TrimPrefix(after, repoRoot+"/")
+			name := strings.TrimPrefix(after, worktreeDir+"/")
 			cur = &Worktree{Path: after, Name: name}
 		} else if cur == nil {
 			continue

@@ -6,42 +6,41 @@ import (
 	"strings"
 )
 
-// CloneBare clones repoURL as a bare repository. If targetDir is empty,
-// git's default naming is mirrored from the repository URL.
+// CloneBare clones repoURL using the .bare trick:
+//
+//	my-repo/
+//	  .bare/   ← actual bare git repo
+//	  .git      ← text file: "gitdir: ./.bare"
+//	  main/    ← linked worktrees live here
+//
+// targetDir, if non-empty, sets the outer directory name. Otherwise the name
+// is inferred from the URL (with any ".git" suffix stripped).
+// Returns the path to the outer directory (e.g. my-repo/).
 func CloneBare(repoURL, targetDir, cwd string) (string, error) {
-	before := map[string]struct{}{}
-	if targetDir == "" {
-		entries, _ := os.ReadDir(cwd)
-		for _, e := range entries {
-			before[e.Name()] = struct{}{}
-		}
+	outerName := targetDir
+	if outerName == "" {
+		outerName = inferCloneDirFromURL(repoURL)
+		outerName = strings.TrimSuffix(outerName, ".git")
 	}
 
-	args := []string{"clone", "--bare", repoURL}
-	if targetDir != "" {
-		args = append(args, targetDir)
+	outerDir := outerName
+	if !filepath.IsAbs(outerDir) {
+		outerDir = filepath.Join(cwd, outerDir)
 	}
-	if _, err := run(cwd, args); err != nil {
+
+	if err := os.MkdirAll(outerDir, 0755); err != nil {
 		return "", err
 	}
 
-	name := targetDir
-	if name == "" {
-		entries, _ := os.ReadDir(cwd)
-		for _, e := range entries {
-			if _, ok := before[e.Name()]; !ok {
-				name = e.Name()
-				break
-			}
-		}
-		if name == "" {
-			name = inferCloneDirFromURL(repoURL)
-		}
+	bareDir := filepath.Join(outerDir, ".bare")
+	if _, err := run(cwd, []string{"clone", "--bare", repoURL, bareDir}); err != nil {
+		return "", err
 	}
 
-	repoRoot := name
-	if !filepath.IsAbs(repoRoot) {
-		repoRoot = filepath.Join(cwd, repoRoot)
+	// Write the .git file so git recognises the outer directory as a repo root.
+	gitFile := filepath.Join(outerDir, ".git")
+	if err := os.WriteFile(gitFile, []byte("gitdir: ./.bare\n"), 0644); err != nil {
+		return "", err
 	}
 
 	// git clone --bare sets the fetch refspec to "+refs/heads/*:refs/heads/*",
@@ -50,11 +49,11 @@ func CloneBare(repoURL, targetDir, cwd string) (string, error) {
 	// populated, so ahead/behind status and upstream tracking won't work.
 	// We fix the refspec immediately after cloning so that subsequent fetches
 	// behave like a normal clone.
-	if _, err := run(repoRoot, []string{"config", "remote.origin.fetch", expectedFetchRefspec}); err != nil {
+	if _, err := run(bareDir, []string{"config", "remote.origin.fetch", expectedFetchRefspec}); err != nil {
 		return "", err
 	}
 
-	return repoRoot, nil
+	return outerDir, nil
 }
 
 func inferCloneDirFromURL(repoURL string) string {

@@ -147,23 +147,27 @@ func runCloneWT(args []string, d deps) error {
 		target = args[1]
 	}
 
-	repoRoot, err := git.CloneBare(repoURL, target, cwd)
+	outerDir, err := git.CloneBare(repoURL, target, cwd)
 	if err != nil {
 		return err
 	}
 
-	repo := git.Repo{Root: repoRoot, IsBare: true, MainBranch: git.RemoteDefaultBranch(repoRoot)}
-	branch := repo.MainBranch
-	if branch == "" {
-		return fmt.Errorf("unable to determine default branch for %s", repoRoot)
+	repo, err := git.FindRepo(outerDir)
+	if err != nil {
+		return fmt.Errorf("clone succeeded but could not open repo: %w", err)
 	}
 
-	wtPath := filepath.Join(repo.Root, branch)
-	if err := git.AddWorktreeFromRemote(repo, wtPath, branch, "origin/"+branch); err != nil {
+	branch := repo.MainBranch
+	if branch == "" {
+		return fmt.Errorf("unable to determine default branch for %s", outerDir)
+	}
+
+	wtPath := filepath.Join(repo.LinkedWorktreeDir(), branch)
+	if err := git.AddWorktreeFromRemote(*repo, wtPath, branch, "origin/"+branch); err != nil {
 		return fmt.Errorf("clone succeeded but initial worktree creation failed: %w", err)
 	}
 
-	fmt.Fprintf(d.stdout, "Cloned bare repo to %s and created worktree %s\n", repoRoot, wtPath)
+	fmt.Fprintf(d.stdout, "Cloned to %s and created worktree %s\n", outerDir, wtPath)
 	return nil
 }
 

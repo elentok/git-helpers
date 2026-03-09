@@ -15,7 +15,7 @@ type newResultMsg struct{ err error }
 
 func cmdNewWorktree(repo git.Repo, newName string) tea.Cmd {
 	return func() tea.Msg {
-		newPath := filepath.Join(repo.Root, newName)
+		newPath := filepath.Join(repo.LinkedWorktreeDir(), newName)
 		return newResultMsg{err: git.AddWorktree(repo, newName, newPath, repo.MainBranch)}
 	}
 }

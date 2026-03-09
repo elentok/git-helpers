@@ -1,5 +1,7 @@
 # gx
 
+test123
+
 A collection of git helper (worktree management, etc...)
 
 ## Disclaimer
@@ -147,12 +149,12 @@ Example:
 
 ### Paste mode (after `y` + confirm)
 
-| Key       | Action                              |
-| --------- | ----------------------------------- |
-| `j` / `↓` | Move down                           |
-| `k` / `↑` | Move up                             |
+| Key       | Action                                    |
+| --------- | ----------------------------------------- |
+| `j` / `↓` | Move down                                 |
+| `k` / `↑` | Move up                                   |
 | `p`       | Paste yanked files into selected worktree |
-| `esc`     | Cancel and clear clipboard          |
+| `esc`     | Cancel and clear clipboard                |
 
 ## Development
 

@@ -52,6 +52,48 @@ func TestExecute_WorktreeAbsPath(t *testing.T) {
 	}
 }
 
+func TestExecute_ListWorktrees_FromInsideWorktree(t *testing.T) {
+	repoDir := testutil.TempBareRepoWithWorktrees(t, "feature-a", "feature-b")
+	wtDir := repoDir + "/feature-a"
+	var stdout bytes.Buffer
+	d := deps{
+		stdout: &stdout,
+		stderr: bytes.NewBuffer(nil),
+		getwd:  func() (string, error) { return wtDir, nil },
+	}
+
+	if err := execute([]string{"list-worktrees"}, d); err != nil {
+		t.Fatalf("execute list-worktrees: %v", err)
+	}
+
+	for _, line := range strings.Split(strings.TrimSpace(stdout.String()), "\n") {
+		if strings.ContainsRune(line, '/') {
+			t.Errorf("list-worktrees output contains path separator: %q", line)
+		}
+	}
+}
+
+func TestExecute_WorktreeAbsPath_FromInsideWorktree(t *testing.T) {
+	repoDir := testutil.TempBareRepoWithWorktrees(t, "feature-a", "feature-b")
+	wtDir := repoDir + "/feature-a"
+	var stdout bytes.Buffer
+	d := deps{
+		stdout: &stdout,
+		stderr: bytes.NewBuffer(nil),
+		getwd:  func() (string, error) { return wtDir, nil },
+	}
+
+	if err := execute([]string{"worktree-abs-path", "feature-b"}, d); err != nil {
+		t.Fatalf("execute worktree-abs-path: %v", err)
+	}
+
+	got := strings.TrimSpace(stdout.String())
+	want := repoDir + "/feature-b"
+	if got != want {
+		t.Fatalf("abs path = %q, want %q", got, want)
+	}
+}
+
 func TestExecute_WorktreeAbsPath_NotFound(t *testing.T) {
 	repoDir := testutil.TempBareRepoWithWorktrees(t, "feature-a")
 	d := deps{

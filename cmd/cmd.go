@@ -197,7 +197,7 @@ func runListWorktrees(d deps) error {
 		return err
 	}
 	for _, wt := range wts {
-		fmt.Fprintln(d.stdout, wt.Name)
+		fmt.Fprintln(d.stdout, filepath.Base(wt.Path))
 	}
 	return nil
 }
@@ -216,7 +216,7 @@ func runWorktreeAbsPath(name string, d deps) error {
 		return err
 	}
 	for _, wt := range wts {
-		if wt.Name == name {
+		if filepath.Base(wt.Path) == name {
 			fmt.Fprintln(d.stdout, wt.Path)
 			return nil
 		}

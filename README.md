@@ -87,6 +87,13 @@ Edit config in `$EDITOR`:
 gx edit-config
 ```
 
+Check the repo for common configuration issues:
+
+```sh
+gx doctor
+gx doctor --fix   # interactively apply fixes
+```
+
 Print the current binary version:
 
 ```sh

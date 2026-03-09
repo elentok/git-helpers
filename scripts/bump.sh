@@ -30,4 +30,14 @@ echo "Bumping $LAST_TAG → $NEW_TAG"
 git tag -a "$NEW_TAG" -m "Release $NEW_TAG"
 
 echo "Created annotated tag $NEW_TAG"
-echo "Run: git push origin $NEW_TAG"
+echo ""
+read -rp "Push commits and tag to origin? [y/N] " CONFIRM
+if [[ "$CONFIRM" =~ ^[Yy]$ ]]; then
+  git push origin
+  git push origin "$NEW_TAG"
+  echo "Pushed."
+else
+  echo "Skipped. To push manually:"
+  echo "  git push origin"
+  echo "  git push origin $NEW_TAG"
+fi

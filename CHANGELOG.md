@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.3.1
+
+- Rebinded pull to `p` and push to `P`, freeing up the old `l` / `s` keys
+- After yanking files (pressing `y` and confirming), the app enters a dedicated paste mode where only navigation (`j`/`k`) and `p` to paste (or `esc` to cancel) are active — this is what freed `p` for pull in normal mode
+- Refreshes the worktree list after a paste completes
+
 ## v0.3.0
 
 - `gx clone-wt` now uses the `.bare` directory trick: clones into `my-repo/.bare/` and writes a `my-repo/.git` file pointing to it, so worktrees live cleanly alongside `.bare/` rather than inside it

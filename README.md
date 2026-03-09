@@ -137,14 +137,22 @@ Example:
 | `r`            | Rename selected worktree and branch                |
 | `c`            | Clone selected worktree (copies uncommitted files) |
 | `y`            | Yank files from selected worktree into clipboard   |
-| `p`            | Paste yanked files into selected worktree          |
-| `l`            | Pull selected worktree's branch                    |
-| `s`            | Push selected worktree's branch                    |
+| `p`            | Pull selected worktree's branch                    |
+| `P`            | Push selected worktree's branch                    |
 | `t`            | Track remote branch (set upstream)                 |
 | `R`            | Refresh worktree list and statuses                 |
 | `U`            | Run `git remote update` and refresh                |
 | `?`            | Toggle full help                                   |
 | `q` / `Ctrl+C` | Quit                                               |
+
+### Paste mode (after `y` + confirm)
+
+| Key       | Action                              |
+| --------- | ----------------------------------- |
+| `j` / `↓` | Move down                           |
+| `k` / `↑` | Move up                             |
+| `p`       | Paste yanked files into selected worktree |
+| `esc`     | Cancel and clear clipboard          |
 
 ## Development
 

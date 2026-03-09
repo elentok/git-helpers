@@ -81,16 +81,14 @@ func (m Model) statusBarView() string {
 	case modeNew:
 		return m.newView()
 	default:
+		if m.mode == modePaste && m.clipboard != nil {
+			return ui.StyleDim.Render(fmt.Sprintf("  %d file(s) from %s  ·  j/k navigate · p paste · esc cancel", len(m.clipboard.files), m.clipboard.srcName))
+		}
 		if m.spinnerActive {
 			return "  " + m.spinner.View() + " " + m.spinnerLabel
 		}
 		if m.statusMsg != "" {
 			return "  " + m.statusMsg
-		}
-		if m.clipboard != nil {
-			prefix := fmt.Sprintf("  %d file(s) from %s  ·  ", len(m.clipboard.files), m.clipboard.srcName)
-			m.help.Width = m.width - len(prefix)
-			return ui.StyleDim.Render(prefix) + m.help.View(keys)
 		}
 		return m.help.View(keys)
 	}

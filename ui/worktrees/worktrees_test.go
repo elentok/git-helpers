@@ -289,7 +289,7 @@ func TestPushWorktree(t *testing.T) {
 	_, tm := startTUI(t, repoDir)
 	waitForText(t, tm, "feature-a", loadWait)
 
-	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'s'}})
+	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'P'}})
 
 	waitForText(t, tm, "Pushed", loadWait)
 
@@ -307,7 +307,7 @@ func TestPushRejectedShowsForcePushPrompt(t *testing.T) {
 	_, tm := startTUI(t, repoDir)
 	waitForText(t, tm, "feature-a", loadWait)
 
-	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'s'}})
+	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'P'}})
 
 	// The model should detect the non-fast-forward error and show the confirm modal.
 	waitForText(t, tm, "Force push?", loadWait)
@@ -328,7 +328,7 @@ func TestPushRejectedForcePushConfirmed(t *testing.T) {
 	waitForText(t, tm, "feature-a", loadWait)
 
 	// Trigger push (will be rejected).
-	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'s'}})
+	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'P'}})
 	waitForText(t, tm, "Force push?", loadWait)
 
 	// Confirm force push with 'y'.

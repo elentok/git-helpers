@@ -21,6 +21,7 @@ const (
 	modeClone
 	modeNew
 	modeYank
+	modePaste
 	modeError
 )
 

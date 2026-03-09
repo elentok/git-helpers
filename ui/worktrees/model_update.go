@@ -43,6 +43,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m.handleNewKey(msg)
 		case modeYank:
 			return m.handleYankKey(msg)
+		case modePaste:
+			return m.handlePasteModeKey(msg)
 		}
 		switch {
 		case key.Matches(msg, keys.Quit):
@@ -64,12 +66,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		case key.Matches(msg, keys.Yank) && len(m.worktrees) > 0 && !m.spinnerActive:
 			return m.enterYankMode()
-		case key.Matches(msg, keys.Paste) && m.clipboard != nil && len(m.worktrees) > 0 && !m.spinnerActive:
-			wt := m.selectedWorktree()
-			if wt != nil {
-				m.statusMsg = "Pasting…"
-				return m, cmdPaste(*m.clipboard, *wt)
-			}
 		case key.Matches(msg, keys.Pull) && len(m.worktrees) > 0 && !m.spinnerActive:
 			wt := m.selectedWorktree()
 			if wt != nil {
@@ -239,12 +235,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.statusGen++
 		m.statusMsg = fmt.Sprintf("Pasted %d file(s)", msg.n)
 		clearCmd := cmdClearStatus(m.statusGen)
-		if wt := m.selectedWorktree(); wt != nil {
-			m.sidebarLoading = true
-			m.viewport.SetContent(m.sidebarContent())
-			return m, tea.Batch(clearCmd, cmdLoadSidebarData(m.repo, *wt))
-		}
-		return m, clearCmd
+		return m, tea.Batch(clearCmd, cmdLoadWorktrees(m.repo))
 
 	case worktreesLoadedMsg:
 		m.loading = false

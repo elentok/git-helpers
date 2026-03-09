@@ -61,8 +61,10 @@ func (m Model) handleYankKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 				srcName: m.yankSource.Name,
 				files:   files,
 			}
+			m.mode = modePaste
+		} else {
+			m.mode = modeNormal
 		}
-		m.mode = modeNormal
 		return m, nil
 	}
 	m.yankChecklist = m.yankChecklist.Update(msg.String())

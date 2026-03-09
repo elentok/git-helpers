@@ -10,7 +10,6 @@ type keyMap struct {
 	Rename key.Binding
 	Clone  key.Binding
 	Yank   key.Binding
-	Paste  key.Binding
 	Pull   key.Binding
 	Push   key.Binding
 	Track         key.Binding
@@ -49,17 +48,13 @@ var keys = keyMap{
 		key.WithKeys("y"),
 		key.WithHelp("y", "yank files"),
 	),
-	Paste: key.NewBinding(
-		key.WithKeys("p"),
-		key.WithHelp("p", "paste files"),
-	),
 	Pull: key.NewBinding(
-		key.WithKeys("l"),
-		key.WithHelp("l", "pull"),
+		key.WithKeys("p"),
+		key.WithHelp("p", "pull"),
 	),
 	Push: key.NewBinding(
-		key.WithKeys("s"),
-		key.WithHelp("s", "push"),
+		key.WithKeys("P"),
+		key.WithHelp("P", "push"),
 	),
 	Track: key.NewBinding(
 		key.WithKeys("t"),
@@ -87,14 +82,14 @@ var keys = keyMap{
 // bubbles/help in a later milestone.
 
 func (k keyMap) ShortHelp() []key.Binding {
-	return []key.Binding{k.Up, k.Down, k.New, k.Delete, k.Rename, k.Clone, k.Yank, k.Paste, k.Pull, k.Push, k.Track, k.Refresh, k.Quit, k.Help}
+	return []key.Binding{k.Up, k.Down, k.New, k.Delete, k.Rename, k.Clone, k.Yank, k.Pull, k.Push, k.Track, k.Refresh, k.Quit, k.Help}
 }
 
 func (k keyMap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
 		{k.Up, k.Down},
 		{k.New, k.Delete, k.Rename, k.Clone},
-		{k.Yank, k.Paste},
+		{k.Yank},
 		{k.Pull, k.Push, k.Track, k.Refresh, k.RemoteUpdate, k.Help, k.Quit},
 	}
 }

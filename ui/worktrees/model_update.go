@@ -3,6 +3,7 @@ package worktrees
 import (
 	"fmt"
 
+	"gx/git"
 	"gx/ui/components"
 
 	"github.com/charmbracelet/bubbles/key"
@@ -176,10 +177,29 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case pushResultMsg:
 		m.spinnerActive = false
 		if msg.err != nil {
+			wt := m.selectedWorktree()
+			if wt != nil && git.IsNonFastForwardPushError(msg.err) {
+				return m.enterConfirm(forcePushPrompt(*wt), cmdForcePush(m.repo, *wt), "Force-pushing "+wt.Name+"…"), nil
+			}
 			return m.showError(msg.err.Error()), nil
 		}
 		m.statusGen++
 		m.statusMsg = "Pushed"
+		cmds = append(cmds, cmdClearStatus(m.statusGen))
+		if wt := m.selectedWorktree(); wt != nil && wt.Branch != "" {
+			m.sidebarLoading = true
+			m.viewport.SetContent(m.sidebarContent())
+			cmds = append(cmds, cmdLoadSyncStatus(m.repo, wt.Branch), cmdLoadSidebarData(m.repo, *wt))
+		}
+		return m, tea.Batch(cmds...)
+
+	case forcePushResultMsg:
+		m.spinnerActive = false
+		if msg.err != nil {
+			return m.showError(msg.err.Error()), nil
+		}
+		m.statusGen++
+		m.statusMsg = "Force-pushed"
 		cmds = append(cmds, cmdClearStatus(m.statusGen))
 		if wt := m.selectedWorktree(); wt != nil && wt.Branch != "" {
 			m.sidebarLoading = true

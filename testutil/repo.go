@@ -100,6 +100,20 @@ func SetBranchUpstream(t *testing.T, dir, branch, upstream string) {
 	mustGit(t, dir, "branch", "--set-upstream-to="+upstream, branch)
 }
 
+// PushBranchWithUpstream pushes branch to remote and sets the upstream tracking ref.
+func PushBranchWithUpstream(t *testing.T, dir, remote, branch string) {
+	t.Helper()
+	mustGit(t, dir, "push", "--set-upstream", remote, branch)
+}
+
+// AmendLastCommit adds a marker file and amends the last commit, changing its hash.
+func AmendLastCommit(t *testing.T, dir string) {
+	t.Helper()
+	WriteFile(t, dir, ".amend-marker", "amended")
+	mustGit(t, dir, "add", ".")
+	mustGit(t, dir, "commit", "--amend", "--no-edit")
+}
+
 func mustGit(t *testing.T, dir string, args ...string) {
 	t.Helper()
 	mustRun(t, dir, "git", args...)

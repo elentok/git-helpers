@@ -275,6 +275,70 @@ func TestYankAndPaste(t *testing.T) {
 	quit(t, tm)
 }
 
+// ── push ──────────────────────────────────────────────────────────────────────
+
+func TestPushWorktree(t *testing.T) {
+	repoDir := testutil.TempBareRepoWithWorktrees(t, "feature-a")
+	wtDir := filepath.Join(repoDir, "feature-a")
+
+	// Push the branch to origin so a remote tracking ref exists, then add a commit.
+	testutil.PushBranchWithUpstream(t, wtDir, "origin", "feature-a")
+	testutil.WriteFile(t, wtDir, "extra.txt", "more content")
+	testutil.CommitAll(t, wtDir, "second commit")
+
+	_, tm := startTUI(t, repoDir)
+	waitForText(t, tm, "feature-a", loadWait)
+
+	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'s'}})
+
+	waitForText(t, tm, "Pushed", loadWait)
+
+	quit(t, tm)
+}
+
+func TestPushRejectedShowsForcePushPrompt(t *testing.T) {
+	repoDir := testutil.TempBareRepoWithWorktrees(t, "feature-a")
+	wtDir := filepath.Join(repoDir, "feature-a")
+
+	// Push to origin then amend the local commit to diverge from remote.
+	testutil.PushBranchWithUpstream(t, wtDir, "origin", "feature-a")
+	testutil.AmendLastCommit(t, wtDir)
+
+	_, tm := startTUI(t, repoDir)
+	waitForText(t, tm, "feature-a", loadWait)
+
+	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'s'}})
+
+	// The model should detect the non-fast-forward error and show the confirm modal.
+	waitForText(t, tm, "Force push?", loadWait)
+
+	// 'q' in confirm mode cancels the modal; send it to return to normal, then quit.
+	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'n'}})
+	quit(t, tm)
+}
+
+func TestPushRejectedForcePushConfirmed(t *testing.T) {
+	repoDir := testutil.TempBareRepoWithWorktrees(t, "feature-a")
+	wtDir := filepath.Join(repoDir, "feature-a")
+
+	testutil.PushBranchWithUpstream(t, wtDir, "origin", "feature-a")
+	testutil.AmendLastCommit(t, wtDir)
+
+	_, tm := startTUI(t, repoDir)
+	waitForText(t, tm, "feature-a", loadWait)
+
+	// Trigger push (will be rejected).
+	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'s'}})
+	waitForText(t, tm, "Force push?", loadWait)
+
+	// Confirm force push with 'y'.
+	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'y'}})
+
+	waitForText(t, tm, "Force-pushed", loadWait)
+
+	quit(t, tm)
+}
+
 // ── rename ────────────────────────────────────────────────────────────────────
 
 func TestRenameInputAppearsAndCancels(t *testing.T) {

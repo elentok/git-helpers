@@ -22,6 +22,7 @@ const (
 	modeNew
 	modeYank
 	modePaste
+	modeSearch
 	modeError
 )
 
@@ -69,6 +70,10 @@ type Model struct {
 	yankSource    git.Worktree
 	yankChecklist components.Checklist
 	clipboard     *clipboardState
+
+	searchQuery   string
+	searchMatches []int
+	searchCursor  int
 
 	help help.Model
 

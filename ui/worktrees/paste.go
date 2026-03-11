@@ -45,7 +45,7 @@ func (m Model) handlePasteModeKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		var tableCmd tea.Cmd
 		m.table, tableCmd = m.table.Update(msg)
 		if m.table.Cursor() != prevCursor && len(m.worktrees) > 0 {
-			m.table.SetRows(buildRows(m.worktrees, m.statuses, m.dirties, m.table.Cursor(), m.settings.UseNerdFontIcons))
+			m.table.SetRows(m.buildRows())
 			m.sidebarLoading = true
 			m.sidebarUpstream = ""
 			m.sidebarAheadCommits = nil

@@ -415,3 +415,64 @@ func TestRenameWorktree(t *testing.T) {
 
 	quit(t, tm)
 }
+
+// ── search ────────────────────────────────────────────────────────────────────
+
+func TestSearchModeAppearsAndCancels(t *testing.T) {
+	repoDir := testutil.TempBareRepoWithWorktrees(t, "feature-a", "feature-b")
+	_, tm := startTUI(t, repoDir)
+
+	waitForText(t, tm, "feature-a", loadWait)
+
+	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'/'}})
+	waitForText(t, tm, "Search:", actionWait)
+
+	tm.Send(tea.KeyMsg{Type: tea.KeyEsc})
+
+	quit(t, tm)
+}
+
+func TestSearchHighlightsAndJumps(t *testing.T) {
+	repoDir := testutil.TempBareRepoWithWorktrees(t, "feature-a", "fix-b", "feature-c")
+	_, tm := startTUI(t, repoDir)
+
+	waitForText(t, tm, "feature-a", loadWait)
+
+	// Enter search and type "fix"
+	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'/'}})
+	waitForText(t, tm, "Search:", actionWait)
+	tm.Type("fix")
+
+	// Should show "1/1" (one match)
+	waitForText(t, tm, "1/1", actionWait)
+
+	// Exit with enter
+	tm.Send(tea.KeyMsg{Type: tea.KeyEnter})
+
+	quit(t, tm)
+}
+
+func TestSearchCyclesMatches(t *testing.T) {
+	repoDir := testutil.TempBareRepoWithWorktrees(t, "feature-a", "feature-b", "fix-c")
+	_, tm := startTUI(t, repoDir)
+
+	waitForText(t, tm, "feature-a", loadWait)
+
+	// Enter search and type "feature" — two matches
+	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'/'}})
+	waitForText(t, tm, "Search:", actionWait)
+	tm.Type("feature")
+	waitForText(t, tm, "1/2", actionWait)
+
+	// ctrl+n → second match
+	tm.Send(tea.KeyMsg{Type: tea.KeyCtrlN})
+	waitForText(t, tm, "2/2", actionWait)
+
+	// ctrl+p → back to first match
+	tm.Send(tea.KeyMsg{Type: tea.KeyCtrlP})
+	waitForText(t, tm, "1/2", actionWait)
+
+	tm.Send(tea.KeyMsg{Type: tea.KeyEsc})
+
+	quit(t, tm)
+}

@@ -45,8 +45,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m.handleYankKey(msg)
 		case modePaste:
 			return m.handlePasteModeKey(msg)
+		case modeSearch:
+			return m.handleSearchKey(msg)
 		}
 		switch {
+		case key.Matches(msg, keys.Search) && !m.spinnerActive:
+			m = m.enterSearchMode()
+			return m, nil
 		case key.Matches(msg, keys.Quit):
 			return m, tea.Quit
 		case key.Matches(msg, keys.Help):
@@ -268,7 +273,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		m.worktrees = msg.worktrees
 		m.dirties = make(map[string]dirtyState)
-		m.table.SetRows(buildRows(m.worktrees, m.statuses, m.dirties, m.table.Cursor(), m.settings.UseNerdFontIcons))
+		m.table.SetRows(m.buildRows())
 
 		for i, wt := range m.worktrees {
 			if wt.Path == m.activeWorktreePath {
@@ -292,12 +297,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case syncStatusMsg:
 		m.statuses[msg.branch] = msg.status
-		m.table.SetRows(buildRows(m.worktrees, m.statuses, m.dirties, m.table.Cursor(), m.settings.UseNerdFontIcons))
+		m.table.SetRows(m.buildRows())
 		return m, nil
 
 	case dirtyStatusMsg:
 		m.dirties[msg.worktreePath] = msg.dirty
-		m.table.SetRows(buildRows(m.worktrees, m.statuses, m.dirties, m.table.Cursor(), m.settings.UseNerdFontIcons))
+		m.table.SetRows(m.buildRows())
 		return m, nil
 
 	case sidebarDataMsg:
@@ -319,7 +324,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	cmds = append(cmds, tableCmd)
 
 	if m.table.Cursor() != prevCursor && len(m.worktrees) > 0 {
-		m.table.SetRows(buildRows(m.worktrees, m.statuses, m.dirties, m.table.Cursor(), m.settings.UseNerdFontIcons))
+		m.table.SetRows(m.buildRows())
 		m.sidebarLoading = true
 		m.sidebarUpstream = ""
 		m.sidebarAheadCommits = nil

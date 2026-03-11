@@ -51,7 +51,7 @@ func (m Model) View() string {
 		BorderForeground(ui.ColorBorder).
 		Width(innerTableW).
 		Height(innerTableH).
-		Render(m.table.View())
+		Render(tableView(m.table))
 
 	sidebarView := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
@@ -80,6 +80,8 @@ func (m Model) statusBarView() string {
 		return m.cloneView()
 	case modeNew:
 		return m.newView()
+	case modeSearch:
+		return m.searchView()
 	default:
 		if m.mode == modePaste && m.clipboard != nil {
 			return ui.StyleDim.Render(fmt.Sprintf("  %d file(s) from %s  ·  j/k navigate · p paste · esc cancel", len(m.clipboard.files), m.clipboard.srcName))

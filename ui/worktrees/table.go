@@ -47,12 +47,15 @@ func resizeTable(t *table.Model, width, height int) {
 		usable = 20
 	}
 
-	nameW := int(float64(usable) * 0.31)
 	branchW := int(float64(usable) * 0.25)
 	dirtyW := 5
-	statusW := usable - nameW - branchW - dirtyW
+	statusW := int(float64(usable) * 0.20)
 	if statusW < 8 {
 		statusW = 8
+	}
+	nameW := usable - branchW - dirtyW - statusW
+	if nameW < 8 {
+		nameW = 8
 	}
 	t.SetColumns([]table.Column{
 		{Title: "Worktree", Width: nameW},

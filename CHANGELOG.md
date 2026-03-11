@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.4.1
+
+- Added vim-like search: press `/` to enter search mode, type to filter and highlight matching worktree names and branches, `ctrl+n` / `ctrl+p` to jump between matches, `enter` or `esc` to exit
+- The Worktree column now takes the remaining space; Status column is fixed at ~20% width
+- Fixed ANSI-styled cell content corrupting column alignment in the table — replaced `bubbles/table`'s internal renderer (which used `runewidth.Truncate`, not ANSI-aware) with a custom one using `charmbracelet/x/ansi.Truncate`
+
 ## v0.4.0
 
 - Added `l` keybinding to open the selected worktree in lazygit (suspends the UI, restores it when lazygit exits)

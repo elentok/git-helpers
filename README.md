@@ -18,6 +18,7 @@ and [go-migration-plan.md](/docs/go-migration-plan.md)).
 - Pull, push, and remote-update the selected worktree's branch
 - `gx wt clone` clones using the `.bare` directory trick for a clean layout
 - `gx wt list` and `gx wt abs-path` for scripting and shell integration
+- Press `/` to search and highlight matching worktrees by name or branch
 - Press `l` to open the selected worktree in lazygit
 - `gx doctor` checks for and optionally fixes common configuration issues
 - Startup check for misconfigured fetch refspec with an option to fix automatically
@@ -149,11 +150,21 @@ Example:
 | `p`            | Pull selected worktree's branch                    |
 | `P`            | Push selected worktree's branch                    |
 | `l`            | Open selected worktree in lazygit                  |
+| `/`            | Search worktrees by name or branch                 |
 | `t`            | Track remote branch (set upstream)                 |
 | `R`            | Refresh worktree list and statuses                 |
 | `U`            | Run `git remote update` and refresh                |
 | `?`            | Toggle full help                                   |
 | `q` / `Ctrl+C` | Quit                                               |
+
+### Search mode (after `/`)
+
+| Key          | Action                              |
+| ------------ | ----------------------------------- |
+| (type)       | Filter and highlight matches        |
+| `ctrl+n`     | Jump to next match                  |
+| `ctrl+p`     | Jump to previous match              |
+| `enter`/`esc`| Exit search, keep cursor position   |
 
 ### Paste mode (after `y` + confirm)
 

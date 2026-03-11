@@ -64,6 +64,41 @@ func TempBareRepoWithWorktrees(t *testing.T, names ...string) string {
 	return repoDir
 }
 
+// TempDotBareRepoWithWorktrees creates a .bare-style repo layout:
+//
+//	outer/
+//	  .bare/   ← actual bare git repo
+//	  .git      ← "gitdir: ./.bare"
+//	  <name>/  ← linked worktrees
+//
+// Returns the outer directory path.
+func TempDotBareRepoWithWorktrees(t *testing.T, names ...string) string {
+	t.Helper()
+	src := TempRepo(t)
+	outer := evalDir(t, t.TempDir())
+
+	bareDir := filepath.Join(outer, ".bare")
+	mustRun(t, ".", "git", "clone", "--bare", src, bareDir)
+	mustGit(t, bareDir, "config", "remote.origin.fetch", "+refs/heads/*:refs/remotes/origin/*")
+	mustGit(t, bareDir, "fetch", "origin")
+	mustGit(t, bareDir, "branch", "--set-upstream-to=origin/main", "main")
+
+	// Write the .git pointer file so git recognises outer as the repo root.
+	if err := os.WriteFile(filepath.Join(outer, ".git"), []byte("gitdir: ./.bare\n"), 0644); err != nil {
+		t.Fatalf("write .git file: %v", err)
+	}
+
+	for _, name := range names {
+		wtDir := filepath.Join(outer, name)
+		mustGit(t, bareDir, "worktree", "add", "-b", name, wtDir)
+		configUser(t, wtDir)
+		WriteFile(t, wtDir, "file.txt", name)
+		mustGit(t, wtDir, "add", ".")
+		mustGit(t, wtDir, "commit", "-m", "add "+name)
+	}
+	return outer
+}
+
 // WriteFile writes content to a file inside dir, creating it if needed.
 func WriteFile(t *testing.T, dir, name, content string) {
 	t.Helper()

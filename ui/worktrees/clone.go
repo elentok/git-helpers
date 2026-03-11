@@ -22,7 +22,7 @@ type cloneResultMsg struct{ err error }
 // untracked and modified files from the source working tree into it.
 func cmdClone(repo git.Repo, src git.Worktree, newName string) tea.Cmd {
 	return func() tea.Msg {
-		newPath := filepath.Join(repo.Root, newName)
+		newPath := filepath.Join(repo.LinkedWorktreeDir(), newName)
 
 		fromRef := src.Branch
 		if fromRef == "" {

@@ -334,6 +334,41 @@ func TestPushRejectedForcePushConfirmed(t *testing.T) {
 
 // ── rename ────────────────────────────────────────────────────────────────────
 
+func TestRenameWorktree_DotBareRepo(t *testing.T) {
+	// Regression test: in a .bare-style repo the new worktree path was built
+	// using repo.Root (.bare/) instead of repo.LinkedWorktreeDir() (outer/),
+	// causing the rename target to land inside .bare/<new-name>.
+	outerDir := testutil.TempDotBareRepoWithWorktrees(t, "feature-a")
+	repo, tm := startTUI(t, outerDir)
+
+	waitForText(t, tm, "feature-a", loadWait)
+
+	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'r'}})
+	waitForText(t, tm, "Rename", actionWait)
+
+	tm.Send(tea.KeyMsg{Type: tea.KeyCtrlU})
+	tm.Type("feature-renamed")
+	tm.Send(tea.KeyMsg{Type: tea.KeyEnter})
+
+	teatest.WaitFor(t, tm.Output(), func(_ []byte) bool {
+		wts, err := git.ListWorktrees(repo)
+		if err != nil {
+			return false
+		}
+		for _, wt := range wts {
+			if filepath.Base(wt.Path) == "feature-renamed" {
+				// Must be directly under outerDir, not under .bare/
+				if wt.Path == filepath.Join(outerDir, "feature-renamed") {
+					return true
+				}
+			}
+		}
+		return false
+	}, teatest.WithDuration(loadWait))
+
+	quit(t, tm)
+}
+
 func TestRenameInputAppearsAndCancels(t *testing.T) {
 	repoDir := testutil.TempBareRepoWithWorktrees(t, "feature-a")
 	_, tm := startTUI(t, repoDir)

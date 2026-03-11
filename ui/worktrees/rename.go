@@ -17,7 +17,7 @@ type renameResultMsg struct{ err error }
 // cmdRename moves the worktree directory to a new path and renames the branch.
 func cmdRename(repo git.Repo, wt git.Worktree, newName string) tea.Cmd {
 	return func() tea.Msg {
-		newPath := filepath.Join(repo.Root, newName)
+		newPath := filepath.Join(repo.LinkedWorktreeDir(), newName)
 		if err := git.MoveWorktree(repo, wt.Path, newPath); err != nil {
 			return renameResultMsg{err: err}
 		}

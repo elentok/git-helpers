@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.4.2
+
+- Added `Base` column to the worktree table: `✓` if the branch is rebased on main, `✗` if it needs a rebase
+- Added "Base" section to the sidebar showing the same rebase status for the selected worktree
+- Fixed table scroll window rendering more rows than the table height, which could push the status bar off-screen
+
 ## v0.4.1
 
 - Added vim-like search: press `/` to enter search mode, type to filter and highlight matching worktree names and branches, `ctrl+n` / `ctrl+p` to jump between matches, `enter` or `esc` to exit

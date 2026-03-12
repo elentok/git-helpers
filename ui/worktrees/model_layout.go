@@ -93,10 +93,10 @@ func (m Model) sidebarContent() string {
 		w := m.worktrees[m.table.Cursor()]
 		wt = &w
 	}
-	var behindMainCommits []git.Commit
+	var rebasedOnMain *bool
 	var isMainBranch bool
 	if wt != nil {
-		behindMainCommits = m.baseCommits[wt.Branch]
+		rebasedOnMain = m.baseStatus[wt.Branch]
 		isMainBranch = wt.Branch == m.repo.MainBranch
 	}
 	return renderSidebarContent(
@@ -104,7 +104,7 @@ func (m Model) sidebarContent() string {
 		m.sidebarUpstream,
 		m.sidebarAheadCommits,
 		m.sidebarBehindCommits,
-		behindMainCommits,
+		rebasedOnMain,
 		isMainBranch,
 		m.sidebarChanges,
 		m.sidebarLoading,

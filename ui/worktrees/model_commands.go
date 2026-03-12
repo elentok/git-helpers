@@ -40,11 +40,8 @@ func cmdLoadDirtyStatus(wt git.Worktree) tea.Cmd {
 
 func cmdLoadBaseStatus(repo git.Repo, branch string) tea.Cmd {
 	return func() tea.Msg {
-		if branch == "" || branch == repo.MainBranch {
-			return baseStatusMsg{branch: branch, commits: nil}
-		}
-		commits, _ := git.CommitsBehindMain(repo, branch)
-		return baseStatusMsg{branch: branch, commits: commits}
+		rebased, _ := git.IsRebasedOnMain(repo, branch)
+		return baseStatusMsg{branch: branch, rebased: rebased}
 	}
 }
 

@@ -29,5 +29,5 @@ type sidebarDataMsg struct {
 
 type baseStatusMsg struct {
 	branch  string
-	commits []git.Commit // commits in main that are not in branch's history
+	rebased bool // true if main is an ancestor of branch
 }

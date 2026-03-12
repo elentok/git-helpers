@@ -45,7 +45,7 @@ type Model struct {
 	worktrees   []git.Worktree
 	statuses    map[string]git.SyncStatus
 	dirties     map[string]dirtyState
-	baseCommits map[string][]git.Commit // keyed by branch; commits in main not in branch
+	baseStatus map[string]*bool // keyed by branch; nil=loading, &true=rebased, &false=needs rebase
 
 	table    table.Model
 	viewport viewport.Model
@@ -107,7 +107,7 @@ func NewWithSettings(repo git.Repo, activeWorktreePath string, settings Settings
 		settings:           settings,
 		statuses:           make(map[string]git.SyncStatus),
 		dirties:            make(map[string]dirtyState),
-		baseCommits:        make(map[string][]git.Commit),
+		baseStatus:         make(map[string]*bool),
 		table:              newTable(),
 		loading:            true,
 		help:               help.New(),

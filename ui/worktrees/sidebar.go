@@ -9,7 +9,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-func renderSidebarContent(wt *git.Worktree, upstream string, aheadCommits, behindCommits, behindMainCommits []git.Commit, isMainBranch bool, changes []git.Change, loading bool, useNerdFontIcons bool) string {
+func renderSidebarContent(wt *git.Worktree, upstream string, aheadCommits, behindCommits []git.Commit, rebasedOnMain *bool, isMainBranch bool, changes []git.Change, loading bool, useNerdFontIcons bool) string {
 	if wt == nil {
 		return ui.StyleDim.Render("  no worktree selected")
 	}
@@ -62,21 +62,15 @@ func renderSidebarContent(wt *git.Worktree, upstream string, aheadCommits, behin
 
 	if !isMainBranch {
 		b.WriteString("\n")
-		b.WriteString(ui.StyleBold.Render(ic.behindMainTitle))
+		b.WriteString(ui.StyleBold.Render(ic.baseTitle))
 		b.WriteString("\n\n")
 		switch {
-		case behindMainCommits == nil:
+		case rebasedOnMain == nil:
 			b.WriteString(ui.StyleDim.Render("  loading…") + "\n")
-		case len(behindMainCommits) == 0:
-			b.WriteString(ui.StyleStatusSynced.Render("  ✓ rebased on main") + "\n")
+		case *rebasedOnMain:
+			b.WriteString(ui.StyleStatusSynced.Render("  "+ic.rebasedYes+" rebased on main") + "\n")
 		default:
-			for _, c := range behindMainCommits {
-				b.WriteString("  ")
-				b.WriteString(ui.StyleDim.Render(c.Hash))
-				b.WriteString("  ")
-				b.WriteString(c.Subject)
-				b.WriteString("\n")
-			}
+			b.WriteString(ui.StyleStatusDiverged.Render("  "+ic.rebasedNo+" needs rebase on main") + "\n")
 		}
 	}
 

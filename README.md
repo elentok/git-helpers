@@ -11,8 +11,8 @@ and [go-migration-plan.md](/docs/go-migration-plan.md)).
 
 ## Features
 
-- Browse all linked worktrees in a table with sync status (ahead / behind / diverged)
-- Sidebar showing commits ahead/behind the remote tracking branch and uncommitted file changes
+- Browse all linked worktrees in a table with sync status (ahead / behind / diverged) and rebase status relative to main
+- Sidebar showing commits ahead/behind the remote tracking branch, rebase status relative to main, and uncommitted file changes
 - Create, rename, clone, and delete worktrees interactively
 - Yank files from one worktree and paste them into another
 - Pull, push, and remote-update the selected worktree's branch

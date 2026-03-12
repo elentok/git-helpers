@@ -100,6 +100,24 @@ func DeleteRemoteBranch(repo Repo, remoteName, branchName string) error {
 	return err
 }
 
+// IsRebasedOnMain reports whether branch is rebased on top of repo.MainBranch,
+// i.e. whether the main branch tip is an ancestor of branch.
+// Returns true when branch IS main (nothing to rebase) or when no main branch
+// is detected.
+func IsRebasedOnMain(repo Repo, branch string) (bool, error) {
+	if repo.MainBranch == "" || branch == "" || branch == repo.MainBranch {
+		return true, nil
+	}
+	_, _, err := run(repo.Root, []string{"merge-base", "--is-ancestor", repo.MainBranch, branch})
+	if err != nil {
+		if runErr, ok := err.(*RunError); ok && runErr.Code == 1 {
+			return false, nil // exit 1 = not an ancestor
+		}
+		return false, err
+	}
+	return true, nil
+}
+
 // RenameBranch renames a local branch from oldName to newName.
 func RenameBranch(repo Repo, oldName, newName string) error {
 	_, _, err := run(repo.Root, []string{"branch", "-m", oldName, newName})

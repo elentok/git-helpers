@@ -1,7 +1,6 @@
 package worktrees
 
 import (
-	"fmt"
 	"strings"
 
 	"gx/git"
@@ -50,7 +49,7 @@ func resizeTable(t *table.Model, width, height int) {
 
 	branchW := int(float64(usable) * 0.25)
 	dirtyW := 5
-	baseW := 6
+	baseW := 4
 	statusW := int(float64(usable) * 0.20)
 	if statusW < 8 {
 		statusW = 8
@@ -157,7 +156,7 @@ func (m Model) buildRows() []table.Row {
 			nameCol,
 			branchCol,
 			dirtyCell(m.dirties[wt.Path], isSelected),
-			baseCell(m.baseCommits[wt.Branch], wt.Branch == m.repo.MainBranch, isSelected),
+			baseCell(m.baseStatus[wt.Branch], wt.Branch == m.repo.MainBranch, isSelected),
 			statusCell(m.statuses[wt.Branch], isSelected, m.settings.UseNerdFontIcons),
 		}
 	}
@@ -205,29 +204,26 @@ func dirtyCell(d dirtyState, selected bool) string {
 	return symbol
 }
 
-func baseCell(commits []git.Commit, isMainBranch bool, selected bool) string {
+func baseCell(rebased *bool, isMainBranch bool, selected bool) string {
 	if isMainBranch {
 		if selected {
 			return "—"
 		}
 		return ui.StyleDim.Render("—")
 	}
-	// nil means not yet loaded; empty slice means rebased on main
-	if commits == nil {
-		return ""
+	if rebased == nil {
+		return "" // not yet loaded
 	}
-	if len(commits) == 0 {
-		label := "✓"
+	if *rebased {
 		if selected {
-			return label
+			return "✓"
 		}
-		return ui.StyleStatusSynced.Render(label)
+		return ui.StyleStatusSynced.Render("✓")
 	}
-	label := fmt.Sprintf("↓%d", len(commits))
 	if selected {
-		return label
+		return "✗"
 	}
-	return ui.StyleStatusBehind.Render(label)
+	return ui.StyleStatusDiverged.Render("✗")
 }
 
 func statusCell(s git.SyncStatus, selected bool, useNerdFontIcons bool) string {

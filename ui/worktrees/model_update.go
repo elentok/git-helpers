@@ -302,7 +302,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case baseStatusMsg:
-		m.baseCommits[msg.branch] = msg.commits
+		rebased := msg.rebased
+		m.baseStatus[msg.branch] = &rebased
 		m.table.SetRows(m.buildRows())
 		// Refresh sidebar if the updated branch belongs to the selected worktree
 		if wt := m.selectedWorktree(); wt != nil && wt.Branch == msg.branch {

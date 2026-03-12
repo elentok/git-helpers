@@ -7,6 +7,8 @@ import (
 	"gx/git"
 )
 
+func boolPtr(v bool) *bool { return &v }
+
 func TestRenderSidebarContent_IncludesBehindSection(t *testing.T) {
 	wt := &git.Worktree{Name: "feature-a"}
 	ahead := []git.Commit{{Hash: "abc1234", Subject: "ahead commit"}}
@@ -46,34 +48,26 @@ func TestRenderSidebarContent_UsesNerdFontIcons(t *testing.T) {
 	}
 }
 
-func TestRenderSidebarContent_BehindMain(t *testing.T) {
+func TestRenderSidebarContent_RebasedOnMain(t *testing.T) {
 	wt := &git.Worktree{Name: "feature-a", Branch: "feature-a"}
-	behindMain := []git.Commit{
-		{Hash: "aaa1111", Subject: "main commit 1"},
-		{Hash: "bbb2222", Subject: "main commit 2"},
-	}
-
-	out := renderSidebarContent(wt, "origin/feature-a", nil, nil, behindMain, false, nil, false, false)
-	if !strings.Contains(out, "Commits behind main") {
-		t.Fatal("missing behind-main section")
-	}
-	if !strings.Contains(out, "main commit 1") {
-		t.Fatal("missing behind-main commit entry")
+	out := renderSidebarContent(wt, "origin/feature-a", nil, nil, boolPtr(true), false, nil, false, false)
+	if !strings.Contains(out, "rebased on main") {
+		t.Fatal("expected 'rebased on main' indicator")
 	}
 }
 
-func TestRenderSidebarContent_RebasedOnMain(t *testing.T) {
+func TestRenderSidebarContent_NeedsRebase(t *testing.T) {
 	wt := &git.Worktree{Name: "feature-a", Branch: "feature-a"}
-	out := renderSidebarContent(wt, "origin/feature-a", nil, nil, []git.Commit{}, false, nil, false, false)
-	if !strings.Contains(out, "rebased on main") {
-		t.Fatal("expected 'rebased on main' indicator")
+	out := renderSidebarContent(wt, "origin/feature-a", nil, nil, boolPtr(false), false, nil, false, false)
+	if !strings.Contains(out, "needs rebase on main") {
+		t.Fatal("expected 'needs rebase on main' indicator")
 	}
 }
 
 func TestRenderSidebarContent_MainBranchHidesSection(t *testing.T) {
 	wt := &git.Worktree{Name: "main", Branch: "main"}
 	out := renderSidebarContent(wt, "origin/main", nil, nil, nil, true, nil, false, false)
-	if strings.Contains(out, "Commits behind main") {
-		t.Fatal("main branch should not show behind-main section")
+	if strings.Contains(out, "Base") {
+		t.Fatal("main branch should not show base section")
 	}
 }

@@ -285,6 +285,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		for _, wt := range m.worktrees {
 			if wt.Branch != "" {
 				cmds = append(cmds, cmdLoadSyncStatus(m.repo, wt.Branch))
+				cmds = append(cmds, cmdLoadBaseStatus(m.repo, wt.Branch))
 			}
 			cmds = append(cmds, cmdLoadDirtyStatus(wt))
 		}
@@ -298,6 +299,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case syncStatusMsg:
 		m.statuses[msg.branch] = msg.status
 		m.table.SetRows(m.buildRows())
+		return m, nil
+
+	case baseStatusMsg:
+		m.baseCommits[msg.branch] = msg.commits
+		m.table.SetRows(m.buildRows())
+		// Refresh sidebar if the updated branch belongs to the selected worktree
+		if wt := m.selectedWorktree(); wt != nil && wt.Branch == msg.branch {
+			m.viewport.SetContent(m.sidebarContent())
+		}
 		return m, nil
 
 	case dirtyStatusMsg:

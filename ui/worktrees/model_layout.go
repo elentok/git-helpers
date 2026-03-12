@@ -93,11 +93,19 @@ func (m Model) sidebarContent() string {
 		w := m.worktrees[m.table.Cursor()]
 		wt = &w
 	}
+	var behindMainCommits []git.Commit
+	var isMainBranch bool
+	if wt != nil {
+		behindMainCommits = m.baseCommits[wt.Branch]
+		isMainBranch = wt.Branch == m.repo.MainBranch
+	}
 	return renderSidebarContent(
 		wt,
 		m.sidebarUpstream,
 		m.sidebarAheadCommits,
 		m.sidebarBehindCommits,
+		behindMainCommits,
+		isMainBranch,
 		m.sidebarChanges,
 		m.sidebarLoading,
 		m.settings.UseNerdFontIcons,

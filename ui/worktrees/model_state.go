@@ -42,9 +42,10 @@ type Model struct {
 	activeWorktreePath string // path of the worktree the user launched from
 	settings           Settings
 
-	worktrees []git.Worktree
-	statuses  map[string]git.SyncStatus
-	dirties   map[string]dirtyState
+	worktrees   []git.Worktree
+	statuses    map[string]git.SyncStatus
+	dirties     map[string]dirtyState
+	baseCommits map[string][]git.Commit // keyed by branch; commits in main not in branch
 
 	table    table.Model
 	viewport viewport.Model
@@ -106,6 +107,7 @@ func NewWithSettings(repo git.Repo, activeWorktreePath string, settings Settings
 		settings:           settings,
 		statuses:           make(map[string]git.SyncStatus),
 		dirties:            make(map[string]dirtyState),
+		baseCommits:        make(map[string][]git.Commit),
 		table:              newTable(),
 		loading:            true,
 		help:               help.New(),

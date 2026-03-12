@@ -26,3 +26,8 @@ type sidebarDataMsg struct {
 	behindCommits []git.Commit
 	changes       []git.Change
 }
+
+type baseStatusMsg struct {
+	branch  string
+	commits []git.Commit // commits in main that are not in branch's history
+}

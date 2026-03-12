@@ -96,11 +96,14 @@ func rowsView(t table.Model) string {
 	cursor := t.Cursor()
 	height := t.Height()
 
-	start := cursor - height
+	start := cursor - height/2
+	if start > len(rows)-height {
+		start = len(rows) - height
+	}
 	if start < 0 {
 		start = 0
 	}
-	end := cursor + height
+	end := start + height
 	if end > len(rows) {
 		end = len(rows)
 	}

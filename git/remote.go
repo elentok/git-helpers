@@ -71,10 +71,10 @@ func ListRemotes(repo Repo) ([]string, error) {
 	return remotes, nil
 }
 
-// UpdateRemotes fetches updates from all remotes.
-func UpdateRemotes(repo Repo) error {
-	_, _, err := run(repo.Root, []string{"remote", "update"})
-	return err
+// UpdateRemotes fetches updates from all remotes and returns their combined output.
+func UpdateRemotes(repo Repo) (string, error) {
+	stdout, stderr, err := run(repo.Root, []string{"remote", "update"})
+	return joinOutput(stdout, stderr), err
 }
 
 // PruneRemote removes remote-tracking references for deleted remote branches.
@@ -83,10 +83,11 @@ func PruneRemote(repo Repo, remote string) error {
 	return err
 }
 
-// Pull fetches and integrates changes from the remote into the worktree.
-func Pull(worktreePath string) error {
-	_, _, err := run(worktreePath, []string{"pull"})
-	return err
+// Pull fetches and integrates changes from the remote into the worktree and
+// returns the combined output.
+func Pull(worktreePath string) (string, error) {
+	stdout, stderr, err := run(worktreePath, []string{"pull"})
+	return joinOutput(stdout, stderr), err
 }
 
 // BranchRemote returns the remote configured for branch (e.g. "origin"),
@@ -108,12 +109,14 @@ func Push(worktreePath, remote, branch string) error {
 
 // PushBranch pushes branch to remote and returns any PR creation URL found in
 // the git output (e.g. the GitHub "Create a pull request" link), or "" if none.
-func PushBranch(worktreePath, remote, branch string) (prURL string, err error) {
+// It also returns the combined output for display.
+func PushBranch(worktreePath, remote, branch string) (prURL, output string, err error) {
 	stdout, stderr, err := run(worktreePath, []string{"push", remote, branch})
+	output = joinOutput(stdout, stderr)
 	if err != nil {
-		return "", err
+		return "", output, err
 	}
-	return ExtractPRURL(stdout + "\n" + stderr), nil
+	return ExtractPRURL(output), output, nil
 }
 
 // ExtractPRURL scans git push output for a GitHub PR creation URL.
@@ -136,10 +139,10 @@ func PushBranchForceWithLease(worktreePath, remote, branch string) error {
 	return err
 }
 
-// PushBranchForce force-pushes branch using --force.
-func PushBranchForce(worktreePath, remote, branch string) error {
-	_, _, err := run(worktreePath, []string{"push", "--force", remote, branch})
-	return err
+// PushBranchForce force-pushes branch using --force and returns the combined output.
+func PushBranchForce(worktreePath, remote, branch string) (string, error) {
+	stdout, stderr, err := run(worktreePath, []string{"push", "--force", remote, branch})
+	return joinOutput(stdout, stderr), err
 }
 
 // IsNonFastForwardPushError returns true when err matches a rejected push that

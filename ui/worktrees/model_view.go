@@ -21,6 +21,9 @@ func (m Model) View() string {
 	if m.mode == modeError {
 		return m.errorModalView()
 	}
+	if m.mode == modeLogs {
+		return m.logsModalView()
+	}
 	if m.mode == modeConfirm {
 		return m.confirmModalView()
 	}

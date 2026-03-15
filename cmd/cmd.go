@@ -264,7 +264,7 @@ func runPush(d deps) error {
 	remote := git.BranchRemote(info.Repo, branch)
 	pushLabel := fmt.Sprintf("Pushing %s to %s...", branch, remote)
 	if err := runWithSpinner(d.stdin, d.stderr, pushLabel, func() error {
-		_, err := git.PushBranch(pushDir, remote, branch)
+		_, _, err := git.PushBranch(pushDir, remote, branch)
 		return err
 	}); err != nil {
 		if !git.IsNonFastForwardPushError(err) {
@@ -293,7 +293,8 @@ func runPush(d deps) error {
 			}
 			forceLabel = fmt.Sprintf("Force-pushing %s to %s...", branch, remote)
 			if err := runWithSpinner(d.stdin, d.stderr, forceLabel, func() error {
-				return git.PushBranchForce(pushDir, remote, branch)
+				_, err := git.PushBranchForce(pushDir, remote, branch)
+				return err
 			}); err != nil {
 				return err
 			}

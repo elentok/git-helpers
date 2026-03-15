@@ -35,19 +35,33 @@ func (m Model) handleErrorKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		m.mode = modeNormal
 		return m, nil
 	}
-	if msg.Type == tea.KeyRunes && msg.String() == "q" {
-		m.mode = modeNormal
-		return m, nil
+	if msg.Type == tea.KeyRunes {
+		switch msg.String() {
+		case "q":
+			m.mode = modeNormal
+			return m, nil
+		case "o":
+			if m.lastJobLog != "" {
+				return m.enterLogsMode(), nil
+			}
+		}
 	}
 	var cmd tea.Cmd
 	m.errorViewport, cmd = m.errorViewport.Update(msg)
 	return m, cmd
 }
 
+func (m Model) errorHint() string {
+	hint := "esc / enter / q  dismiss"
+	if m.lastJobLog != "" {
+		hint += "  ·  o  view output"
+	}
+	return ui.StyleDim.Render(hint)
+}
+
 // errorModalView renders a centred modal with the error text.
 func (m Model) errorModalView() string {
 	titleStyle := lipgloss.NewStyle().Foreground(ui.ColorRed).Bold(true)
-	hintStyle := ui.StyleDim
 	borderStyle := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(ui.ColorRed).
@@ -59,7 +73,7 @@ func (m Model) errorModalView() string {
 		"",
 		m.errorViewport.View(),
 		"",
-		hintStyle.Render("esc / enter / q  to dismiss"),
+		m.errorHint(),
 	)
 	modal := borderStyle.Render(inner)
 	return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, modal)

@@ -99,6 +99,10 @@ func (m Model) sidebarContent() string {
 		rebasedOnMain = m.baseStatus[wt.Branch]
 		isMainBranch = wt.Branch == m.repo.MainBranch
 	}
+	spinnerView := ""
+	if m.sidebarLoading {
+		spinnerView = m.spinner.View()
+	}
 	return renderSidebarContent(
 		wt,
 		m.sidebarUpstream,
@@ -107,7 +111,7 @@ func (m Model) sidebarContent() string {
 		rebasedOnMain,
 		isMainBranch,
 		m.sidebarChanges,
-		m.sidebarLoading,
+		spinnerView,
 		m.settings.UseNerdFontIcons,
 	)
 }

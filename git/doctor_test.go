@@ -55,7 +55,7 @@ func setupDotBareRepo(t *testing.T) (outerDir string, repo git.Repo) {
 	repo = *r
 
 	// Populate remote tracking refs so fetch-config checks pass.
-	if err := git.UpdateRemotes(repo); err != nil {
+	if _, err := git.UpdateRemotes(repo); err != nil {
 		t.Fatalf("UpdateRemotes: %v", err)
 	}
 

@@ -10,32 +10,41 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-type pullResultMsg struct{ err error }
+type pullResultMsg struct {
+	err error
+	log string
+}
 type pushResultMsg struct {
 	err   error
 	prURL string
+	log   string
 }
-type forcePushResultMsg struct{ err error }
+type forcePushResultMsg struct {
+	err error
+	log string
+}
 type urlOpenedMsg struct{}
 
 func cmdPull(wt git.Worktree) tea.Cmd {
 	return func() tea.Msg {
-		return pullResultMsg{err: git.Pull(wt.Path)}
+		out, err := git.Pull(wt.Path)
+		return pullResultMsg{err: err, log: out}
 	}
 }
 
 func cmdPush(repo git.Repo, wt git.Worktree) tea.Cmd {
 	return func() tea.Msg {
 		remote := git.BranchRemote(repo, wt.Branch)
-		prURL, err := git.PushBranch(wt.Path, remote, wt.Branch)
-		return pushResultMsg{err: err, prURL: prURL}
+		prURL, out, err := git.PushBranch(wt.Path, remote, wt.Branch)
+		return pushResultMsg{err: err, prURL: prURL, log: out}
 	}
 }
 
 func cmdForcePush(repo git.Repo, wt git.Worktree) tea.Cmd {
 	return func() tea.Msg {
 		remote := git.BranchRemote(repo, wt.Branch)
-		return forcePushResultMsg{err: git.PushBranchForce(wt.Path, remote, wt.Branch)}
+		out, err := git.PushBranchForce(wt.Path, remote, wt.Branch)
+		return forcePushResultMsg{err: err, log: out}
 	}
 }
 

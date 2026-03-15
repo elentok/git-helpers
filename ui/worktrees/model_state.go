@@ -24,6 +24,7 @@ const (
 	modePaste
 	modeSearch
 	modeError
+	modeLogs
 )
 
 type dirtyState struct {
@@ -61,6 +62,10 @@ type Model struct {
 	statusMsg     string
 	statusGen     int // incremented each time statusMsg is set, used to expire old ticks
 	errorViewport viewport.Model
+
+	lastJobLog   string
+	lastJobLabel string
+	logsViewport viewport.Model
 
 	confirmPrompt       string
 	confirmYes          bool

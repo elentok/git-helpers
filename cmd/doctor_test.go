@@ -29,7 +29,7 @@ func setupDotBareForCmd(t *testing.T) (outerDir string) {
 	if err != nil {
 		t.Fatalf("FindRepo: %v", err)
 	}
-	if err := git.UpdateRemotes(*repo); err != nil {
+	if _, err := git.UpdateRemotes(*repo); err != nil {
 		t.Fatalf("UpdateRemotes: %v", err)
 	}
 

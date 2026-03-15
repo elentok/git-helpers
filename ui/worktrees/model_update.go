@@ -47,8 +47,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m.handlePasteModeKey(msg)
 		case modeSearch:
 			return m.handleSearchKey(msg)
+		case modeLogs:
+			return m.handleLogsKey(msg)
 		}
 		switch {
+		case key.Matches(msg, keys.Logs) && m.lastJobLog != "":
+			return m.enterLogsMode(), nil
 		case key.Matches(msg, keys.Search) && !m.spinnerActive:
 			m = m.enterSearchMode()
 			return m, nil
@@ -158,30 +162,38 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case spinner.TickMsg:
-		if m.spinnerActive {
+		if m.spinnerActive || m.sidebarLoading {
 			var cmd tea.Cmd
 			m.spinner, cmd = m.spinner.Update(msg)
+			if m.sidebarLoading {
+				m.viewport.SetContent(m.sidebarContent())
+			}
 			return m, cmd
 		}
 		return m, nil
 
 	case pullResultMsg:
 		m.spinnerActive = false
+		m.lastJobLog = msg.log
+		m.lastJobLabel = "Pull output"
 		if msg.err != nil {
 			return m.showError(msg.err.Error()), nil
 		}
 		m.statusGen++
 		m.statusMsg = "Pulled"
+		if msg.log != "" {
+			m.statusMsg += "  ·  o  view output"
+		}
 		cmds = append(cmds, cmdClearStatus(m.statusGen))
 		if wt := m.selectedWorktree(); wt != nil && wt.Branch != "" {
-			m.sidebarLoading = true
-			m.viewport.SetContent(m.sidebarContent())
 			cmds = append(cmds, cmdLoadSyncStatus(m.repo, wt.Branch), cmdLoadSidebarData(m.repo, *wt))
 		}
 		return m, tea.Batch(cmds...)
 
 	case pushResultMsg:
 		m.spinnerActive = false
+		m.lastJobLog = msg.log
+		m.lastJobLabel = "Push output"
 		if msg.err != nil {
 			wt := m.selectedWorktree()
 			if wt != nil && git.IsNonFastForwardPushError(msg.err) {
@@ -191,10 +203,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		m.statusGen++
 		m.statusMsg = "Pushed"
+		if msg.log != "" {
+			m.statusMsg += "  ·  o  view output"
+		}
 		cmds = append(cmds, cmdClearStatus(m.statusGen))
 		if wt := m.selectedWorktree(); wt != nil && wt.Branch != "" {
-			m.sidebarLoading = true
-			m.viewport.SetContent(m.sidebarContent())
 			cmds = append(cmds, cmdLoadSyncStatus(m.repo, wt.Branch), cmdLoadSidebarData(m.repo, *wt))
 		}
 		if msg.prURL != "" {
@@ -216,21 +229,26 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case forcePushResultMsg:
 		m.spinnerActive = false
+		m.lastJobLog = msg.log
+		m.lastJobLabel = "Force-push output"
 		if msg.err != nil {
 			return m.showError(msg.err.Error()), nil
 		}
 		m.statusGen++
 		m.statusMsg = "Force-pushed"
+		if msg.log != "" {
+			m.statusMsg += "  ·  o  view output"
+		}
 		cmds = append(cmds, cmdClearStatus(m.statusGen))
 		if wt := m.selectedWorktree(); wt != nil && wt.Branch != "" {
-			m.sidebarLoading = true
-			m.viewport.SetContent(m.sidebarContent())
 			cmds = append(cmds, cmdLoadSyncStatus(m.repo, wt.Branch), cmdLoadSidebarData(m.repo, *wt))
 		}
 		return m, tea.Batch(cmds...)
 
 	case remoteUpdateResultMsg:
 		m.spinnerActive = false
+		m.lastJobLog = msg.log
+		m.lastJobLabel = "Remote update output"
 		if msg.err != nil {
 			return m.showError(msg.err.Error()), nil
 		}
@@ -246,8 +264,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.statusMsg = "Tracking remote branch"
 		cmds = append(cmds, cmdClearStatus(m.statusGen))
 		if wt := m.selectedWorktree(); wt != nil && wt.Branch != "" {
-			m.sidebarLoading = true
-			m.viewport.SetContent(m.sidebarContent())
 			cmds = append(cmds, cmdLoadSyncStatus(m.repo, wt.Branch), cmdLoadSidebarData(m.repo, *wt))
 		}
 		return m, tea.Batch(cmds...)
@@ -271,6 +287,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.err = msg.err
 			return m, nil
 		}
+		firstLoad := len(m.worktrees) == 0
 		m.worktrees = msg.worktrees
 		m.dirties = make(map[string]dirtyState)
 		m.table.SetRows(m.buildRows())
@@ -290,8 +307,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, cmdLoadDirtyStatus(wt))
 		}
 		if len(m.worktrees) > 0 {
-			m.sidebarLoading = true
-			m.viewport.SetContent(m.sidebarContent())
+			if firstLoad {
+				m.sidebarLoading = true
+				m.viewport.SetContent(m.sidebarContent())
+				cmds = append(cmds, m.spinner.Tick)
+			}
 			cmds = append(cmds, cmdLoadSidebarData(m.repo, m.worktrees[m.table.Cursor()]))
 		}
 		return m, tea.Batch(cmds...)
@@ -337,12 +357,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if m.table.Cursor() != prevCursor && len(m.worktrees) > 0 {
 		m.table.SetRows(m.buildRows())
 		m.sidebarLoading = true
-		m.sidebarUpstream = ""
-		m.sidebarAheadCommits = nil
-		m.sidebarBehindCommits = nil
-		m.sidebarChanges = nil
 		m.viewport.SetContent(m.sidebarContent())
-		cmds = append(cmds, cmdLoadSidebarData(m.repo, m.worktrees[m.table.Cursor()]))
+		var spinnerCmd tea.Cmd
+		if !m.spinnerActive {
+			spinnerCmd = m.spinner.Tick
+		}
+		cmds = append(cmds, cmdLoadSidebarData(m.repo, m.worktrees[m.table.Cursor()]), spinnerCmd)
 	}
 
 	var vpCmd tea.Cmd

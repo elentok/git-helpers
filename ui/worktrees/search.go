@@ -92,12 +92,6 @@ func (m Model) jumpToSearchCursor() (Model, tea.Cmd) {
 	idx := m.searchMatches[m.searchCursor]
 	m.table.SetCursor(idx)
 	m.table.SetRows(m.buildRows())
-	m.sidebarLoading = true
-	m.sidebarUpstream = ""
-	m.sidebarAheadCommits = nil
-	m.sidebarBehindCommits = nil
-	m.sidebarChanges = nil
-	m.viewport.SetContent(m.sidebarContent())
 	return m, cmdLoadSidebarData(m.repo, m.worktrees[idx])
 }
 

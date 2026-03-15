@@ -34,7 +34,7 @@ func run(dir string, args []string) (stdout, stderr string, err error) {
 	stderr = strings.TrimRight(errBuf.String(), "\r\n")
 	if runErr != nil {
 		if exitErr, ok := runErr.(*exec.ExitError); ok {
-			return "", "", &RunError{
+			return stdout, stderr, &RunError{
 				Args:   args,
 				Dir:    dir,
 				Stdout: strings.TrimSpace(stdout),
@@ -42,7 +42,7 @@ func run(dir string, args []string) (stdout, stderr string, err error) {
 				Code:   exitErr.ExitCode(),
 			}
 		}
-		return "", "", fmt.Errorf("git %s: %w", strings.Join(args, " "), runErr)
+		return stdout, stderr, fmt.Errorf("git %s: %w", strings.Join(args, " "), runErr)
 	}
 	return stdout, stderr, nil
 }
@@ -51,4 +51,17 @@ func run(dir string, args []string) (stdout, stderr string, err error) {
 func runAllowFail(dir string, args []string) string {
 	out, _, _ := run(dir, args)
 	return out
+}
+
+// joinOutput combines stdout and stderr into a single string, omitting empty halves.
+func joinOutput(stdout, stderr string) string {
+	stdout = strings.TrimSpace(stdout)
+	stderr = strings.TrimSpace(stderr)
+	if stdout == "" {
+		return stderr
+	}
+	if stderr == "" {
+		return stdout
+	}
+	return stdout + "\n" + stderr
 }

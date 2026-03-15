@@ -9,18 +9,19 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-func renderSidebarContent(wt *git.Worktree, upstream string, aheadCommits, behindCommits []git.Commit, rebasedOnMain *bool, isMainBranch bool, changes []git.Change, loading bool, useNerdFontIcons bool) string {
+func renderSidebarContent(wt *git.Worktree, upstream string, aheadCommits, behindCommits []git.Commit, rebasedOnMain *bool, isMainBranch bool, changes []git.Change, spinnerView string, useNerdFontIcons bool) string {
 	if wt == nil {
 		return ui.StyleDim.Render("  no worktree selected")
-	}
-	if loading {
-		return ui.StyleDim.Render("  loading…")
 	}
 
 	var b strings.Builder
 	ic := icons(useNerdFontIcons)
 
-	b.WriteString(ui.StyleBold.Render(ic.worktreeTitle))
+	titleLine := ui.StyleBold.Render(ic.worktreeTitle)
+	if spinnerView != "" {
+		titleLine += "  " + spinnerView
+	}
+	b.WriteString(titleLine)
 	b.WriteString("\n\n")
 	b.WriteString("  ")
 	b.WriteString(wt.Name)

@@ -6,10 +6,14 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-type remoteUpdateResultMsg struct{ err error }
+type remoteUpdateResultMsg struct {
+	err error
+	log string
+}
 
 func cmdRemoteUpdate(repo git.Repo) tea.Cmd {
 	return func() tea.Msg {
-		return remoteUpdateResultMsg{err: git.UpdateRemotes(repo)}
+		out, err := git.UpdateRemotes(repo)
+		return remoteUpdateResultMsg{err: err, log: out}
 	}
 }

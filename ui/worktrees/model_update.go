@@ -93,9 +93,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if wt.Branch == "" {
 					return m.showError("cannot push: worktree is in detached HEAD state"), nil
 				}
-				m.spinnerActive = true
-				m.spinnerLabel = "Pushing " + wt.Name + "…"
-				return m, tea.Batch(cmdPush(m.repo, *wt), m.spinner.Tick)
+				prompt := fmt.Sprintf("Push %s?", wt.Branch)
+				return m.enterConfirm(prompt, cmdPush(m.repo, *wt), "Pushing "+wt.Name+"…"), nil
 			}
 		case key.Matches(msg, keys.Refresh) && !m.spinnerActive:
 			m.loading = true

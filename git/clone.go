@@ -53,6 +53,11 @@ func CloneBare(repoURL, targetDir, cwd string) (string, error) {
 		return "", err
 	}
 
+	// Populate refs/remotes/origin/* now that the refspec is correct.
+	if _, _, err := run(bareDir, []string{"fetch", "origin"}); err != nil {
+		return "", err
+	}
+
 	return outerDir, nil
 }
 

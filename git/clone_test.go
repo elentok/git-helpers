@@ -94,6 +94,12 @@ func TestCloneBare_dotBareLayout(t *testing.T) {
 	if info.Repo.LinkedWorktreeDir() != outerDir {
 		t.Errorf("IdentifyDir LinkedWorktreeDir = %q, want %q", info.Repo.LinkedWorktreeDir(), outerDir)
 	}
+
+	// CloneBare should leave remote tracking refs populated so gx does not
+	// prompt the user to run git fetch on first launch.
+	if problem := git.CheckFetchConfig(outerDir); problem != nil {
+		t.Errorf("CheckFetchConfig after CloneBare: %s", problem.Description)
+	}
 }
 
 func TestCloneBare_stripsGitSuffix(t *testing.T) {

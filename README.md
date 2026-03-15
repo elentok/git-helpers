@@ -13,7 +13,7 @@ and [go-migration-plan.md](/docs/go-migration-plan.md)).
 
 - Browse all linked worktrees in a table with sync status (ahead / behind / diverged) and rebase status relative to main
 - Sidebar showing commits ahead/behind the remote tracking branch, rebase status relative to main, and uncommitted file changes
-- Create, rename, clone, and delete worktrees interactively
+- Create, rename, clone, and delete worktrees interactively (optionally opening a new tmux session or window)
 - Yank files from one worktree and paste them into another
 - Pull, push, and remote-update the selected worktree's branch
 - `gx wt clone` clones using the `.bare` directory trick for a clean layout
@@ -31,6 +31,7 @@ and [go-migration-plan.md](/docs/go-migration-plan.md)).
 
 - Go 1.21+
 - Git
+- tmux (optional, for `N` and `T` keybindings)
 
 ## Installation
 
@@ -139,23 +140,27 @@ Example:
 
 ## Key bindings
 
-| Key            | Action                                             |
-| -------------- | -------------------------------------------------- |
-| `j` / `↓`      | Move down                                          |
-| `k` / `↑`      | Move up                                            |
-| `d`            | Delete selected worktree (and its branch)          |
-| `r`            | Rename selected worktree and branch                |
-| `c`            | Clone selected worktree (copies uncommitted files) |
-| `y`            | Yank files from selected worktree into clipboard   |
-| `p`            | Pull selected worktree's branch                    |
-| `P`            | Push selected worktree's branch                    |
-| `l`            | Open selected worktree in lazygit                  |
-| `/`            | Search worktrees by name or branch                 |
-| `t`            | Track remote branch (set upstream)                 |
-| `R`            | Refresh worktree list and statuses                 |
-| `U`            | Run `git remote update` and refresh                |
-| `?`            | Toggle full help                                   |
-| `q` / `Ctrl+C` | Quit                                               |
+| Key            | Action                                                          |
+| -------------- | --------------------------------------------------------------- |
+| `j` / `↓`      | Move down                                                       |
+| `k` / `↑`      | Move up                                                         |
+| `n`            | New worktree                                                    |
+| `N`            | New worktree and open a tmux session (switches to it)           |
+| `T`            | New worktree and open a tmux window                             |
+| `d`            | Delete selected worktree (and its branch)                       |
+| `r`            | Rename selected worktree and branch                             |
+| `c`            | Clone selected worktree (copies uncommitted files)              |
+| `y`            | Yank files from selected worktree into clipboard                |
+| `p`            | Pull selected worktree's branch                                 |
+| `P`            | Push selected worktree's branch (confirms before pushing)       |
+| `l`            | Open selected worktree in lazygit                               |
+| `o`            | View output log of last pull/push job                           |
+| `/`            | Search worktrees by name or branch                              |
+| `t`            | Track remote branch (set upstream)                              |
+| `R`            | Refresh worktree list and statuses                              |
+| `U`            | Run `git remote update` and refresh                             |
+| `?`            | Toggle full help                                                |
+| `q` / `Ctrl+C` | Quit                                                            |
 
 ### Search mode (after `/`)
 

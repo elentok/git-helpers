@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.4.3
+
+- Added `N` keybinding: create a new worktree and open a new tmux session (same name, cwd set to the worktree path), switching to it immediately
+- Added `T` keybinding: create a new worktree and open a new tmux window
+- Push (`P`) now shows a confirmation modal before executing
+- Added `o` keybinding to view the output log of the last pull/push job
+- Fixed `gx wt clone` to run `git fetch origin` and set up local branch upstreams after cloning
+
 ## v0.4.2
 
 - Added `Base` column to the worktree table: `✓` if the branch is rebased on main, `✗` if it needs a rebase

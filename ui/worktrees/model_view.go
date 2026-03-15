@@ -81,7 +81,7 @@ func (m Model) statusBarView() string {
 		return m.renameView()
 	case modeClone:
 		return m.cloneView()
-	case modeNew:
+	case modeNew, modeNewTmuxSession, modeNewTmuxWindow:
 		return m.newView()
 	case modeSearch:
 		return m.searchView()

@@ -20,6 +20,8 @@ const (
 	modeRename
 	modeClone
 	modeNew
+	modeNewTmuxSession
+	modeNewTmuxWindow
 	modeYank
 	modePaste
 	modeSearch

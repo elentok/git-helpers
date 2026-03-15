@@ -11,12 +11,34 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
+type tmuxOpenMode int
+
+const (
+	tmuxOpenSession tmuxOpenMode = iota
+	tmuxOpenWindow
+)
+
 type newResultMsg struct{ err error }
+
+type newTmuxResultMsg struct {
+	err      error
+	name     string
+	path     string
+	openMode tmuxOpenMode
+}
 
 func cmdNewWorktree(repo git.Repo, newName string) tea.Cmd {
 	return func() tea.Msg {
 		newPath := filepath.Join(repo.LinkedWorktreeDir(), newName)
 		return newResultMsg{err: git.AddWorktree(repo, newName, newPath, repo.MainBranch)}
+	}
+}
+
+func cmdNewWorktreeAndTmux(repo git.Repo, newName string, openMode tmuxOpenMode) tea.Cmd {
+	return func() tea.Msg {
+		newPath := filepath.Join(repo.LinkedWorktreeDir(), newName)
+		err := git.AddWorktree(repo, newName, newPath, repo.MainBranch)
+		return newTmuxResultMsg{err: err, name: newName, path: newPath, openMode: openMode}
 	}
 }
 
@@ -29,6 +51,20 @@ func newWorktreeInput() textinput.Model {
 
 func (m Model) enterNewMode() Model {
 	m.mode = modeNew
+	m.textInput = newWorktreeInput()
+	m.statusMsg = ""
+	return m
+}
+
+func (m Model) enterNewTmuxSessionMode() Model {
+	m.mode = modeNewTmuxSession
+	m.textInput = newWorktreeInput()
+	m.statusMsg = ""
+	return m
+}
+
+func (m Model) enterNewTmuxWindowMode() Model {
+	m.mode = modeNewTmuxWindow
 	m.textInput = newWorktreeInput()
 	m.statusMsg = ""
 	return m
@@ -50,9 +86,17 @@ func (m Model) handleNewKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			m.statusMsg = ""
 			return m, nil
 		}
+		prevMode := m.mode
 		m.mode = modeNormal
 		m.statusMsg = "Creating…"
-		return m, cmdNewWorktree(m.repo, newName)
+		switch prevMode {
+		case modeNewTmuxSession:
+			return m, cmdNewWorktreeAndTmux(m.repo, newName, tmuxOpenSession)
+		case modeNewTmuxWindow:
+			return m, cmdNewWorktreeAndTmux(m.repo, newName, tmuxOpenWindow)
+		default:
+			return m, cmdNewWorktree(m.repo, newName)
+		}
 	}
 
 	var tiCmd tea.Cmd
@@ -61,5 +105,12 @@ func (m Model) handleNewKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) newView() string {
-	return "  New worktree: " + m.textInput.View()
+	label := "New worktree"
+	switch m.mode {
+	case modeNewTmuxSession:
+		label = "New worktree + tmux session"
+	case modeNewTmuxWindow:
+		label = "New worktree + tmux window"
+	}
+	return "  " + label + ": " + m.textInput.View()
 }

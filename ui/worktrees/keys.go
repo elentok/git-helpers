@@ -3,23 +3,25 @@ package worktrees
 import "github.com/charmbracelet/bubbles/key"
 
 type keyMap struct {
-	Up           key.Binding
-	Down         key.Binding
-	New          key.Binding
-	Delete       key.Binding
-	Rename       key.Binding
-	Clone        key.Binding
-	Yank         key.Binding
-	Pull         key.Binding
-	Push         key.Binding
-	Lazygit      key.Binding
-	Search       key.Binding
-	Track        key.Binding
-	Refresh      key.Binding
-	RemoteUpdate key.Binding
-	Logs         key.Binding
-	Help         key.Binding
-	Quit         key.Binding
+	Up              key.Binding
+	Down            key.Binding
+	New             key.Binding
+	NewTmuxSession  key.Binding
+	NewTmuxWindow   key.Binding
+	Delete          key.Binding
+	Rename          key.Binding
+	Clone           key.Binding
+	Yank            key.Binding
+	Pull            key.Binding
+	Push            key.Binding
+	Lazygit         key.Binding
+	Search          key.Binding
+	Track           key.Binding
+	Refresh         key.Binding
+	RemoteUpdate    key.Binding
+	Logs            key.Binding
+	Help            key.Binding
+	Quit            key.Binding
 }
 
 var keys = keyMap{
@@ -38,6 +40,14 @@ var keys = keyMap{
 	New: key.NewBinding(
 		key.WithKeys("n"),
 		key.WithHelp("n", "new worktree"),
+	),
+	NewTmuxSession: key.NewBinding(
+		key.WithKeys("N"),
+		key.WithHelp("N", "new worktree + tmux session"),
+	),
+	NewTmuxWindow: key.NewBinding(
+		key.WithKeys("T"),
+		key.WithHelp("T", "new worktree + tmux window"),
 	),
 	Rename: key.NewBinding(
 		key.WithKeys("r"),
@@ -97,13 +107,13 @@ var keys = keyMap{
 // bubbles/help in a later milestone.
 
 func (k keyMap) ShortHelp() []key.Binding {
-	return []key.Binding{k.Up, k.Down, k.New, k.Delete, k.Rename, k.Clone, k.Yank, k.Pull, k.Push, k.Lazygit, k.Search, k.Track, k.Refresh, k.Quit, k.Help}
+	return []key.Binding{k.Up, k.Down, k.New, k.NewTmuxSession, k.NewTmuxWindow, k.Delete, k.Rename, k.Clone, k.Yank, k.Pull, k.Push, k.Lazygit, k.Search, k.Track, k.Refresh, k.Quit, k.Help}
 }
 
 func (k keyMap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
 		{k.Up, k.Down},
-		{k.New, k.Delete, k.Rename, k.Clone},
+		{k.New, k.NewTmuxSession, k.NewTmuxWindow, k.Delete, k.Rename, k.Clone},
 		{k.Yank, k.Search},
 		{k.Pull, k.Push, k.Lazygit, k.Track, k.Refresh, k.RemoteUpdate, k.Logs, k.Help, k.Quit},
 	}

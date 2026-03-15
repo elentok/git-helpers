@@ -39,7 +39,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m.handleRenameKey(msg)
 		case modeClone:
 			return m.handleCloneKey(msg)
-		case modeNew:
+		case modeNew, modeNewTmuxSession, modeNewTmuxWindow:
 			return m.handleNewKey(msg)
 		case modeYank:
 			return m.handleYankKey(msg)
@@ -64,6 +64,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		case key.Matches(msg, keys.New) && !m.spinnerActive:
 			m = m.enterNewMode()
+			return m, nil
+		case key.Matches(msg, keys.NewTmuxSession) && !m.spinnerActive:
+			m = m.enterNewTmuxSessionMode()
+			return m, nil
+		case key.Matches(msg, keys.NewTmuxWindow) && !m.spinnerActive:
+			m = m.enterNewTmuxWindowMode()
 			return m, nil
 		case key.Matches(msg, keys.Delete) && len(m.worktrees) > 0 && !m.spinnerActive:
 			return m.enterDeleteConfirm(), nil
@@ -142,6 +148,25 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		m.statusMsg = ""
 		return m, cmdLoadWorktrees(m.repo)
+
+	case newTmuxResultMsg:
+		if msg.err != nil {
+			return m.showError(msg.err.Error()), nil
+		}
+		m.statusMsg = ""
+		var tmuxCmd tea.Cmd
+		if msg.openMode == tmuxOpenWindow {
+			tmuxCmd = cmdTmuxNewWindow(msg.name, msg.path)
+		} else {
+			tmuxCmd = cmdTmuxNewSession(msg.name, msg.path)
+		}
+		return m, tea.Batch(cmdLoadWorktrees(m.repo), tmuxCmd)
+
+	case tmuxResultMsg:
+		if msg.err != nil {
+			return m.showError(msg.err.Error()), nil
+		}
+		return m, nil
 
 	case yankDataMsg:
 		if m.mode != modeYank || msg.worktreePath != m.yankSource.Path {

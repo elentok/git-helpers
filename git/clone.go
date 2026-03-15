@@ -58,6 +58,16 @@ func CloneBare(repoURL, targetDir, cwd string) (string, error) {
 		return "", err
 	}
 
+	// Set upstream tracking for all local branches so that `git pull` works
+	// without having to specify a remote. git clone --bare doesn't configure
+	// branch.<name>.remote / branch.<name>.merge, so we do it manually.
+	if stdout, _, err := run(bareDir, []string{"branch", "--format=%(refname:short)"}); err == nil {
+		for _, branch := range strings.Fields(stdout) {
+			// Ignore errors: if origin/<branch> doesn't exist, skip it.
+			_, _, _ = run(bareDir, []string{"branch", "--set-upstream-to=origin/" + branch, branch})
+		}
+	}
+
 	return outerDir, nil
 }
 

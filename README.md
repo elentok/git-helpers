@@ -12,10 +12,11 @@ and [go-migration-plan.md](/docs/go-migration-plan.md)).
 ## Features
 
 - Browse all linked worktrees in a table with sync status (ahead / behind / diverged) and rebase status relative to main
-- Sidebar showing commits ahead/behind the remote tracking branch, rebase status relative to main, and uncommitted file changes
+- Sidebar showing the latest commit (with relative date), commits ahead/behind the remote tracking branch, rebase status relative to main, and uncommitted file changes
 - Create, rename, clone, and delete worktrees interactively (optionally opening a new tmux session or window)
 - Yank files from one worktree and paste them into another
-- Pull, push, and remote-update the selected worktree's branch
+- Pull, push, and remote-update the selected worktree's branch; pull on a dirty worktree offers to stash first
+- Rebase the selected worktree on main (`b`), with optional stash-and-restore for dirty worktrees
 - `gx wt clone` clones using the `.bare` directory trick for a clean layout
 - `gx wt list` and `gx wt abs-path` for scripting and shell integration
 - Press `/` to search and highlight matching worktrees by name or branch
@@ -97,6 +98,12 @@ Push current worktree branch, with styled force-with-lease confirmation on rejec
 gx push
 ```
 
+Stash uncommitted changes, run a command, then auto-pop the stash on success (prompts to pop on failure):
+
+```sh
+gx stashify git rebase main
+```
+
 Create an initial config file with defaults:
 
 ```sh
@@ -151,8 +158,9 @@ Example:
 | `r`            | Rename selected worktree and branch                             |
 | `c`            | Clone selected worktree (copies uncommitted files)              |
 | `y`            | Yank files from selected worktree into clipboard                |
-| `p`            | Pull selected worktree's branch                                 |
+| `p`            | Pull selected worktree's branch (stash prompt if dirty)         |
 | `P`            | Push selected worktree's branch (confirms before pushing)       |
+| `b`            | Rebase selected worktree on main (stash prompt if dirty)        |
 | `l`            | Open selected worktree in lazygit                               |
 | `o`            | View output log of last pull/push job                           |
 | `/`            | Search worktrees by name or branch                              |

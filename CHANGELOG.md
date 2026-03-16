@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.5.0
+
+- Added `gx stashify <cmd...>`: stashes uncommitted changes, runs the command, auto-pops on success, prompts to pop on failure
+- Added `b` keybinding to rebase the selected worktree on main; confirms before rebasing; if dirty, offers to stash first
+- Pull (`p`) on a dirty worktree now asks to stash first; cancelling shows "Pull aborted (dirty worktree)"
+- Pulling the main branch now refreshes the Base column for all worktrees
+- Sidebar now shows the latest commit (hash, subject, date, and relative date)
+
 ## v0.4.3
 
 - Added `N` keybinding: create a new worktree and open a new tmux session (same name, cwd set to the worktree path), switching to it immediately

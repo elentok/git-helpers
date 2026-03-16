@@ -61,6 +61,8 @@ func execute(args []string, d deps) error {
 		return runInit(d)
 	case "edit-config":
 		return runEditConfig(d)
+	case "stashify":
+		return runStashify(args[1:], d)
 	case "doctor":
 		return runDoctor(args[1:], d)
 	case "version", "--version", "-v":
@@ -83,6 +85,7 @@ func printUsage(w io.Writer) {
 	fmt.Fprintln(w, "  gx push")
 	fmt.Fprintln(w, "  gx init")
 	fmt.Fprintln(w, "  gx edit-config")
+	fmt.Fprintln(w, "  gx stashify <cmd...>         stash, run command, pop")
 	fmt.Fprintln(w, "  gx doctor [--fix]")
 	fmt.Fprintln(w, "  gx version")
 }

@@ -1,11 +1,15 @@
 package git
 
-import "strings"
+import (
+	"strings"
+	"time"
+)
 
 // Commit is a single git commit with abbreviated hash and subject line.
 type Commit struct {
 	Hash    string
 	Subject string
+	Date    time.Time
 }
 
 // CommitsSinceMain returns commits on branch that are not reachable from the
@@ -22,12 +26,14 @@ func CommitsBehindMain(repo Repo, branch string) ([]Commit, error) {
 
 // HeadCommit returns the latest commit on the given branch.
 func HeadCommit(repoRoot, branch string) (Commit, error) {
-	out, _, err := run(repoRoot, []string{"log", "-1", "--pretty=format:%h\t%s", branch})
+	out, _, err := run(repoRoot, []string{"log", "-1", "--pretty=format:%h\t%ci\t%s", branch})
 	if err != nil || out == "" {
 		return Commit{}, err
 	}
-	hash, subject, _ := strings.Cut(out, "\t")
-	return Commit{Hash: hash, Subject: subject}, nil
+	hash, rest, _ := strings.Cut(out, "\t")
+	dateStr, subject, _ := strings.Cut(rest, "\t")
+	date, _ := time.Parse("2006-01-02 15:04:05 -0700", dateStr)
+	return Commit{Hash: hash, Subject: subject, Date: date}, nil
 }
 
 // CommitsBetween returns commits reachable from toRef but not fromRef, ordered

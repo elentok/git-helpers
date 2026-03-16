@@ -11,6 +11,28 @@ import (
 	"github.com/charmbracelet/x/ansi"
 )
 
+var styleMainBranch = lipgloss.NewStyle().Foreground(lipgloss.Color("214"))
+
+// sortedWorktrees returns a copy of wts with the main branch worktree first.
+func sortedWorktrees(wts []git.Worktree, mainBranch string) []git.Worktree {
+	if mainBranch == "" {
+		return wts
+	}
+	out := make([]git.Worktree, 0, len(wts))
+	var main *git.Worktree
+	for i := range wts {
+		if wts[i].Branch == mainBranch {
+			main = &wts[i]
+		} else {
+			out = append(out, wts[i])
+		}
+	}
+	if main != nil {
+		out = append([]git.Worktree{*main}, out...)
+	}
+	return out
+}
+
 // tableStyles holds the styles configured in newTable so our custom renderer
 // can use them without needing access to the unexported table.Model.styles field.
 var tableStyles table.Styles
@@ -146,7 +168,8 @@ func (m Model) buildRows() []table.Row {
 	rows := make([]table.Row, len(m.worktrees))
 	for i, wt := range m.worktrees {
 		isSelected := i == m.table.Cursor()
-		nameCol := worktreeCell(wt.Name, ic)
+		isMain := wt.Branch == m.repo.MainBranch
+		nameCol := worktreeCell(wt.Name, ic, isMain, isSelected)
 		branchCol := branchCell(wt.Branch, ic)
 		if m.searchQuery != "" && !isSelected {
 			nameCol = highlightMatch(nameCol, m.searchQuery)
@@ -177,11 +200,15 @@ func highlightMatch(text, query string) string {
 	return text[:idx] + styleSearchHighlight.Render(text[idx:idx+len(query)]) + text[idx+len(query):]
 }
 
-func worktreeCell(name string, ic uiIcons) string {
-	if ic.worktreePrefix == "" {
-		return name
+func worktreeCell(name string, ic uiIcons, isMain, isSelected bool) string {
+	text := name
+	if ic.worktreePrefix != "" {
+		text = ic.worktreePrefix + name
 	}
-	return ic.worktreePrefix + name
+	if isMain && !isSelected {
+		return styleMainBranch.Render(text)
+	}
+	return text
 }
 
 func branchCell(name string, ic uiIcons) string {

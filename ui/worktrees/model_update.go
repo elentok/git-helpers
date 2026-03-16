@@ -452,7 +452,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 		firstLoad := len(m.worktrees) == 0
-		m.worktrees = msg.worktrees
+		m.worktrees = sortedWorktrees(msg.worktrees, m.repo.MainBranch)
 		m.dirties = make(map[string]dirtyState)
 		m.table.SetRows(m.buildRows())
 

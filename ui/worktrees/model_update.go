@@ -89,6 +89,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, keys.Pull) && len(m.worktrees) > 0 && !m.spinnerActive:
 			wt := m.selectedWorktree()
 			if wt != nil {
+				dirty := m.dirties[wt.Path]
+				if dirty.hasModified || dirty.hasUntracked {
+					return m.enterConfirmWithCancel(
+						"Stash changes before pulling "+wt.Name+"?",
+						cmdStashPull(*wt),
+						"Pulling "+wt.Name+"…",
+						"Pull aborted (dirty worktree)",
+					), nil
+				}
 				m.spinnerActive = true
 				m.spinnerLabel = "Pulling " + wt.Name + "…"
 				return m, tea.Batch(cmdPull(*wt), m.spinner.Tick)
@@ -101,6 +110,25 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				prompt := fmt.Sprintf("Push %s?", wt.Branch)
 				return m.enterConfirm(prompt, cmdPush(m.repo, *wt), "Pushing "+wt.Name+"…"), nil
+			}
+		case key.Matches(msg, keys.Rebase) && len(m.worktrees) > 0 && !m.spinnerActive:
+			wt := m.selectedWorktree()
+			if wt != nil {
+				if wt.Branch == "" {
+					return m.showError("cannot rebase: worktree is in detached HEAD state"), nil
+				}
+				if m.repo.MainBranch == "" {
+					return m.showError("cannot rebase: no main branch detected"), nil
+				}
+				if wt.Branch == m.repo.MainBranch {
+					return m.showError("cannot rebase: already on " + m.repo.MainBranch), nil
+				}
+				prompt := fmt.Sprintf("Rebase %s on %s?", wt.Branch, m.repo.MainBranch)
+				dirty := m.dirties[wt.Path]
+				if dirty.hasModified || dirty.hasUntracked {
+					return m.enterConfirm(prompt, cmdRebasePreflight(m.repo, *wt), ""), nil
+				}
+				return m.enterConfirm(prompt, cmdRebase(m.repo, *wt, false), "Rebasing "+wt.Name+"…"), nil
 			}
 		case key.Matches(msg, keys.Refresh) && !m.spinnerActive:
 			m.loading = true
@@ -216,6 +244,111 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					if w.Branch != "" {
 						cmds = append(cmds, cmdLoadBaseStatus(m.repo, w.Branch))
 					}
+				}
+			}
+		}
+		return m, tea.Batch(cmds...)
+
+	case stashPullResultMsg:
+		m.spinnerActive = false
+		m.lastJobLog = msg.log
+		m.lastJobLabel = "Pull output"
+		if msg.err != nil {
+			if msg.stashed {
+				prompt := fmt.Sprintf("Pull failed: %s\n\nPop stash?", msg.err.Error())
+				m = m.enterConfirm(prompt, cmdStashPop(msg.wtPath, "pull"), "Popping stash…")
+				m.confirmYes = true
+				return m, nil
+			}
+			return m.showError(msg.err.Error()), nil
+		}
+		if msg.stashed {
+			m.spinnerActive = true
+			m.spinnerLabel = "Popping stash…"
+			return m, tea.Batch(cmdStashPop(msg.wtPath, "pull"), m.spinner.Tick)
+		}
+		// Should not reach here (stashPull always stashes), but handle gracefully
+		m.statusGen++
+		m.statusMsg = "Pulled"
+		if msg.log != "" {
+			m.statusMsg += "  ·  o  view output"
+		}
+		cmds = append(cmds, cmdClearStatus(m.statusGen))
+		if wt := m.selectedWorktree(); wt != nil && wt.Branch != "" {
+			cmds = append(cmds, cmdLoadSyncStatus(m.repo, wt.Branch), cmdLoadSidebarData(m.repo, *wt))
+		}
+		return m, tea.Batch(cmds...)
+
+	case rebasePreflightMsg:
+		return m.enterConfirmWithCancel(
+			fmt.Sprintf("Stash changes before rebasing %s?", msg.wt.Branch),
+			cmdRebase(msg.repo, msg.wt, true),
+			"Rebasing "+msg.wt.Name+"…",
+			"Rebase aborted (dirty worktree)",
+		), nil
+
+	case rebaseResultMsg:
+		m.spinnerActive = false
+		m.lastJobLog = msg.log
+		m.lastJobLabel = "Rebase output"
+		if msg.err != nil {
+			if msg.stashed {
+				prompt := fmt.Sprintf("Rebase failed: %s\n\nPop stash?", msg.err.Error())
+				m = m.enterConfirm(prompt, cmdStashPop(msg.wtPath, "rebase"), "Popping stash…")
+				m.confirmYes = true
+				return m, nil
+			}
+			return m.showError(msg.err.Error()), nil
+		}
+		if msg.stashed {
+			m.spinnerActive = true
+			m.spinnerLabel = "Popping stash…"
+			return m, tea.Batch(cmdStashPop(msg.wtPath, "rebase"), m.spinner.Tick)
+		}
+		m.statusGen++
+		m.statusMsg = "Rebased"
+		if msg.log != "" {
+			m.statusMsg += "  ·  o  view output"
+		}
+		cmds = append(cmds, cmdClearStatus(m.statusGen))
+		for _, w := range m.worktrees {
+			if w.Branch != "" {
+				cmds = append(cmds, cmdLoadBaseStatus(m.repo, w.Branch))
+			}
+		}
+		if wt := m.selectedWorktree(); wt != nil && wt.Branch != "" {
+			cmds = append(cmds, cmdLoadSyncStatus(m.repo, wt.Branch), cmdLoadSidebarData(m.repo, *wt))
+		}
+		return m, tea.Batch(cmds...)
+
+	case stashPopResultMsg:
+		m.spinnerActive = false
+		if msg.err != nil {
+			return m.showError(fmt.Sprintf("Stash pop failed: %s", msg.err.Error())), nil
+		}
+		m.statusGen++
+		switch msg.opLabel {
+		case "pull":
+			m.statusMsg = "Pulled (stash restored)"
+		case "rebase":
+			m.statusMsg = "Rebased (stash restored)"
+		default:
+			m.statusMsg = "Stash restored"
+		}
+		if m.lastJobLog != "" {
+			m.statusMsg += "  ·  o  view output"
+		}
+		cmds = append(cmds, cmdClearStatus(m.statusGen))
+		if wt := m.selectedWorktree(); wt != nil {
+			cmds = append(cmds, cmdLoadDirtyStatus(*wt), cmdLoadSidebarData(m.repo, *wt))
+			if wt.Branch != "" {
+				cmds = append(cmds, cmdLoadSyncStatus(m.repo, wt.Branch))
+			}
+		}
+		if msg.opLabel == "rebase" {
+			for _, w := range m.worktrees {
+				if w.Branch != "" {
+					cmds = append(cmds, cmdLoadBaseStatus(m.repo, w.Branch))
 				}
 			}
 		}

@@ -14,6 +14,7 @@ type keyMap struct {
 	Yank            key.Binding
 	Pull            key.Binding
 	Push            key.Binding
+	Rebase          key.Binding
 	Lazygit         key.Binding
 	Search          key.Binding
 	Track           key.Binding
@@ -65,6 +66,10 @@ var keys = keyMap{
 		key.WithKeys("p"),
 		key.WithHelp("p", "pull"),
 	),
+	Rebase: key.NewBinding(
+		key.WithKeys("b"),
+		key.WithHelp("b", "rebase on main"),
+	),
 	Push: key.NewBinding(
 		key.WithKeys("P"),
 		key.WithHelp("P", "push"),
@@ -115,6 +120,6 @@ func (k keyMap) FullHelp() [][]key.Binding {
 		{k.Up, k.Down},
 		{k.New, k.NewTmuxSession, k.NewTmuxWindow, k.Delete, k.Rename, k.Clone},
 		{k.Yank, k.Search},
-		{k.Pull, k.Push, k.Lazygit, k.Track, k.Refresh, k.RemoteUpdate, k.Logs, k.Help, k.Quit},
+		{k.Pull, k.Push, k.Rebase, k.Lazygit, k.Track, k.Refresh, k.RemoteUpdate, k.Logs, k.Help, k.Quit},
 	}
 }

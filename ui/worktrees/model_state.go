@@ -74,6 +74,7 @@ type Model struct {
 	confirmYes          bool
 	confirmCmd          tea.Cmd // executed when the user confirms
 	confirmSpinnerLabel string  // if non-empty, spinner is started on confirm
+	confirmCancelMsg    string  // if non-empty, shown as statusMsg when user cancels
 
 	yankLoading   bool
 	yankSource    git.Worktree

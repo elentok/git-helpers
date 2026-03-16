@@ -17,7 +17,14 @@ func (m Model) enterConfirm(prompt string, cmd tea.Cmd, spinnerLabel string) Mod
 	m.confirmYes = false
 	m.confirmCmd = cmd
 	m.confirmSpinnerLabel = spinnerLabel
+	m.confirmCancelMsg = ""
 	m.statusMsg = ""
+	return m
+}
+
+func (m Model) enterConfirmWithCancel(prompt string, cmd tea.Cmd, spinnerLabel, cancelMsg string) Model {
+	m = m.enterConfirm(prompt, cmd, spinnerLabel)
+	m.confirmCancelMsg = cancelMsg
 	return m
 }
 
@@ -38,11 +45,21 @@ func (m Model) handleConfirmKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return m.runConfirmed()
 	case key.Matches(msg, no), key.Matches(msg, cancel):
 		m.mode = modeNormal
+		if m.confirmCancelMsg != "" {
+			m.statusGen++
+			m.statusMsg = m.confirmCancelMsg
+			return m, cmdClearStatus(m.statusGen)
+		}
 	case key.Matches(msg, submit):
 		if m.confirmYes {
 			return m.runConfirmed()
 		}
 		m.mode = modeNormal
+		if m.confirmCancelMsg != "" {
+			m.statusGen++
+			m.statusMsg = m.confirmCancelMsg
+			return m, cmdClearStatus(m.statusGen)
+		}
 	}
 	return m, nil
 }

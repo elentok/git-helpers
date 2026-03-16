@@ -25,6 +25,30 @@ type forcePushResultMsg struct {
 }
 type urlOpenedMsg struct{}
 
+type stashPullResultMsg struct {
+	err     error
+	log     string
+	stashed bool
+	wtPath  string
+}
+
+type rebasePreflightMsg struct {
+	repo git.Repo
+	wt   git.Worktree
+}
+
+type rebaseResultMsg struct {
+	err     error
+	log     string
+	stashed bool
+	wtPath  string
+}
+
+type stashPopResultMsg struct {
+	err     error
+	opLabel string
+}
+
 func cmdPull(wt git.Worktree) tea.Cmd {
 	return func() tea.Msg {
 		out, err := git.Pull(wt.Path)
@@ -59,6 +83,43 @@ func cmdOpenURL(url string) tea.Cmd {
 		}
 		_ = cmd.Start()
 		return urlOpenedMsg{}
+	}
+}
+
+func cmdStashPull(wt git.Worktree) tea.Cmd {
+	return func() tea.Msg {
+		if _, err := git.Stash(wt.Path); err != nil {
+			return stashPullResultMsg{err: fmt.Errorf("stash failed: %w", err), wtPath: wt.Path}
+		}
+		out, err := git.Pull(wt.Path)
+		return stashPullResultMsg{err: err, log: out, stashed: true, wtPath: wt.Path}
+	}
+}
+
+func cmdRebasePreflight(repo git.Repo, wt git.Worktree) tea.Cmd {
+	return func() tea.Msg {
+		return rebasePreflightMsg{repo: repo, wt: wt}
+	}
+}
+
+func cmdRebase(repo git.Repo, wt git.Worktree, stash bool) tea.Cmd {
+	return func() tea.Msg {
+		stashed := false
+		if stash {
+			if _, err := git.Stash(wt.Path); err != nil {
+				return rebaseResultMsg{err: fmt.Errorf("stash failed: %w", err), wtPath: wt.Path}
+			}
+			stashed = true
+		}
+		out, err := git.Rebase(wt.Path, repo.MainBranch)
+		return rebaseResultMsg{err: err, log: out, stashed: stashed, wtPath: wt.Path}
+	}
+}
+
+func cmdStashPop(wtPath, opLabel string) tea.Cmd {
+	return func() tea.Msg {
+		_, err := git.StashPop(wtPath)
+		return stashPopResultMsg{err: err, opLabel: opLabel}
 	}
 }
 

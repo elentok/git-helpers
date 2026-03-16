@@ -8,8 +8,8 @@ type uiIcons struct {
 	aheadTitle     string
 	behindTitle    string
 	baseTitle      string
-	rebasedYes     string
-	rebasedNo      string
+	checkmark      string
+	x              string
 	changesTitle   string
 }
 
@@ -20,8 +20,8 @@ func icons(useNerdFont bool) uiIcons {
 			aheadTitle:    "Commits ahead of remote",
 			behindTitle:   "Commits behind remote",
 			baseTitle:     "Base",
-			rebasedYes:    "✓",
-			rebasedNo:     "✗",
+			checkmark:     "✓",
+			x:             "✗",
 			changesTitle:  "Changes",
 		}
 	}
@@ -30,11 +30,11 @@ func icons(useNerdFont bool) uiIcons {
 		mainPrefix:     "󰋜 ",
 		branchPrefix:   " ",
 		worktreeTitle:  "󰙅 Worktree",
-		aheadTitle:     " Commits ahead of remote",
-		behindTitle:    " Commits behind remote",
-		baseTitle:      " Base",
-		rebasedYes:     "\uf00c", // fa-check
-		rebasedNo:      "\uf00d", // fa-times
+		aheadTitle:     " Commits ahead of remote",
+		behindTitle:    " Commits behind remote",
+		baseTitle:      "󰋜 Base",
+		checkmark:      "󰄴",
+		x:              "󰅙", //󱎘
 		changesTitle:   "󰈔 Changes",
 	}
 }

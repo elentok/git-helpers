@@ -6,8 +6,8 @@ import (
 	"gx/git"
 	"gx/ui"
 
-	humanize "github.com/dustin/go-humanize"
 	"github.com/charmbracelet/lipgloss"
+	humanize "github.com/dustin/go-humanize"
 )
 
 func renderSidebarContent(wt *git.Worktree, upstream string, headCommit git.Commit, aheadCommits, behindCommits []git.Commit, rebasedOnMain *bool, isMainBranch bool, changes []git.Change, spinnerView string, useNerdFontIcons bool) string {
@@ -83,9 +83,9 @@ func renderSidebarContent(wt *git.Worktree, upstream string, headCommit git.Comm
 		case rebasedOnMain == nil:
 			b.WriteString(ui.StyleDim.Render("  loading…") + "\n")
 		case *rebasedOnMain:
-			b.WriteString(ui.StyleStatusSynced.Render("  "+ic.rebasedYes+" rebased on main") + "\n")
+			b.WriteString(ui.StyleStatusSynced.Render("  "+ic.checkmark+" rebased on main") + "\n")
 		default:
-			b.WriteString(ui.StyleStatusDiverged.Render("  "+ic.rebasedNo+" needs rebase on main") + "\n")
+			b.WriteString(ui.StyleStatusDiverged.Render("  "+ic.x+" needs rebase on main") + "\n")
 		}
 	}
 

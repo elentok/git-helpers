@@ -179,7 +179,7 @@ func (m Model) buildRows() []table.Row {
 			nameCol,
 			branchCol,
 			dirtyCell(m.dirties[wt.Path], isSelected),
-			baseCell(m.baseStatus[wt.Branch], wt.Branch == m.repo.MainBranch, isSelected),
+			baseCell(m.baseStatus[wt.Branch], ic, wt.Branch == m.repo.MainBranch, isSelected),
 			statusCell(m.statuses[wt.Branch], isSelected, m.settings.UseNerdFontIcons),
 		}
 	}
@@ -225,6 +225,11 @@ func branchCell(name string, ic uiIcons, isMain, isSelected bool) string {
 
 func dirtyCell(d dirtyState, selected bool) string {
 	symbol := "-"
+
+	if !selected {
+		symbol = ui.StyleDim.Render("-")
+	}
+
 	switch {
 	case d.hasModified && d.hasUntracked:
 		symbol = "M?"
@@ -236,26 +241,26 @@ func dirtyCell(d dirtyState, selected bool) string {
 	return symbol
 }
 
-func baseCell(rebased *bool, isMainBranch bool, selected bool) string {
+func baseCell(rebased *bool, ic uiIcons, isMainBranch bool, selected bool) string {
 	if isMainBranch {
 		if selected {
-			return "—"
+			return "-"
 		}
-		return ui.StyleDim.Render("—")
+		return ui.StyleDim.Render("-")
 	}
 	if rebased == nil {
 		return "" // not yet loaded
 	}
 	if *rebased {
 		if selected {
-			return "✓"
+			return ic.checkmark
 		}
-		return ui.StyleStatusSynced.Render("✓")
+		return ui.StyleStatusSynced.Render(ic.checkmark)
 	}
 	if selected {
-		return "✗"
+		return ic.x
 	}
-	return ui.StyleStatusDiverged.Render("✗")
+	return ui.StyleStatusDiverged.Render(ic.x)
 }
 
 func statusCell(s git.SyncStatus, selected bool, useNerdFontIcons bool) string {

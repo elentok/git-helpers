@@ -67,6 +67,5 @@ func (m Model) logsModalView() string {
 		"",
 		hintStyle.Render("esc / enter / q  to dismiss"),
 	)
-	modal := borderStyle.Render(inner)
-	return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, modal)
+	return borderStyle.Render(inner)
 }

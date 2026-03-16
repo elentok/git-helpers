@@ -91,8 +91,7 @@ func (m Model) confirmModalView() string {
 		"",
 		hint,
 	)
-	modal := borderStyle.Render(inner)
-	return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, modal)
+	return borderStyle.Render(inner)
 }
 
 func confirmButton(label string, selected bool) string {

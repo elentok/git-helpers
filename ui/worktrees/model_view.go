@@ -15,19 +15,40 @@ func (m Model) View() string {
 	if m.err != nil {
 		return "\n  Error: " + m.err.Error()
 	}
-	if m.mode == modeYank {
-		return m.yankModalView()
-	}
-	if m.mode == modeError {
-		return m.errorModalView()
-	}
-	if m.mode == modeLogs {
-		return m.logsModalView()
-	}
-	if m.mode == modeConfirm {
-		return m.confirmModalView()
+
+	bg := m.normalView()
+
+	switch m.mode {
+	case modeConfirm:
+		return overlayModal(bg, m.confirmModalView(), m.width, m.height)
+	case modeError:
+		return overlayModal(bg, m.errorModalView(), m.width, m.height)
+	case modeLogs:
+		return overlayModal(bg, m.logsModalView(), m.width, m.height)
+	case modeYank:
+		return overlayModal(bg, m.yankModalView(), m.width, m.height)
 	}
 
+	return bg
+}
+
+// overlayModal centers modal over bg using placeOverlay.
+func overlayModal(bg, modal string, screenW, screenH int) string {
+	modalW := lipgloss.Width(modal)
+	modalH := lipgloss.Height(modal)
+	x := (screenW - modalW) / 2
+	y := (screenH - modalH) / 2
+	if x < 0 {
+		x = 0
+	}
+	if y < 0 {
+		y = 0
+	}
+	return placeOverlay(bg, modal, x, y)
+}
+
+// normalView renders the worktrees table, sidebar, and status bar.
+func (m Model) normalView() string {
 	h := m.contentHeight()
 	tableW, sidebarW := m.splitWidth()
 	tableH, sidebarH := m.splitHeight(h)

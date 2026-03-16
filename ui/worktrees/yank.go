@@ -74,13 +74,11 @@ func (m Model) handleYankKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 // yankModalView renders the centered yank checklist modal.
 func (m Model) yankModalView() string {
 	if m.yankLoading {
-		return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center,
-			lipgloss.NewStyle().
-				Border(lipgloss.RoundedBorder()).
-				BorderForeground(ui.ColorBorder).
-				Padding(0, 1).
-				Render("  Loading files…"),
-		)
+		return lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(ui.ColorBorder).
+			Padding(0, 1).
+			Render("  Loading files…")
 	}
 
 	modalW := m.width * 2 / 3
@@ -103,13 +101,12 @@ func (m Model) yankModalView() string {
 		"",
 		ui.StyleDim.Render("space toggle · a all · enter confirm · esc cancel"),
 	)
-	modal := lipgloss.NewStyle().
+	return lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(ui.ColorBorder).
 		Padding(0, 1).
 		Width(modalW - 4).
 		Render(inner)
-	return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, modal)
 }
 
 // changesToChecklistItems converts git changes into checklist items.

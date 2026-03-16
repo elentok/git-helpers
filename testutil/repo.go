@@ -5,6 +5,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"testing"
+	"time"
 )
 
 // evalDir resolves symlinks in a directory path. On macOS, t.TempDir() returns
@@ -39,6 +40,17 @@ func TempBareRepo(t *testing.T) string {
 	bare := evalDir(t, t.TempDir())
 	// Remove the empty TempDir so git clone can create it cleanly
 	os.RemoveAll(bare)
+	// Register a cleanup that removes the repo before t.TempDir's cleanup runs
+	// (t.Cleanup is LIFO). Retrying handles any lingering background git processes
+	// or macOS APFS races that cause os.RemoveAll to return ENOTEMPTY.
+	t.Cleanup(func() {
+		for range 10 {
+			if os.RemoveAll(bare) == nil {
+				return
+			}
+			time.Sleep(50 * time.Millisecond)
+		}
+	})
 	mustRun(t, ".", "git", "clone", "--bare", src, bare)
 	// Configure origin to populate refs/remotes/origin/* on fetch (bare clones
 	// use refs/heads/* by default), then fetch so remote tracking refs exist.

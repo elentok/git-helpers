@@ -20,6 +20,16 @@ func CommitsBehindMain(repo Repo, branch string) ([]Commit, error) {
 	return commitsBetween(repo, branch, repo.MainBranch)
 }
 
+// HeadCommit returns the latest commit on the given branch.
+func HeadCommit(repoRoot, branch string) (Commit, error) {
+	out, _, err := run(repoRoot, []string{"log", "-1", "--pretty=format:%h\t%s", branch})
+	if err != nil || out == "" {
+		return Commit{}, err
+	}
+	hash, subject, _ := strings.Cut(out, "\t")
+	return Commit{Hash: hash, Subject: subject}, nil
+}
+
 // CommitsBetween returns commits reachable from toRef but not fromRef, ordered
 // newest first.
 func CommitsBetween(repo Repo, fromRef, toRef string) ([]Commit, error) {

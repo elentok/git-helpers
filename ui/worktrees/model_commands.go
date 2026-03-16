@@ -53,10 +53,12 @@ func cmdLoadSidebarData(repo git.Repo, wt git.Worktree) tea.Cmd {
 			aheadCommits, _ = git.CommitsBetween(repo, upstream, wt.Branch)
 			behindCommits, _ = git.CommitsBetween(repo, wt.Branch, upstream)
 		}
+		headCommit, _ := git.HeadCommit(wt.Path, "HEAD")
 		changes, _ := git.UncommittedChanges(wt.Path)
 		return sidebarDataMsg{
 			worktreePath:  wt.Path,
 			upstream:      upstream,
+			headCommit:    headCommit,
 			aheadCommits:  aheadCommits,
 			behindCommits: behindCommits,
 			changes:       changes,

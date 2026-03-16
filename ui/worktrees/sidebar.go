@@ -9,7 +9,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-func renderSidebarContent(wt *git.Worktree, upstream string, aheadCommits, behindCommits []git.Commit, rebasedOnMain *bool, isMainBranch bool, changes []git.Change, spinnerView string, useNerdFontIcons bool) string {
+func renderSidebarContent(wt *git.Worktree, upstream string, headCommit git.Commit, aheadCommits, behindCommits []git.Commit, rebasedOnMain *bool, isMainBranch bool, changes []git.Change, spinnerView string, useNerdFontIcons bool) string {
 	if wt == nil {
 		return ui.StyleDim.Render("  no worktree selected")
 	}
@@ -25,7 +25,15 @@ func renderSidebarContent(wt *git.Worktree, upstream string, aheadCommits, behin
 	b.WriteString("\n\n")
 	b.WriteString("  ")
 	b.WriteString(wt.Name)
-	b.WriteString("\n\n")
+	b.WriteString("\n")
+	if headCommit.Hash != "" {
+		b.WriteString("  ")
+		b.WriteString(ui.StyleDim.Render(headCommit.Hash))
+		b.WriteString("  ")
+		b.WriteString(ui.StyleDim.Render(headCommit.Subject))
+		b.WriteString("\n")
+	}
+	b.WriteString("\n")
 
 	if upstream == "" {
 		b.WriteString(ui.StyleDim.Render("  no remote tracking branch") + "\n")

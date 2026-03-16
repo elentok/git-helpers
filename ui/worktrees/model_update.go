@@ -370,6 +370,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case sidebarDataMsg:
 		if len(m.worktrees) > 0 && m.worktrees[m.table.Cursor()].Path == msg.worktreePath {
 			m.sidebarUpstream = msg.upstream
+			m.sidebarHeadCommit = msg.headCommit
 			m.sidebarAheadCommits = msg.aheadCommits
 			m.sidebarBehindCommits = msg.behindCommits
 			m.sidebarChanges = msg.changes

@@ -54,6 +54,7 @@ type Model struct {
 	viewport viewport.Model
 
 	sidebarUpstream      string // empty if no remote tracking branch found
+	sidebarHeadCommit    git.Commit
 	sidebarAheadCommits  []git.Commit
 	sidebarBehindCommits []git.Commit
 	sidebarChanges       []git.Change

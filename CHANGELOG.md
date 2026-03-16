@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.5.4
+
+- Dirty column now uses colored styles: yellow for modified, cyan for untracked, magenta for both
+- In portrait (stacked) layout, the table now sizes to fit its content rather than taking a fixed percentage of the screen height
+
 ## v0.5.3
 
 - Confirm/error/logs/yank modals are now rendered as overlays, keeping the worktrees table and sidebar visible in the background

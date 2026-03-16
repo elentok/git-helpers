@@ -35,7 +35,7 @@ func renderSidebarContent(wt *git.Worktree, upstream string, headCommit git.Comm
 		b.WriteString("\n")
 		if !headCommit.Date.IsZero() {
 			b.WriteString("  ")
-			b.WriteString(ui.StyleDim.Render(headCommit.Date.Format("2006-01-02 15:04:05") + "  " + humanize.Time(headCommit.Date)))
+			b.WriteString(ui.StyleDim.Render(headCommit.Date.Format("2006-01-02 15:04:05") + "  (" + humanize.Time(headCommit.Date) + ")"))
 			b.WriteString("\n")
 		}
 	}

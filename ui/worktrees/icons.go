@@ -11,6 +11,9 @@ type uiIcons struct {
 	checkmark      string
 	x              string
 	changesTitle   string
+	dash           string
+	ahead          string
+	behind         string
 }
 
 func icons(useNerdFont bool) uiIcons {
@@ -23,18 +26,22 @@ func icons(useNerdFont bool) uiIcons {
 			checkmark:     "✓",
 			x:             "✗",
 			changesTitle:  "Changes",
+			dash:          "-",
 		}
 	}
 	return uiIcons{
-		worktreePrefix: "󰉋 ",
+		worktreePrefix: "󰉖 ",
 		mainPrefix:     "󰋜 ",
-		branchPrefix:   " ",
+		branchPrefix:   " ",
 		worktreeTitle:  "󰙅 Worktree",
 		aheadTitle:     " Commits ahead of remote",
 		behindTitle:    " Commits behind remote",
+		ahead:          "",
+		behind:         "",
 		baseTitle:      "󰋜 Base",
-		checkmark:      "󰄴",
-		x:              "󰅙", //󱎘
+		checkmark:      "",
+		x:              "󰅙", //
 		changesTitle:   "󰈔 Changes",
+		dash:           "—",
 	}
 }

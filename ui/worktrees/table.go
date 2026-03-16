@@ -180,7 +180,7 @@ func (m Model) buildRows() []table.Row {
 			branchCol,
 			dirtyCell(m.dirties[wt.Path], isSelected),
 			baseCell(m.baseStatus[wt.Branch], ic, wt.Branch == m.repo.MainBranch, isSelected),
-			statusCell(m.statuses[wt.Branch], isSelected, m.settings.UseNerdFontIcons),
+			statusCell(m.statuses[wt.Branch], ic, isSelected, m.settings.UseNerdFontIcons),
 		}
 	}
 	return rows
@@ -224,10 +224,10 @@ func branchCell(name string, ic uiIcons, isMain, isSelected bool) string {
 }
 
 func dirtyCell(d dirtyState, selected bool) string {
-	symbol := "-"
+	symbol := ""
 
 	if !selected {
-		symbol = ui.StyleDim.Render("-")
+		symbol = ui.StyleDim.Render("")
 	}
 
 	switch {
@@ -244,9 +244,9 @@ func dirtyCell(d dirtyState, selected bool) string {
 func baseCell(rebased *bool, ic uiIcons, isMainBranch bool, selected bool) string {
 	if isMainBranch {
 		if selected {
-			return "-"
+			return ic.dash
 		}
-		return ui.StyleDim.Render("-")
+		return ui.StyleDim.Render(ic.dash)
 	}
 	if rebased == nil {
 		return "" // not yet loaded
@@ -263,8 +263,8 @@ func baseCell(rebased *bool, ic uiIcons, isMainBranch bool, selected bool) strin
 	return ui.StyleStatusDiverged.Render(ic.x)
 }
 
-func statusCell(s git.SyncStatus, selected bool, useNerdFontIcons bool) string {
-	label := "—"
+func statusCell(s git.SyncStatus, ic uiIcons, selected bool, useNerdFontIcons bool) string {
+	label := ic.dash
 	switch s.Name {
 	case git.StatusSame:
 		label = "synced"
@@ -272,8 +272,8 @@ func statusCell(s git.SyncStatus, selected bool, useNerdFontIcons bool) string {
 		label = s.Pretty()
 	}
 	if useNerdFontIcons {
-		label = strings.ReplaceAll(label, "ahead", "\uf062")
-		label = strings.ReplaceAll(label, "behind", "\uf063")
+		label = strings.ReplaceAll(label, "ahead", ic.ahead)
+		label = strings.ReplaceAll(label, "behind", ic.behind)
 	}
 	if selected {
 		return label

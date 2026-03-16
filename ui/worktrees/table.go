@@ -170,7 +170,7 @@ func (m Model) buildRows() []table.Row {
 		isSelected := i == m.table.Cursor()
 		isMain := wt.Branch == m.repo.MainBranch
 		nameCol := worktreeCell(wt.Name, ic, isMain, isSelected)
-		branchCol := branchCell(wt.Branch, ic)
+		branchCol := branchCell(wt.Branch, ic, isMain, isSelected)
 		if m.searchQuery != "" && !isSelected {
 			nameCol = highlightMatch(nameCol, m.searchQuery)
 			branchCol = highlightMatch(branchCol, m.searchQuery)
@@ -201,21 +201,26 @@ func highlightMatch(text, query string) string {
 }
 
 func worktreeCell(name string, ic uiIcons, isMain, isSelected bool) string {
-	text := name
-	if ic.worktreePrefix != "" {
-		text = ic.worktreePrefix + name
+	prefix := ic.worktreePrefix
+	if isMain && ic.mainPrefix != "" {
+		prefix = ic.mainPrefix
 	}
+	text := prefix + name
 	if isMain && !isSelected {
 		return styleMainBranch.Render(text)
 	}
 	return text
 }
 
-func branchCell(name string, ic uiIcons) string {
-	if ic.branchPrefix == "" || name == "" {
-		return name
+func branchCell(name string, ic uiIcons, isMain, isSelected bool) string {
+	text := name
+	if ic.branchPrefix != "" && name != "" {
+		text = ic.branchPrefix + name
 	}
-	return ic.branchPrefix + name
+	if isMain && !isSelected {
+		return styleMainBranch.Render(text)
+	}
+	return text
 }
 
 func dirtyCell(d dirtyState, selected bool) string {

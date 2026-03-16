@@ -2,6 +2,7 @@ package worktrees
 
 type uiIcons struct {
 	worktreePrefix string
+	mainPrefix     string
 	branchPrefix   string
 	worktreeTitle  string
 	aheadTitle     string
@@ -26,6 +27,7 @@ func icons(useNerdFont bool) uiIcons {
 	}
 	return uiIcons{
 		worktreePrefix: "󰉋 ",
+		mainPrefix:     "󰋜 ",
 		branchPrefix:   " ",
 		worktreeTitle:  "󰙅 Worktree",
 		aheadTitle:     " Commits ahead of remote",

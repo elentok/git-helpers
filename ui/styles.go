@@ -22,14 +22,6 @@ var (
 	StyleStatusUnknown  = lipgloss.NewStyle().Foreground(ColorGray)
 )
 
-// Dirty-state styles
-var (
-	StyleDirtyClean     = lipgloss.NewStyle().Foreground(ColorGray)
-	StyleDirtyModified  = lipgloss.NewStyle().Foreground(ColorYellow)
-	StyleDirtyUntracked = lipgloss.NewStyle().Foreground(ColorCyan)
-	StyleDirtyMixed     = lipgloss.NewStyle().Foreground(ColorMagenta)
-)
-
 // Text styles
 var (
 	StyleBold = lipgloss.NewStyle().Bold(true)

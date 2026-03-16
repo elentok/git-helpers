@@ -173,7 +173,7 @@ func (m Model) buildRows() []table.Row {
 		}
 		rows[i] = table.Row{
 			nameCol,
-			dirtyCell(m.dirties[wt.Path], isSelected),
+			dirtyCell(m.dirties[wt.Path], ic, isSelected),
 			baseCell(m.baseStatus[wt.Branch], ic, wt.Branch == m.repo.MainBranch, isSelected),
 			statusCell(m.statuses[wt.Branch], ic, isSelected, m.settings.UseNerdFontIcons),
 		}
@@ -220,22 +220,19 @@ func worktreeCell(name, branch string, ic uiIcons, isMain, isSelected bool) stri
 	return text
 }
 
-func dirtyCell(d dirtyState, selected bool) string {
-	symbol := "-"
-
-	if !selected {
-		symbol = ui.StyleDim.Render("-")
-	}
-
+func dirtyCell(d dirtyState, ic uiIcons, selected bool) string {
 	switch {
 	case d.hasModified && d.hasUntracked:
-		symbol = "M?"
+		return "M?"
 	case d.hasModified:
-		symbol = "M"
+		return "M"
 	case d.hasUntracked:
-		symbol = "?"
+		return "?"
 	}
-	return symbol
+	if selected {
+		return ic.dash
+	}
+	return ui.StyleDim.Render(ic.dash)
 }
 
 func baseCell(rebased *bool, ic uiIcons, isMainBranch bool, selected bool) string {

@@ -211,6 +211,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmds = append(cmds, cmdClearStatus(m.statusGen))
 		if wt := m.selectedWorktree(); wt != nil && wt.Branch != "" {
 			cmds = append(cmds, cmdLoadSyncStatus(m.repo, wt.Branch), cmdLoadSidebarData(m.repo, *wt))
+			if wt.Branch == m.repo.MainBranch {
+				for _, w := range m.worktrees {
+					if w.Branch != "" {
+						cmds = append(cmds, cmdLoadBaseStatus(m.repo, w.Branch))
+					}
+				}
+			}
 		}
 		return m, tea.Batch(cmds...)
 

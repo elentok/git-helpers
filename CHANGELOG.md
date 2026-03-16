@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.5.3
+
+- Confirm/error/logs/yank modals are now rendered as overlays, keeping the worktrees table and sidebar visible in the background
+- Removed the Branch column from the worktrees table; when a worktree's branch name differs from its directory name, the branch is shown inline in the Worktree column as `(branch-name)`
+- Fixed confirm dialog title being hardcoded as "gx push"
+
 ## v0.5.2
 
 - Added `gx bump` command: creates an annotated version tag and optionally pushes; accepts `major`, `minor`, or `patch` as an optional argument, or shows an interactive picker with the resulting version for each option

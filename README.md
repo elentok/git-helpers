@@ -155,46 +155,46 @@ Example:
 
 ## Key bindings
 
-| Key            | Action                                                          |
-| -------------- | --------------------------------------------------------------- |
-| `j` / `↓`      | Move down                                                       |
-| `k` / `↑`      | Move up                                                         |
-| `n`            | New worktree                                                    |
-| `N`            | New worktree and open a tmux session (switches to it)           |
-| `T`            | New worktree and open a tmux window                             |
-| `d`            | Delete selected worktree (and its branch)                       |
-| `r`            | Rename selected worktree and branch                             |
-| `c`            | Clone selected worktree (copies uncommitted files)              |
-| `y`            | Yank files from selected worktree into clipboard                |
-| `p`            | Pull selected worktree's branch (stash prompt if dirty)         |
-| `P`            | Push selected worktree's branch (confirms before pushing)       |
-| `b`            | Rebase selected worktree on main (stash prompt if dirty)        |
-| `l`            | Open selected worktree in lazygit                               |
-| `o`            | View output log of last pull/push job                           |
-| `/`            | Search worktrees by name or branch                              |
-| `t`            | Track remote branch (set upstream)                              |
-| `R`            | Refresh worktree list and statuses                              |
-| `U`            | Run `git remote update` and refresh                             |
-| `?`            | Toggle full help                                                |
-| `q` / `Ctrl+C` | Quit                                                            |
+| Key            | Action                                                    |
+| -------------- | --------------------------------------------------------- |
+| `j` / `↓`      | Move down                                                 |
+| `k` / `↑`      | Move up                                                   |
+| `n`            | New worktree                                              |
+| `N`            | New worktree and open a tmux session (switches to it)     |
+| `T`            | New worktree and open a tmux window                       |
+| `d`            | Delete selected worktree (and its branch)                 |
+| `r`            | Rename selected worktree and branch                       |
+| `c`            | Clone selected worktree (copies uncommitted files)        |
+| `y`            | Yank files from selected worktree into clipboard          |
+| `p`            | Pull selected worktree's branch (stash prompt if dirty)   |
+| `P`            | Push selected worktree's branch (confirms before pushing) |
+| `b`            | Rebase selected worktree on main (stash prompt if dirty)  |
+| `l`            | Open selected worktree in lazygit                         |
+| `o`            | View output log of last pull/push job                     |
+| `/`            | Search worktrees by name or branch                        |
+| `t`            | Track remote branch (set upstream)                        |
+| `R`            | Refresh worktree list and statuses                        |
+| `U`            | Run `git remote update` and refresh                       |
+| `?`            | Toggle full help                                          |
+| `q` / `Ctrl+C` | Quit                                                      |
 
 ### Search mode (after `/`)
 
-| Key          | Action                              |
-| ------------ | ----------------------------------- |
-| (type)       | Filter and highlight matches        |
-| `ctrl+n`     | Jump to next match                  |
-| `ctrl+p`     | Jump to previous match              |
-| `enter`/`esc`| Exit search, keep cursor position   |
+| Key           | Action                            |
+| ------------- | --------------------------------- |
+| (type)        | Filter and highlight matches      |
+| `ctrl+n`      | Jump to next match                |
+| `ctrl+p`      | Jump to previous match            |
+| `enter`/`esc` | Exit search, keep cursor position |
 
 ### Paste mode (after `y` + confirm)
 
-| Key       | Action                              |
-| --------- | ----------------------------------- |
-| `j` / `↓` | Move down                           |
-| `k` / `↑` | Move up                             |
+| Key       | Action                                    |
+| --------- | ----------------------------------------- |
+| `j` / `↓` | Move down                                 |
+| `k` / `↑` | Move up                                   |
 | `p`       | Paste yanked files into selected worktree |
-| `esc`     | Cancel and clear clipboard          |
+| `esc`     | Cancel and clear clipboard                |
 
 ## Development
 

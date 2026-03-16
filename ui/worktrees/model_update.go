@@ -454,6 +454,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		firstLoad := len(m.worktrees) == 0
 		m.worktrees = sortedWorktrees(msg.worktrees, m.repo.MainBranch)
 		m.dirties = make(map[string]dirtyState)
+		m = m.resized()
 		m.table.SetRows(m.buildRows())
 
 		for i, wt := range m.worktrees {

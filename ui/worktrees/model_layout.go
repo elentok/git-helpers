@@ -19,15 +19,14 @@ func (m Model) splitHeight(total int) (tableH, sidebarH int) {
 	if !m.useStackedLayout() {
 		return total, total
 	}
-	tableH = int(float64(total) * 0.58)
-	if tableH < 8 {
-		tableH = 8
+	// Size the table to exactly fit its rows: N rows + 2 (header+border) + 2 (box borders).
+	const minSidebarH = 6
+	tableH = len(m.worktrees) + 4
+	if tableH > total-minSidebarH {
+		tableH = total - minSidebarH
 	}
-	if tableH > total-6 {
-		tableH = total - 6
-	}
-	if tableH < 1 {
-		tableH = 1
+	if tableH < 4 {
+		tableH = 4
 	}
 	sidebarH = total - tableH
 	if sidebarH < 1 {

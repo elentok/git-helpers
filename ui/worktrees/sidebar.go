@@ -41,6 +41,21 @@ func renderSidebarContent(wt *git.Worktree, upstream string, headCommit git.Comm
 	}
 	b.WriteString("\n")
 
+	if !isMainBranch {
+		b.WriteString("\n")
+		b.WriteString(ui.StyleBold.Render(ic.baseTitle))
+		b.WriteString("\n\n")
+		switch {
+		case rebasedOnMain == nil:
+			b.WriteString(ui.StyleDim.Render("  loading…") + "\n")
+		case *rebasedOnMain:
+			b.WriteString(ui.StyleStatusSynced.Render("  "+ic.checkmark+" rebased on main") + "\n")
+		default:
+			b.WriteString(ui.StyleStatusDiverged.Render("  "+ic.x+" needs rebase on main") + "\n")
+		}
+	}
+
+	b.WriteString("\n")
 	if upstream == "" {
 		b.WriteString(ui.StyleDim.Render("  no remote tracking branch") + "\n")
 		b.WriteString(ui.StyleDim.Render("  press t to track origin/<branch>") + "\n")
@@ -72,20 +87,6 @@ func renderSidebarContent(wt *git.Worktree, upstream string, headCommit git.Comm
 				b.WriteString(c.Subject)
 				b.WriteString("\n")
 			}
-		}
-	}
-
-	if !isMainBranch {
-		b.WriteString("\n")
-		b.WriteString(ui.StyleBold.Render(ic.baseTitle))
-		b.WriteString("\n\n")
-		switch {
-		case rebasedOnMain == nil:
-			b.WriteString(ui.StyleDim.Render("  loading…") + "\n")
-		case *rebasedOnMain:
-			b.WriteString(ui.StyleStatusSynced.Render("  "+ic.checkmark+" rebased on main") + "\n")
-		default:
-			b.WriteString(ui.StyleStatusDiverged.Render("  "+ic.x+" needs rebase on main") + "\n")
 		}
 	}
 

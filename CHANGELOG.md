@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.5.1
+
+- Main branch worktree always appears first in the list
+- Main branch name and branch are rendered in orange to distinguish them at a glance
+- With nerd font icons, the main worktree uses a home icon (`󰋜`) instead of the folder icon
+
 ## v0.5.0
 
 - Added `gx stashify <cmd...>`: stashes uncommitted changes, runs the command, auto-pops on success, prompts to pop on failure

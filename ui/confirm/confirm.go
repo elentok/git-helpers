@@ -66,13 +66,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
-	title := ui.StyleBold.Render("gx push")
 	body := lipgloss.NewStyle().Padding(1, 2).Render(m.prompt)
 	hint := ui.StyleDim.Render("left/right: choose  y/n: quick select  enter: confirm")
 	yes := optionLabel("Yes", m.choiceYes)
 	no := optionLabel("No", !m.choiceYes)
 	return strings.Join([]string{
-		title,
 		body,
 		"  " + yes + "   " + no,
 		"  " + hint,

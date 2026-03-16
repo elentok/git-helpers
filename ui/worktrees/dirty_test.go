@@ -44,6 +44,56 @@ func TestDirtyStateFromChanges(t *testing.T) {
 	}
 }
 
+func TestWorktreeCellBranchSuffix(t *testing.T) {
+	ic := icons(false)
+	icNerd := icons(true)
+
+	// Branch same as worktree name — no suffix.
+	got := worktreeCell("feature-a", "feature-a", ic, false, false)
+	if strings.Contains(got, "(") {
+		t.Errorf("same name/branch: unexpected suffix in %q", got)
+	}
+
+	// Branch empty — no suffix.
+	got = worktreeCell("feature-a", "", ic, false, false)
+	if strings.Contains(got, "(") {
+		t.Errorf("empty branch: unexpected suffix in %q", got)
+	}
+
+	// Branch differs — suffix shows branch name.
+	got = worktreeCell("my-worktree", "feature/TICKET-123", ic, false, false)
+	if !strings.Contains(got, "my-worktree") {
+		t.Errorf("worktree name missing: %q", got)
+	}
+	if !strings.Contains(got, "(feature/TICKET-123)") {
+		t.Errorf("branch suffix missing or wrong: %q", got)
+	}
+
+	// With nerd font: suffix includes branch prefix icon.
+	got = worktreeCell("my-worktree", "feature/TICKET-123", icNerd, false, false)
+	if !strings.Contains(got, icNerd.branchPrefix) {
+		t.Errorf("nerd font branch prefix missing in %q", got)
+	}
+	if !strings.Contains(got, "feature/TICKET-123") {
+		t.Errorf("branch name missing in %q", got)
+	}
+
+	// Selected row — suffix still contains the branch name.
+	plain := worktreeCell("my-worktree", "other-branch", ic, false, true)
+	if !strings.Contains(plain, "other-branch") {
+		t.Errorf("selected: branch name missing in %q", plain)
+	}
+
+	// Main branch with differing branch name — whole cell is orange (styleMainBranch).
+	got = worktreeCell("main-wt", "main", ic, true, false)
+	if !strings.Contains(got, "main-wt") {
+		t.Errorf("main+diff: worktree name missing in %q", got)
+	}
+	if !strings.Contains(got, "main") {
+		t.Errorf("main+diff: branch name missing in %q", got)
+	}
+}
+
 func TestDirtyCellSymbols(t *testing.T) {
 	tests := []struct {
 		name  string
@@ -70,14 +120,14 @@ func TestDirtyAndStatusCellSelectedArePlain(t *testing.T) {
 	if got := dirtyCell(dirtyState{hasModified: true, hasUntracked: true}, true); got != "M?" {
 		t.Fatalf("dirtyCell(selected) = %q, want %q", got, "M?")
 	}
-	if got := statusCell(git.SyncStatus{Name: git.StatusSame}, true, false); got != "synced" {
+	if got := statusCell(git.SyncStatus{Name: git.StatusSame}, icons(false), true, false); got != "synced" {
 		t.Fatalf("statusCell(selected) = %q, want %q", got, "synced")
 	}
 }
 
 func TestStatusCellNerdFontReplacesAheadBehind(t *testing.T) {
 	s := git.SyncStatus{Name: git.StatusDiverged, Ahead: 2, Behind: 1}
-	got := statusCell(s, false, true)
+	got := statusCell(s, icons(true), false, true)
 	if !strings.Contains(got, "") || !strings.Contains(got, "") {
 		t.Fatalf("statusCell() = %q, expected nerd-font arrows", got)
 	}

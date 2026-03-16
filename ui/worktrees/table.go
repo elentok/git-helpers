@@ -60,7 +60,7 @@ func resizeTable(t *table.Model, width, height int) {
 	// Account for default table cell left/right padding (2 chars per column)
 	// plus inter-column spaces to avoid overflow/wrapping.
 	const (
-		cols       = 5
+		cols       = 4
 		separators = cols - 1
 		padding    = cols * 2
 	)
@@ -69,20 +69,18 @@ func resizeTable(t *table.Model, width, height int) {
 		usable = 20
 	}
 
-	branchW := int(float64(usable) * 0.25)
 	dirtyW := 5
 	baseW := 4
 	statusW := int(float64(usable) * 0.20)
 	if statusW < 8 {
 		statusW = 8
 	}
-	nameW := usable - branchW - dirtyW - baseW - statusW
+	nameW := usable - dirtyW - baseW - statusW
 	if nameW < 8 {
 		nameW = 8
 	}
 	t.SetColumns([]table.Column{
 		{Title: "Worktree", Width: nameW},
-		{Title: "Branch", Width: branchW},
 		{Title: "Dirty", Width: dirtyW},
 		{Title: "Base", Width: baseW},
 		{Title: "Status", Width: statusW},
@@ -169,15 +167,12 @@ func (m Model) buildRows() []table.Row {
 	for i, wt := range m.worktrees {
 		isSelected := i == m.table.Cursor()
 		isMain := wt.Branch == m.repo.MainBranch
-		nameCol := worktreeCell(wt.Name, ic, isMain, isSelected)
-		branchCol := branchCell(wt.Branch, ic, isMain, isSelected)
+		nameCol := worktreeCell(wt.Name, wt.Branch, ic, isMain, isSelected)
 		if m.searchQuery != "" && !isSelected {
 			nameCol = highlightMatch(nameCol, m.searchQuery)
-			branchCol = highlightMatch(branchCol, m.searchQuery)
 		}
 		rows[i] = table.Row{
 			nameCol,
-			branchCol,
 			dirtyCell(m.dirties[wt.Path], isSelected),
 			baseCell(m.baseStatus[wt.Branch], ic, wt.Branch == m.repo.MainBranch, isSelected),
 			statusCell(m.statuses[wt.Branch], ic, isSelected, m.settings.UseNerdFontIcons),
@@ -200,23 +195,25 @@ func highlightMatch(text, query string) string {
 	return text[:idx] + styleSearchHighlight.Render(text[idx:idx+len(query)]) + text[idx+len(query):]
 }
 
-func worktreeCell(name string, ic uiIcons, isMain, isSelected bool) string {
+func worktreeCell(name, branch string, ic uiIcons, isMain, isSelected bool) string {
 	prefix := ic.worktreePrefix
 	if isMain && ic.mainPrefix != "" {
 		prefix = ic.mainPrefix
 	}
 	text := prefix + name
-	if isMain && !isSelected {
-		return styleMainBranch.Render(text)
-	}
-	return text
-}
 
-func branchCell(name string, ic uiIcons, isMain, isSelected bool) string {
-	text := name
-	if ic.branchPrefix != "" && name != "" {
-		text = ic.branchPrefix + name
+	if branch != "" && branch != name {
+		branchSuffix := "(" + ic.branchPrefix + branch + ")"
+		if isSelected {
+			text += " " + branchSuffix
+		} else if isMain {
+			return styleMainBranch.Render(text + " " + branchSuffix)
+		} else {
+			text += " " + ui.StyleDim.Render(branchSuffix)
+		}
+		return text
 	}
+
 	if isMain && !isSelected {
 		return styleMainBranch.Render(text)
 	}
@@ -224,10 +221,10 @@ func branchCell(name string, ic uiIcons, isMain, isSelected bool) string {
 }
 
 func dirtyCell(d dirtyState, selected bool) string {
-	symbol := ""
+	symbol := "-"
 
 	if !selected {
-		symbol = ui.StyleDim.Render("")
+		symbol = ui.StyleDim.Render("-")
 	}
 
 	switch {

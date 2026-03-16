@@ -108,7 +108,7 @@ func TestDirtyCellSymbols(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := dirtyCell(tt.dirty, false)
+			got := dirtyCell(tt.dirty, icons(false), false)
 			if !strings.Contains(got, tt.want) {
 				t.Fatalf("dirtyCell() = %q, want symbol %q", got, tt.want)
 			}
@@ -117,7 +117,7 @@ func TestDirtyCellSymbols(t *testing.T) {
 }
 
 func TestDirtyAndStatusCellSelectedArePlain(t *testing.T) {
-	if got := dirtyCell(dirtyState{hasModified: true, hasUntracked: true}, true); got != "M?" {
+	if got := dirtyCell(dirtyState{hasModified: true, hasUntracked: true}, icons(false), true); got != "M?" {
 		t.Fatalf("dirtyCell(selected) = %q, want %q", got, "M?")
 	}
 	if got := statusCell(git.SyncStatus{Name: git.StatusSame}, icons(false), true, false); got != "synced" {

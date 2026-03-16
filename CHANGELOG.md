@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.5.2
+
+- Added `gx bump` command: creates an annotated version tag and optionally pushes; accepts `major`, `minor`, or `patch` as an optional argument, or shows an interactive picker with the resulting version for each option
+
 ## v0.5.1
 
 - Main branch worktree always appears first in the list

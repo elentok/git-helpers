@@ -21,6 +21,7 @@ and [go-migration-plan.md](/docs/go-migration-plan.md)).
 - `gx wt list` and `gx wt abs-path` for scripting and shell integration
 - Press `/` to search and highlight matching worktrees by name or branch
 - Press `l` to open the selected worktree in lazygit
+- `gx bump` creates an annotated version tag with an interactive picker (or pass `major`/`minor`/`patch` directly) and optionally pushes
 - `gx doctor` checks for and optionally fixes common configuration issues
 - Startup check for misconfigured fetch refspec with an option to fix automatically
 - Scrollable error modal for any git failures
@@ -114,6 +115,13 @@ Edit config in `$EDITOR`:
 
 ```sh
 gx edit-config
+```
+
+Bump the version tag (interactive picker if no argument given):
+
+```sh
+gx bump
+gx bump patch   # or minor / major
 ```
 
 Check the repo for common configuration issues:

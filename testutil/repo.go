@@ -166,6 +166,13 @@ func mustGit(t *testing.T, dir string, args ...string) {
 	mustRun(t, dir, "git", args...)
 }
 
+// MustGitExported runs a git command in dir, failing the test on error.
+// It is the exported equivalent of mustGit for use in other packages.
+func MustGitExported(t *testing.T, dir string, args ...string) {
+	t.Helper()
+	mustGit(t, dir, args...)
+}
+
 func mustRun(t *testing.T, dir, name string, args ...string) {
 	t.Helper()
 	cmd := exec.Command(name, args...)

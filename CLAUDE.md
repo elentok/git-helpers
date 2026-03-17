@@ -38,6 +38,7 @@
 ### 6. Autonomous Bug Fixing
 
 - When given a bug report: just fix it. Don't ask for hand-holding
+- Before fixing a bug try to write tests that catch it and after you fix it verify the test passes
 - Point at logs, errors, failing tests - then resolve them
 - Zero context switching required from the user
 - Go fix failing CI tests without being told how

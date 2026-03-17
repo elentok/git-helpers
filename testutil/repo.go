@@ -60,6 +60,58 @@ func TempBareRepo(t *testing.T) string {
 	return bare
 }
 
+// TempBareRepoWithMainWorktreeAhead creates a bare repo where local main is one
+// commit behind origin/main. The repo contains a linked worktree for main
+// (at the old tip) plus a linked worktree for each name in featureNames.
+//
+// This lets tests verify that the view refreshes after pulling main: before the
+// pull feature branches show base-status ✓ (rebased on old main); after the
+// pull, main advances and they show ✗.
+func TempBareRepoWithMainWorktreeAhead(t *testing.T, featureNames ...string) string {
+	t.Helper()
+	src := TempRepo(t)
+
+	// Add a second commit to src so origin/main is ahead of the first commit.
+	WriteFile(t, src, "v2.txt", "second commit")
+	mustGit(t, src, "add", ".")
+	mustGit(t, src, "commit", "-m", "second commit on main")
+
+	// Clone src as a bare repo (acquires both commits; local main = C2 = origin/main).
+	bare := evalDir(t, t.TempDir())
+	os.RemoveAll(bare)
+	t.Cleanup(func() {
+		for range 10 {
+			if os.RemoveAll(bare) == nil {
+				return
+			}
+			time.Sleep(50 * time.Millisecond)
+		}
+	})
+	mustRun(t, ".", "git", "clone", "--bare", src, bare)
+	mustGit(t, bare, "config", "remote.origin.fetch", "+refs/heads/*:refs/remotes/origin/*")
+	mustGit(t, bare, "fetch", "origin")
+	mustGit(t, bare, "branch", "--set-upstream-to=origin/main", "main")
+
+	// Reset local main back to C1 so the repo has something to pull.
+	mustGit(t, bare, "update-ref", "refs/heads/main", "HEAD~1")
+
+	// Add a linked worktree for main (at C1).
+	mainWt := filepath.Join(bare, "main")
+	mustGit(t, bare, "worktree", "add", mainWt, "main")
+	configUser(t, mainWt)
+
+	// Add feature worktrees branched from C1.
+	for _, name := range featureNames {
+		wtDir := filepath.Join(bare, name)
+		mustGit(t, bare, "worktree", "add", "-b", name, wtDir)
+		configUser(t, wtDir)
+		WriteFile(t, wtDir, "file.txt", name)
+		mustGit(t, wtDir, "add", ".")
+		mustGit(t, wtDir, "commit", "-m", "add "+name)
+	}
+	return bare
+}
+
 // TempBareRepoWithWorktrees creates a bare repo with linked worktrees.
 // Each name results in a branch and a worktree directory under the bare repo.
 func TempBareRepoWithWorktrees(t *testing.T, names ...string) string {

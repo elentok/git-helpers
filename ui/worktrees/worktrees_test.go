@@ -338,6 +338,57 @@ func TestPushRejectedForcePushConfirmed(t *testing.T) {
 	quit(t, tm)
 }
 
+// ── pull ──────────────────────────────────────────────────────────────────────
+
+func TestPullMainRefreshesBaseStatus(t *testing.T) {
+	// Regression: after pulling main the base-status column for feature branches
+	// must update. Before the fix, pullResultMsg only refreshed base statuses
+	// when the selected branch matched MainBranch — verify the happy path.
+	repoDir := testutil.TempBareRepoWithMainWorktreeAhead(t, "feature-a")
+	_, tm := startTUI(t, repoDir)
+
+	// main is sorted first; wait for it and for the initial base-status load.
+	waitForText(t, tm, "main", loadWait)
+	waitForText(t, tm, "✓", loadWait) // feature-a is rebased on old main
+
+	// Pull main (cursor is on main).
+	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'p'}})
+	waitForText(t, tm, "Pulled", loadWait)
+
+	// After pulling, main advances; feature-a is now behind main → ✗.
+	waitForText(t, tm, "✗", loadWait)
+
+	quit(t, tm)
+}
+
+func TestStashPullMainRefreshesBaseStatus(t *testing.T) {
+	// Regression: the stash-pull path (dirty worktree → stash → pull → pop)
+	// was not refreshing base statuses after completing. stashPopResultMsg only
+	// ran cmdLoadBaseStatus for "rebase" ops, not "pull". Verify the fix.
+	repoDir := testutil.TempBareRepoWithMainWorktreeAhead(t, "feature-a")
+	mainWtDir := filepath.Join(repoDir, "main")
+
+	// Make the main worktree dirty (modify a tracked file) so the stash-pull
+	// code path is taken. git stash does not stash untracked-only changes.
+	testutil.WriteFile(t, mainWtDir, "README.md", "modified")
+
+	_, tm := startTUI(t, repoDir)
+	waitForText(t, tm, "main", loadWait)
+	waitForText(t, tm, "✓", loadWait) // feature-a rebased on old main
+
+	// Pull main — dirty worktree triggers the stash prompt.
+	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'p'}})
+	waitForText(t, tm, "Stash", actionWait)
+	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'y'}})
+
+	waitForText(t, tm, "Pulled (stash restored)", loadWait)
+
+	// After stash-pull + stash-pop, main advanced; feature-a is behind → ✗.
+	waitForText(t, tm, "✗", loadWait)
+
+	quit(t, tm)
+}
+
 // ── rename ────────────────────────────────────────────────────────────────────
 
 func TestRenameWorktree_DotBareRepo(t *testing.T) {

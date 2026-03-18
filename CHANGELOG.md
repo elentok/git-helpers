@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.6.0
+
+- Migrated the TUI stack to Bubble Tea v2, Bubbles v2, and Lip Gloss v2
+- Replaced the old Bubble Tea v1 `teatest` dependency with a small repo-local v2 test harness
+
 ## v0.5.5
 
 - Worktree Base column now refreshes after pulling the main branch via stash-pull

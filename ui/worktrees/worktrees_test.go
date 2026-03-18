@@ -40,6 +40,22 @@ func waitForText(t *testing.T, tm *teatest.TestModel, text string, timeout time.
 	}, teatest.WithDuration(timeout))
 }
 
+// waitForTexts waits until a single output frame contains ALL of the given
+// strings. Use this instead of chained waitForText calls when the strings
+// may all appear in the same render batch — a fast system can deliver them
+// together and the subsequent waitForText would see an empty buffer.
+func waitForTexts(t *testing.T, tm *teatest.TestModel, timeout time.Duration, texts ...string) {
+	t.Helper()
+	teatest.WaitFor(t, tm.Output(), func(bts []byte) bool {
+		for _, text := range texts {
+			if !bytes.Contains(bts, []byte(text)) {
+				return false
+			}
+		}
+		return true
+	}, teatest.WithDuration(timeout))
+}
+
 func quit(t *testing.T, tm *teatest.TestModel) {
 	t.Helper()
 	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'q'}})
@@ -347,9 +363,10 @@ func TestPullMainRefreshesBaseStatus(t *testing.T) {
 	repoDir := testutil.TempBareRepoWithMainWorktreeAhead(t, "feature-a")
 	_, tm := startTUI(t, repoDir)
 
-	// main is sorted first; wait for it and for the initial base-status load.
-	waitForText(t, tm, "main", loadWait)
-	waitForText(t, tm, "✓", loadWait) // feature-a is rebased on old main
+	// Wait for the table and base-status to appear in the same frame.
+	// (Using waitForTexts avoids a race where both strings arrive in one render
+	// batch and a chained waitForText would see an empty buffer on the second call.)
+	waitForTexts(t, tm, loadWait, "main", "✓") // feature-a is rebased on old main
 
 	// Pull main (cursor is on main).
 	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'p'}})
@@ -373,8 +390,7 @@ func TestStashPullMainRefreshesBaseStatus(t *testing.T) {
 	testutil.WriteFile(t, mainWtDir, "README.md", "modified")
 
 	_, tm := startTUI(t, repoDir)
-	waitForText(t, tm, "main", loadWait)
-	waitForText(t, tm, "✓", loadWait) // feature-a rebased on old main
+	waitForTexts(t, tm, loadWait, "main", "✓") // feature-a rebased on old main
 
 	// Pull main — dirty worktree triggers the stash prompt.
 	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'p'}})

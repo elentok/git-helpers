@@ -51,7 +51,7 @@ Upgrade the repo from Bubble Tea v1 to the Bubble Tea v2 stack described in the 
   - Prefer `msg.String()` / `key.Matches(...)` where possible, and only drop to `Code` / `Mod` checks when needed.
   - Audit for `" "` string matching; replace with `"space"` if present.
 
-- [ ] Phase 4: Update program construction and removed imperative APIs
+- [x] Phase 4: Update program construction and removed imperative APIs
   - Replace removed or relocated program options and methods with declarative `tea.View` fields.
   - Audit `tea.NewProgram(...)` call sites:
     - `cmd/cmd.go`
@@ -78,7 +78,7 @@ Upgrade the repo from Bubble Tea v1 to the Bubble Tea v2 stack described in the 
     - `cmd/spinner.go`
   - Pay particular attention to spinner tick wiring and sub-model `Update(...)` calls, since those often surface type changes after the key-message migration.
 
-- [ ] Phase 6: Rewrite tests for v2 message construction
+- [x] Phase 6: Rewrite tests for v2 message construction
   - Update direct message construction in:
     - `cmd/bump_test.go`
     - `ui/worktrees/worktrees_test.go`
@@ -180,3 +180,24 @@ Upgrade the repo from Bubble Tea v1 to the Bubble Tea v2 stack described in the 
   - `go build ./...` passes.
   - `go test ./cmd` passes.
   - `go test ./cmd ./ui/confirm ./ui/worktrees -run '^$'` now fails only because `ui/worktrees/worktrees_test.go` uses `github.com/charmbracelet/x/exp/teatest`, which still depends on Bubble Tea v1 and constructs v1 key messages.
+- Phase 4 completed on 2026-03-18.
+- Audited remaining `tea.NewProgram(...)` call sites:
+  - `cmd/cmd.go`
+  - `cmd/spinner.go`
+  - `cmd/bump.go`
+  - `ui/confirm/confirm.go`
+- Result:
+  - `cmd/cmd.go` already uses plain `tea.NewProgram(m)` with alt-screen declared in the view.
+  - `cmd/spinner.go`, `cmd/bump.go`, and `ui/confirm/confirm.go` still use `WithInput` / `WithOutput`, which remain valid in v2.
+  - No remaining runtime uses of removed imperative APIs such as `WithAltScreen`, `EnterAltScreen`, `ExitAltScreen`, mouse enable/disable commands, or other deprecated program-level screen toggles were found in app code.
+- Phase 6 completed on 2026-03-18.
+- Replaced the Bubble Tea v1-only external `teatest` dependency with a repo-local v2-compatible harness:
+  - `testutil/teatestv2/teatest.go`
+- Updated `ui/worktrees/worktrees_test.go` to import the local harness and synthesize v2 `tea.KeyPressMsg` values.
+- Updated `cmd/bump_test.go` to use v2 `tea.KeyPressMsg`.
+- Improved the local harness to capture full `View().Content` snapshots instead of raw terminal diff output so text assertions remain stable under Bubble Tea v2 rendering.
+- Removed the obsolete external dependency from the module graph with `go mod tidy`.
+- Verification:
+  - `go test ./ui/worktrees -count=1` passes.
+  - `go test ./cmd -count=1` passes.
+  - `go test ./... -count=1` passes.

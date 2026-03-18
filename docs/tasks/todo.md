@@ -32,7 +32,7 @@ Upgrade the repo from Bubble Tea v1 to the Bubble Tea v2 stack described in the 
   - For the worktrees UI, set `AltScreen` from `View()` instead of `tea.WithAltScreen()` in program construction.
   - Recheck modal and status-bar rendering to ensure the composed content still displays correctly under `tea.View`.
 
-- [ ] Phase 3: Migrate key handling to v2 message types
+- [x] Phase 3: Migrate key handling to v2 message types
   - Replace runtime `case tea.KeyMsg:` handlers with `case tea.KeyPressMsg:` unless release events are intentionally needed.
   - Update helper signatures that currently accept `tea.KeyMsg`:
     - `ui/worktrees/model_confirm_modal.go`
@@ -62,7 +62,7 @@ Upgrade the repo from Bubble Tea v1 to the Bubble Tea v2 stack described in the 
   - Search for removed program methods and imperative terminal commands even if the initial scan did not find them.
   - Check whether any `WindowSize` requests or `Sequentially` usage need renaming during the compile-fix pass.
 
-- [ ] Phase 5: Reconcile component integrations
+- [x] Phase 5: Reconcile component integrations
   - Validate the Bubbles component APIs used here under the selected v2 release:
     - `spinner`
     - `table`
@@ -85,7 +85,7 @@ Upgrade the repo from Bubble Tea v1 to the Bubble Tea v2 stack described in the 
   - Replace v1 synthetic key messages with v2 equivalents that model key presses.
   - Re-run test failures after each batch and normalize helpers if repeated message-construction boilerplate emerges.
 
-- [ ] Phase 7: Verification
+- [x] Phase 7: Verification
   - Run targeted package tests first for the touched areas:
     - `go test ./cmd ./ui/worktrees ./ui/confirm -count=1`
   - Run the full suite:
@@ -190,6 +190,15 @@ Upgrade the repo from Bubble Tea v1 to the Bubble Tea v2 stack described in the 
   - `cmd/cmd.go` already uses plain `tea.NewProgram(m)` with alt-screen declared in the view.
   - `cmd/spinner.go`, `cmd/bump.go`, and `ui/confirm/confirm.go` still use `WithInput` / `WithOutput`, which remain valid in v2.
   - No remaining runtime uses of removed imperative APIs such as `WithAltScreen`, `EnterAltScreen`, `ExitAltScreen`, mouse enable/disable commands, or other deprecated program-level screen toggles were found in app code.
+- Phase 5 completed on 2026-03-18.
+- Runtime component integrations reconciled during the compile-fix passes in earlier phases:
+  - `viewport.New(...)` updated to option-based construction
+  - viewport width/height setters updated
+  - help width setter updated
+  - spinner, textinput, table, key, and viewport integrations compile and pass tests under the selected v2 stack
+- Verification:
+  - `go build ./...` passes.
+  - Representative component-backed integration tests pass in `ui/worktrees`.
 - Phase 6 completed on 2026-03-18.
 - Replaced the Bubble Tea v1-only external `teatest` dependency with a repo-local v2-compatible harness:
   - `testutil/teatestv2/teatest.go`
@@ -201,3 +210,11 @@ Upgrade the repo from Bubble Tea v1 to the Bubble Tea v2 stack described in the 
   - `go test ./ui/worktrees -count=1` passes.
   - `go test ./cmd -count=1` passes.
   - `go test ./... -count=1` passes.
+- Phase 7 completed on 2026-03-18.
+- Representative smoke coverage run:
+  - `go test ./cmd -run 'TestPickBump_EnterSelectsPatch|TestRunBump_PatchExplicit' -count=1`
+  - `go test ./ui/worktrees -run 'TestDeleteWorktree|TestCloneWorktree|TestNewWorktree|TestYankAndPaste|TestPushWorktree|TestPullMainRefreshesBaseStatus|TestRenameWorktree|TestSearchCyclesMatches' -count=1`
+- Final verification:
+  - `go test ./... -count=1` passes.
+- Note:
+  - This closeout used automated smoke coverage through representative integration tests. I did not run a manual live terminal session of `gx` in this turn.

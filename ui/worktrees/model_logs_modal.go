@@ -29,13 +29,9 @@ func (m Model) enterLogsMode() Model {
 }
 
 // handleLogsKey scrolls the logs viewport or dismisses it.
-func (m Model) handleLogsKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
-	switch msg.Type {
-	case tea.KeyEsc, tea.KeyEnter:
-		m.mode = modeNormal
-		return m, nil
-	}
-	if msg.Type == tea.KeyRunes && msg.String() == "q" {
+func (m Model) handleLogsKey(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
+	switch msg.String() {
+	case "esc", "enter", "q":
 		m.mode = modeNormal
 		return m, nil
 	}

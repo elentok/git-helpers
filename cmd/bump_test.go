@@ -20,7 +20,7 @@ func tagRepo(t *testing.T, dir, tag string) {
 
 func TestParseVersion_Valid(t *testing.T) {
 	tests := []struct {
-		tag               string
+		tag                 string
 		major, minor, patch int
 	}{
 		{"v1.2.3", 1, 2, 3},
@@ -87,10 +87,10 @@ func TestPickBump_CursorClampsAtBottom(t *testing.T) {
 	}
 	// Simulate three j presses then enter.
 	for range 3 {
-		next, _ := m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'j'}})
+		next, _ := m.Update(tea.KeyPressMsg{Code: 'j', Text: "j"})
 		m = next.(bumpPickerModel)
 	}
-	next, _ := m.Update(tea.KeyMsg{Type: tea.KeyEnter})
+	next, _ := m.Update(tea.KeyPressMsg{Code: tea.KeyEnter})
 	m = next.(bumpPickerModel)
 	if m.chosen != "major" {
 		t.Errorf("chosen = %q, want %q", m.chosen, "major")

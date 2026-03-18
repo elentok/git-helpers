@@ -53,7 +53,7 @@ func (m Model) enterRenameMode() Model {
 }
 
 // handleRenameKey handles key events while in rename-input mode.
-func (m Model) handleRenameKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+func (m Model) handleRenameKey(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 	cancel := key.NewBinding(key.WithKeys("esc"))
 	submit := key.NewBinding(key.WithKeys("enter"))
 

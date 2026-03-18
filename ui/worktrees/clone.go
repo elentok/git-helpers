@@ -73,7 +73,7 @@ func (m Model) enterCloneMode() Model {
 }
 
 // handleCloneKey handles key events while in clone-input mode.
-func (m Model) handleCloneKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+func (m Model) handleCloneKey(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 	cancel := key.NewBinding(key.WithKeys("esc"))
 	submit := key.NewBinding(key.WithKeys("enter"))
 

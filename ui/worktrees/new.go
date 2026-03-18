@@ -70,7 +70,7 @@ func (m Model) enterNewTmuxWindowMode() Model {
 	return m
 }
 
-func (m Model) handleNewKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+func (m Model) handleNewKey(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 	cancel := key.NewBinding(key.WithKeys("esc"))
 	submit := key.NewBinding(key.WithKeys("enter"))
 

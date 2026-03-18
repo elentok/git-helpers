@@ -48,12 +48,12 @@ func (m Model) enterYankMode() (Model, tea.Cmd) {
 }
 
 // handleYankKey handles key events while the yank checklist modal is open.
-func (m Model) handleYankKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
-	switch msg.Type {
-	case tea.KeyEsc:
+func (m Model) handleYankKey(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
+	switch msg.String() {
+	case "esc":
 		m.mode = modeNormal
 		return m, nil
-	case tea.KeyEnter:
+	case "enter":
 		files := m.yankChecklist.Checked()
 		if len(files) > 0 {
 			m.clipboard = &clipboardState{

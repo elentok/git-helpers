@@ -29,21 +29,14 @@ func (m Model) showError(errMsg string) Model {
 }
 
 // handleErrorKey scrolls the error viewport or dismisses it.
-func (m Model) handleErrorKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
-	switch msg.Type {
-	case tea.KeyEsc, tea.KeyEnter:
+func (m Model) handleErrorKey(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
+	switch msg.String() {
+	case "esc", "enter", "q":
 		m.mode = modeNormal
 		return m, nil
-	}
-	if msg.Type == tea.KeyRunes {
-		switch msg.String() {
-		case "q":
-			m.mode = modeNormal
-			return m, nil
-		case "o":
-			if m.lastJobLog != "" {
-				return m.enterLogsMode(), nil
-			}
+	case "o":
+		if m.lastJobLog != "" {
+			return m.enterLogsMode(), nil
 		}
 	}
 	var cmd tea.Cmd

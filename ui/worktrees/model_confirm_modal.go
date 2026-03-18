@@ -28,7 +28,7 @@ func (m Model) enterConfirmWithCancel(prompt string, cmd tea.Cmd, spinnerLabel, 
 	return m
 }
 
-func (m Model) handleConfirmKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+func (m Model) handleConfirmKey(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 	toggleLeft := key.NewBinding(key.WithKeys("left", "h"))
 	toggleRight := key.NewBinding(key.WithKeys("right", "l"))
 	yes := key.NewBinding(key.WithKeys("y"))

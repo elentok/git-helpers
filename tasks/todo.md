@@ -161,3 +161,22 @@ Upgrade the repo from Bubble Tea v1 to the Bubble Tea v2 stack described in the 
   - `help.SetWidth`
 - Post-Phase-2 compile result:
   - Remaining build failures are key-message API changes in the worktrees UI (`tea.KeyMsg` field access and v1 key constants), which is the expected Phase 3 boundary.
+- Phase 3 runtime migration completed on 2026-03-18.
+- Switched runtime key handling to `tea.KeyPressMsg` in:
+  - `cmd/bump.go`
+  - `ui/confirm/confirm.go`
+  - `ui/worktrees/model_update.go`
+  - `ui/worktrees/model_confirm_modal.go`
+  - `ui/worktrees/model_error_modal.go`
+  - `ui/worktrees/model_logs_modal.go`
+  - `ui/worktrees/rename.go`
+  - `ui/worktrees/clone.go`
+  - `ui/worktrees/new.go`
+  - `ui/worktrees/yank.go`
+  - `ui/worktrees/paste.go`
+  - `ui/worktrees/search.go`
+- Replaced v1 key field checks with `msg.String()` / `key.Matches(...)`.
+- Verification:
+  - `go build ./...` passes.
+  - `go test ./cmd` passes.
+  - `go test ./cmd ./ui/confirm ./ui/worktrees -run '^$'` now fails only because `ui/worktrees/worktrees_test.go` uses `github.com/charmbracelet/x/exp/teatest`, which still depends on Bubble Tea v1 and constructs v1 key messages.

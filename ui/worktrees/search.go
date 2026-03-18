@@ -49,7 +49,7 @@ func (m Model) recomputeSearchMatches() Model {
 }
 
 // handleSearchKey handles key events while in search mode.
-func (m Model) handleSearchKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+func (m Model) handleSearchKey(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 	nextMatch := key.NewBinding(key.WithKeys("ctrl+n"))
 	prevMatch := key.NewBinding(key.WithKeys("ctrl+p"))
 	exit := key.NewBinding(key.WithKeys("esc", "enter"))

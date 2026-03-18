@@ -18,7 +18,7 @@ type pasteResultMsg struct {
 
 // handlePasteModeKey handles key events in paste mode (clipboard active, waiting for destination).
 // Only navigation (j/k/arrows), paste (p), and cancel (esc) are active.
-func (m Model) handlePasteModeKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+func (m Model) handlePasteModeKey(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 	up := key.NewBinding(key.WithKeys("up", "k"))
 	down := key.NewBinding(key.WithKeys("down", "j"))
 	doPaste := key.NewBinding(key.WithKeys("p"))

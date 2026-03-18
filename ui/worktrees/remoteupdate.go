@@ -3,7 +3,7 @@ package worktrees
 import (
 	"gx/git"
 
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 )
 
 type remoteUpdateResultMsg struct {

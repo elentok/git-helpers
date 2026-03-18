@@ -13,7 +13,7 @@ import (
 	"gx/ui/confirm"
 	"gx/ui/worktrees"
 
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 )
 
 type deps struct {

@@ -7,7 +7,7 @@ import (
 
 	"gx/testutil"
 
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 )
 
 // tagRepo creates a git tag in the given repo directory.

@@ -5,7 +5,7 @@ import (
 
 	"gx/git"
 
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 )
 
 func cmdClearStatus(gen int) tea.Cmd {

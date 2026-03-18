@@ -6,7 +6,7 @@ import (
 	"gx/git"
 	"gx/ui"
 
-	"github.com/charmbracelet/lipgloss"
+	"charm.land/lipgloss/v2"
 	humanize "github.com/dustin/go-humanize"
 )
 

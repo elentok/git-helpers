@@ -58,35 +58,18 @@ func (m Model) normalView() string {
 	tableW, sidebarW := m.splitWidth()
 	tableH, sidebarH := m.splitHeight(h)
 
-	innerTableW := tableW - 2
-	innerSidebarW := sidebarW - 2
-	innerTableH := tableH - 2
-	innerSidebarH := sidebarH - 2
-	if innerTableW < 1 {
-		innerTableW = 1
-	}
-	if innerSidebarW < 1 {
-		innerSidebarW = 1
-	}
-	if innerTableH < 1 {
-		innerTableH = 1
-	}
-	if innerSidebarH < 1 {
-		innerSidebarH = 1
-	}
-
 	tableView := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(ui.ColorBorder).
-		Width(innerTableW).
-		Height(innerTableH).
+		Width(tableW).
+		Height(tableH).
 		Render(tableView(m.table))
 
 	sidebarView := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(ui.ColorBorder).
-		Width(innerSidebarW).
-		Height(innerSidebarH).
+		Width(sidebarW).
+		Height(sidebarH).
 		Render(m.viewport.View())
 
 	var content string

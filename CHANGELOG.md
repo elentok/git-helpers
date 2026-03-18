@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.5.5
+
+- Worktree Base column now refreshes after pulling the main branch via stash-pull
+
 ## v0.5.4
 
 - Dirty column now uses colored styles: yellow for modified, cyan for untracked, magenta for both

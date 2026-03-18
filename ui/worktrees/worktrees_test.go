@@ -9,10 +9,10 @@ import (
 
 	"gx/git"
 	"gx/testutil"
+	teatest "gx/testutil/teatestv2"
 	"gx/ui/worktrees"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/charmbracelet/x/exp/teatest"
 )
 
 const (
@@ -58,8 +58,20 @@ func waitForTexts(t *testing.T, tm *teatest.TestModel, timeout time.Duration, te
 
 func quit(t *testing.T, tm *teatest.TestModel) {
 	t.Helper()
-	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'q'}})
+	tm.Send(keyRune('q'))
 	tm.WaitFinished(t, teatest.WithFinalTimeout(3*time.Second))
+}
+
+func keyRune(r rune) tea.KeyPressMsg {
+	return tea.KeyPressMsg{Code: r, Text: string(r)}
+}
+
+func keyCtrl(r rune) tea.KeyPressMsg {
+	return tea.KeyPressMsg{Code: r, Mod: tea.ModCtrl}
+}
+
+func keySpecial(code rune) tea.KeyPressMsg {
+	return tea.KeyPressMsg{Code: code}
 }
 
 // ── delete ────────────────────────────────────────────────────────────────────
@@ -71,11 +83,11 @@ func TestDeleteConfirmationAppearsAndCancels(t *testing.T) {
 	waitForText(t, tm, "feature-a", loadWait)
 
 	// Enter delete mode
-	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'d'}})
+	tm.Send(keyRune('d'))
 	waitForText(t, tm, "Delete", actionWait)
 
 	// Cancel with esc — should return to normal without crashing
-	tm.Send(tea.KeyMsg{Type: tea.KeyEsc})
+	tm.Send(keySpecial(tea.KeyEsc))
 
 	quit(t, tm)
 }
@@ -87,9 +99,9 @@ func TestDeleteWorktree(t *testing.T) {
 	waitForText(t, tm, "feature-a", loadWait)
 
 	// Delete the selected (first) worktree
-	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'d'}})
+	tm.Send(keyRune('d'))
 	waitForText(t, tm, "Delete", actionWait)
-	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'y'}})
+	tm.Send(keyRune('y'))
 
 	// Wait until git actually has only 1 worktree left
 	teatest.WaitFor(t, tm.Output(), func(_ []byte) bool {
@@ -106,9 +118,9 @@ func TestDeleteWorktree_ShowsToastAfterDeletion(t *testing.T) {
 
 	waitForText(t, tm, "feature-a", loadWait)
 
-	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'d'}})
+	tm.Send(keyRune('d'))
 	waitForText(t, tm, "Delete", actionWait)
-	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'y'}})
+	tm.Send(keyRune('y'))
 
 	// The toast proves spinnerActive was cleared — if the spinner stays stuck
 	// the model never re-renders status messages and this will time out.
@@ -123,9 +135,9 @@ func TestDeleteCancelWithN(t *testing.T) {
 
 	waitForText(t, tm, "feature-a", loadWait)
 
-	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'d'}})
+	tm.Send(keyRune('d'))
 	waitForText(t, tm, "Delete", actionWait)
-	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'n'}})
+	tm.Send(keyRune('n'))
 
 	// Worktree should still exist
 	wts, err := git.ListWorktrees(repo)
@@ -147,10 +159,10 @@ func TestCloneInputAppearsAndCancels(t *testing.T) {
 
 	waitForText(t, tm, "feature-a", loadWait)
 
-	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'c'}})
+	tm.Send(keyRune('c'))
 	waitForText(t, tm, "Clone", actionWait)
 
-	tm.Send(tea.KeyMsg{Type: tea.KeyEsc})
+	tm.Send(keySpecial(tea.KeyEsc))
 
 	quit(t, tm)
 }
@@ -166,13 +178,13 @@ func TestCloneWorktree(t *testing.T) {
 	waitForText(t, tm, "feature-a", loadWait)
 
 	// Open clone input (pre-filled with "feature-a")
-	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'c'}})
+	tm.Send(keyRune('c'))
 	waitForText(t, tm, "Clone", actionWait)
 
 	// Clear pre-filled value and type new name
-	tm.Send(tea.KeyMsg{Type: tea.KeyCtrlU})
+	tm.Send(keyCtrl('u'))
 	tm.Type("feature-copy")
-	tm.Send(tea.KeyMsg{Type: tea.KeyEnter})
+	tm.Send(keySpecial(tea.KeyEnter))
 
 	// Wait until the untracked file appears in the clone. Waiting for the file
 	// (rather than just the worktree in git's list) avoids a race where git
@@ -202,10 +214,10 @@ func TestNewInputAppearsAndCancels(t *testing.T) {
 
 	waitForText(t, tm, "feature-a", loadWait)
 
-	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'n'}})
+	tm.Send(keyRune('n'))
 	waitForText(t, tm, "New worktree", actionWait)
 
-	tm.Send(tea.KeyMsg{Type: tea.KeyEsc})
+	tm.Send(keySpecial(tea.KeyEsc))
 	quit(t, tm)
 }
 
@@ -215,10 +227,10 @@ func TestNewWorktree(t *testing.T) {
 
 	waitForText(t, tm, "feature-a", loadWait)
 
-	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'n'}})
+	tm.Send(keyRune('n'))
 	waitForText(t, tm, "New worktree", actionWait)
 	tm.Type("feature-new")
-	tm.Send(tea.KeyMsg{Type: tea.KeyEnter})
+	tm.Send(keySpecial(tea.KeyEnter))
 
 	teatest.WaitFor(t, tm.Output(), func(_ []byte) bool {
 		wts, err := git.ListWorktrees(repo)
@@ -244,10 +256,10 @@ func TestYankModalAppearsAndCancels(t *testing.T) {
 
 	waitForText(t, tm, "feature-a", loadWait)
 
-	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'y'}})
+	tm.Send(keyRune('y'))
 	waitForText(t, tm, "Yank files from", actionWait)
 
-	tm.Send(tea.KeyMsg{Type: tea.KeyEsc})
+	tm.Send(keySpecial(tea.KeyEsc))
 
 	quit(t, tm)
 }
@@ -263,17 +275,17 @@ func TestYankAndPaste(t *testing.T) {
 	waitForText(t, tm, "feature-a", loadWait)
 
 	// Yank from feature-a (cursor is on row 0)
-	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'y'}})
+	tm.Send(keyRune('y'))
 	waitForText(t, tm, "Yank files from", actionWait)
 	// Confirm with all items checked
-	tm.Send(tea.KeyMsg{Type: tea.KeyEnter})
+	tm.Send(keySpecial(tea.KeyEnter))
 
 	// Clipboard indicator should appear
 	waitForText(t, tm, "feature-a", actionWait)
 
 	// Navigate to feature-b and paste
-	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'j'}})
-	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'p'}})
+	tm.Send(keyRune('j'))
+	tm.Send(keyRune('p'))
 
 	// Wait until the pasted file appears in feature-b
 	teatest.WaitFor(t, tm.Output(), func(_ []byte) bool {
@@ -298,9 +310,9 @@ func TestPushWorktree(t *testing.T) {
 	_, tm := startTUI(t, repoDir)
 	waitForText(t, tm, "feature-a", loadWait)
 
-	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'P'}})
+	tm.Send(keyRune('P'))
 	waitForText(t, tm, "Push feature-a?", actionWait)
-	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'y'}})
+	tm.Send(keyRune('y'))
 
 	waitForText(t, tm, "Pushed", loadWait)
 
@@ -318,15 +330,15 @@ func TestPushRejectedShowsForcePushPrompt(t *testing.T) {
 	_, tm := startTUI(t, repoDir)
 	waitForText(t, tm, "feature-a", loadWait)
 
-	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'P'}})
+	tm.Send(keyRune('P'))
 	waitForText(t, tm, "Push feature-a?", actionWait)
-	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'y'}})
+	tm.Send(keyRune('y'))
 
 	// The model should detect the non-fast-forward error and show the confirm modal.
 	waitForText(t, tm, "Force push?", loadWait)
 
 	// 'q' in confirm mode cancels the modal; send it to return to normal, then quit.
-	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'n'}})
+	tm.Send(keyRune('n'))
 	quit(t, tm)
 }
 
@@ -341,13 +353,13 @@ func TestPushRejectedForcePushConfirmed(t *testing.T) {
 	waitForText(t, tm, "feature-a", loadWait)
 
 	// Trigger push (will be rejected).
-	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'P'}})
+	tm.Send(keyRune('P'))
 	waitForText(t, tm, "Push feature-a?", actionWait)
-	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'y'}})
+	tm.Send(keyRune('y'))
 	waitForText(t, tm, "Force push?", loadWait)
 
 	// Confirm force push with 'y'.
-	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'y'}})
+	tm.Send(keyRune('y'))
 
 	waitForText(t, tm, "Force-pushed", loadWait)
 
@@ -369,7 +381,7 @@ func TestPullMainRefreshesBaseStatus(t *testing.T) {
 	waitForTexts(t, tm, loadWait, "main", "✓") // feature-a is rebased on old main
 
 	// Pull main (cursor is on main).
-	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'p'}})
+	tm.Send(keyRune('p'))
 	waitForText(t, tm, "Pulled", loadWait)
 
 	// After pulling, main advances; feature-a is now behind main → ✗.
@@ -393,9 +405,9 @@ func TestStashPullMainRefreshesBaseStatus(t *testing.T) {
 	waitForTexts(t, tm, loadWait, "main", "✓") // feature-a rebased on old main
 
 	// Pull main — dirty worktree triggers the stash prompt.
-	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'p'}})
+	tm.Send(keyRune('p'))
 	waitForText(t, tm, "Stash", actionWait)
-	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'y'}})
+	tm.Send(keyRune('y'))
 
 	waitForText(t, tm, "Pulled (stash restored)", loadWait)
 
@@ -416,12 +428,12 @@ func TestRenameWorktree_DotBareRepo(t *testing.T) {
 
 	waitForText(t, tm, "feature-a", loadWait)
 
-	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'r'}})
+	tm.Send(keyRune('r'))
 	waitForText(t, tm, "Rename", actionWait)
 
-	tm.Send(tea.KeyMsg{Type: tea.KeyCtrlU})
+	tm.Send(keyCtrl('u'))
 	tm.Type("feature-renamed")
-	tm.Send(tea.KeyMsg{Type: tea.KeyEnter})
+	tm.Send(keySpecial(tea.KeyEnter))
 
 	teatest.WaitFor(t, tm.Output(), func(_ []byte) bool {
 		wts, err := git.ListWorktrees(repo)
@@ -448,11 +460,11 @@ func TestRenameInputAppearsAndCancels(t *testing.T) {
 
 	waitForText(t, tm, "feature-a", loadWait)
 
-	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'r'}})
+	tm.Send(keyRune('r'))
 	waitForText(t, tm, "Rename", actionWait)
 
 	// Cancel with esc
-	tm.Send(tea.KeyMsg{Type: tea.KeyEsc})
+	tm.Send(keySpecial(tea.KeyEsc))
 
 	quit(t, tm)
 }
@@ -464,13 +476,13 @@ func TestRenameWorktree(t *testing.T) {
 	waitForText(t, tm, "feature-a", loadWait)
 
 	// Open rename input (pre-filled with "feature-a")
-	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'r'}})
+	tm.Send(keyRune('r'))
 	waitForText(t, tm, "Rename", actionWait)
 
 	// Clear the pre-filled value with ctrl+u then type new name
-	tm.Send(tea.KeyMsg{Type: tea.KeyCtrlU})
+	tm.Send(keyCtrl('u'))
 	tm.Type("feature-renamed")
-	tm.Send(tea.KeyMsg{Type: tea.KeyEnter})
+	tm.Send(keySpecial(tea.KeyEnter))
 
 	// Wait until git reports the renamed worktree
 	teatest.WaitFor(t, tm.Output(), func(_ []byte) bool {
@@ -497,10 +509,10 @@ func TestSearchModeAppearsAndCancels(t *testing.T) {
 
 	waitForText(t, tm, "feature-a", loadWait)
 
-	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'/'}})
+	tm.Send(keyRune('/'))
 	waitForText(t, tm, "Search:", actionWait)
 
-	tm.Send(tea.KeyMsg{Type: tea.KeyEsc})
+	tm.Send(keySpecial(tea.KeyEsc))
 
 	quit(t, tm)
 }
@@ -512,7 +524,7 @@ func TestSearchHighlightsAndJumps(t *testing.T) {
 	waitForText(t, tm, "feature-a", loadWait)
 
 	// Enter search and type "fix"
-	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'/'}})
+	tm.Send(keyRune('/'))
 	waitForText(t, tm, "Search:", actionWait)
 	tm.Type("fix")
 
@@ -520,7 +532,7 @@ func TestSearchHighlightsAndJumps(t *testing.T) {
 	waitForText(t, tm, "1/1", actionWait)
 
 	// Exit with enter
-	tm.Send(tea.KeyMsg{Type: tea.KeyEnter})
+	tm.Send(keySpecial(tea.KeyEnter))
 
 	quit(t, tm)
 }
@@ -532,20 +544,20 @@ func TestSearchCyclesMatches(t *testing.T) {
 	waitForText(t, tm, "feature-a", loadWait)
 
 	// Enter search and type "feature" — two matches
-	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'/'}})
+	tm.Send(keyRune('/'))
 	waitForText(t, tm, "Search:", actionWait)
 	tm.Type("feature")
 	waitForText(t, tm, "1/2", actionWait)
 
 	// ctrl+n → second match
-	tm.Send(tea.KeyMsg{Type: tea.KeyCtrlN})
+	tm.Send(keyCtrl('n'))
 	waitForText(t, tm, "2/2", actionWait)
 
 	// ctrl+p → back to first match
-	tm.Send(tea.KeyMsg{Type: tea.KeyCtrlP})
+	tm.Send(keyCtrl('p'))
 	waitForText(t, tm, "1/2", actionWait)
 
-	tm.Send(tea.KeyMsg{Type: tea.KeyEsc})
+	tm.Send(keySpecial(tea.KeyEsc))
 
 	quit(t, tm)
 }

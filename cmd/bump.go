@@ -162,9 +162,9 @@ var (
 	stylePickerOldTag     = lipgloss.NewStyle().Foreground(ui.ColorGray)
 )
 
-func (m bumpPickerModel) View() string {
+func (m bumpPickerModel) View() tea.View {
 	if m.done {
-		return ""
+		return tea.NewView("")
 	}
 	var b strings.Builder
 	b.WriteString(ui.StyleBold.Render("gx bump"))
@@ -187,7 +187,7 @@ func (m bumpPickerModel) View() string {
 	b.WriteString("\n")
 	b.WriteString(ui.StyleDim.Render("  ↑/↓ or j/k: choose  enter: confirm  q/esc: cancel"))
 	b.WriteString("\n")
-	return b.String()
+	return tea.NewView(b.String())
 }
 
 func gitOutput(dir string, args ...string) (string, error) {

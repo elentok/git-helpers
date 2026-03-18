@@ -154,7 +154,7 @@ func runWorktrees(_ string) error {
 		UseNerdFontIcons: cfg.UseNerdFontIcons,
 	}
 	m := worktrees.NewWithSettings(*repo, activeWorktreePath, settings)
-	p := tea.NewProgram(m, tea.WithAltScreen())
+	p := tea.NewProgram(m)
 	_, err = p.Run()
 	return err
 }

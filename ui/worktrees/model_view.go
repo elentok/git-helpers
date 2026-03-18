@@ -5,31 +5,36 @@ import (
 
 	"gx/ui"
 
+	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 )
 
-func (m Model) View() string {
+func (m Model) View() tea.View {
+	var content string
 	if !m.ready {
-		return "\n  Initializing…"
-	}
-	if m.err != nil {
-		return "\n  Error: " + m.err.Error()
+		content = "\n  Initializing…"
+	} else if m.err != nil {
+		content = "\n  Error: " + m.err.Error()
+	} else {
+		bg := m.normalView()
+
+		switch m.mode {
+		case modeConfirm:
+			content = overlayModal(bg, m.confirmModalView(), m.width, m.height)
+		case modeError:
+			content = overlayModal(bg, m.errorModalView(), m.width, m.height)
+		case modeLogs:
+			content = overlayModal(bg, m.logsModalView(), m.width, m.height)
+		case modeYank:
+			content = overlayModal(bg, m.yankModalView(), m.width, m.height)
+		default:
+			content = bg
+		}
 	}
 
-	bg := m.normalView()
-
-	switch m.mode {
-	case modeConfirm:
-		return overlayModal(bg, m.confirmModalView(), m.width, m.height)
-	case modeError:
-		return overlayModal(bg, m.errorModalView(), m.width, m.height)
-	case modeLogs:
-		return overlayModal(bg, m.logsModalView(), m.width, m.height)
-	case modeYank:
-		return overlayModal(bg, m.yankModalView(), m.width, m.height)
-	}
-
-	return bg
+	v := tea.NewView(content)
+	v.AltScreen = true
+	return v
 }
 
 // overlayModal centers modal over bg using placeOverlay.

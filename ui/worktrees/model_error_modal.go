@@ -21,7 +21,7 @@ func (m Model) showError(errMsg string) Model {
 	if vpH < 3 {
 		vpH = 3
 	}
-	vp := viewport.New(vpW-2, vpH)
+	vp := viewport.New(viewport.WithWidth(vpW-2), viewport.WithHeight(vpH))
 	vp.SetContent(errMsg)
 	m.errorViewport = vp
 	m.mode = modeError
@@ -66,7 +66,7 @@ func (m Model) errorModalView() string {
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(ui.ColorRed).
 		Padding(0, 1).
-		Width(m.errorViewport.Width)
+		Width(m.errorViewport.Width())
 
 	inner := lipgloss.JoinVertical(lipgloss.Left,
 		titleStyle.Render("Error"),

@@ -21,7 +21,7 @@ Upgrade the repo from Bubble Tea v1 to the Bubble Tea v2 stack described in the 
     - Audit `bubbles/*` imports and move them to `charm.land/bubbles/v2/*`.
   - Run a compile pass to expose the exact API breakage set after dependency changes.
 
-- [ ] Phase 2: Convert all models to the v2 `tea.View` API
+- [x] Phase 2: Convert all models to the v2 `tea.View` API
   - Update `View()` methods in:
     - `cmd/spinner.go`
     - `cmd/bump.go`
@@ -152,3 +152,12 @@ Upgrade the repo from Bubble Tea v1 to the Bubble Tea v2 stack described in the 
   - Primary blocker is the Bubble Tea v2 `View() tea.View` requirement.
   - Secondary blocker already visible: `viewport.New(...)` no longer accepts width/height positional ints.
 - Residual v1 indirect deps remain because `github.com/charmbracelet/x/exp/teatest` still depends on Bubble Tea v1 / Lip Gloss v1 for test helpers. That will need a Phase 6 decision or workaround.
+- Phase 2 completed on 2026-03-18.
+- Converted all app models with `View()` methods to return `tea.View`.
+- Moved alt-screen declaration from `tea.WithAltScreen()` into the worktrees model view.
+- Updated viewport construction to `viewport.New(viewport.WithWidth(...), viewport.WithHeight(...))`.
+- Updated view-adjacent width/height setters:
+  - `viewport.SetWidth` / `viewport.SetHeight`
+  - `help.SetWidth`
+- Post-Phase-2 compile result:
+  - Remaining build failures are key-message API changes in the worktrees UI (`tea.KeyMsg` field access and v1 key constants), which is the expected Phase 3 boundary.

@@ -21,7 +21,7 @@ func (m Model) enterLogsMode() Model {
 	if vpH < 3 {
 		vpH = 3
 	}
-	vp := viewport.New(vpW-2, vpH)
+	vp := viewport.New(viewport.WithWidth(vpW-2), viewport.WithHeight(vpH))
 	vp.SetContent(m.lastJobLog)
 	m.logsViewport = vp
 	m.mode = modeLogs
@@ -52,7 +52,7 @@ func (m Model) logsModalView() string {
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(ui.ColorBorder).
 		Padding(0, 1).
-		Width(m.logsViewport.Width)
+		Width(m.logsViewport.Width())
 
 	content := m.lastJobLog
 	if content == "" {

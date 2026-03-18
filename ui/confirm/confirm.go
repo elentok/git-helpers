@@ -65,17 +65,17 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m model) View() string {
+func (m model) View() tea.View {
 	body := lipgloss.NewStyle().Padding(1, 2).Render(m.prompt)
 	hint := ui.StyleDim.Render("left/right: choose  y/n: quick select  enter: confirm")
 	yes := optionLabel("Yes", m.choiceYes)
 	no := optionLabel("No", !m.choiceYes)
-	return strings.Join([]string{
+	return tea.NewView(strings.Join([]string{
 		body,
 		"  " + yes + "   " + no,
 		"  " + hint,
 		"",
-	}, "\n")
+	}, "\n"))
 }
 
 func optionLabel(label string, selected bool) string {

@@ -56,7 +56,7 @@ func (m Model) contentHeight() int {
 }
 
 func (m Model) resized() Model {
-	m.help.Width = m.width
+	m.help.SetWidth(m.width)
 	tableW, sidebarW := m.splitWidth()
 	h := m.contentHeight()
 	tableH, sidebarH := m.splitHeight(h)
@@ -79,8 +79,8 @@ func (m Model) resized() Model {
 	if vpH < 1 {
 		vpH = 1
 	}
-	m.viewport.Width = vpW
-	m.viewport.Height = vpH
+	m.viewport.SetWidth(vpW)
+	m.viewport.SetHeight(vpH)
 	m.viewport.SetContent(m.sidebarContent())
 
 	return m

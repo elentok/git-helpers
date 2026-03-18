@@ -45,8 +45,8 @@ func (m spinnerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m spinnerModel) View() string {
-	return "  " + m.sp.View() + " " + m.label + "\n"
+func (m spinnerModel) View() tea.View {
+	return tea.NewView("  " + m.sp.View() + " " + m.label + "\n")
 }
 
 func waitForDone(doneCh <-chan error) tea.Cmd {
